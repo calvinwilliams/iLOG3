@@ -1,0 +1,94 @@
+# 此文件由makelocal.sh自动生成
+# 此文件由makedir.sh自动生成
+############################################################
+# 项目名 :
+# 模块名 :
+# 备 注 :
+############################################################
+
+###### 子目录配置区
+DIROBJS		= \
+			src \
+			test \
+
+###### 加载mktpl模板库
+# 文件系统宏
+CD		=	cd
+RM		=	rm -f
+CP		=	cp -f
+MV		=	mv -f
+MKDIR		=	mkdir -p
+
+# 最终目标列表
+all		:	make
+
+# make规则
+.PHONY:make
+make	:
+	@for i in $(DIROBJS) ; do \
+		if [ -d "$$i" ] ; then \
+			if [ -f "$$i/makefile.Linux" ] ; then \
+				$(CD) $$i ; \
+				make -f makefile.Linux ; \
+				if [ $$? -ne 0 ] ; then \
+					exit 1 ; \
+				fi ; \
+				$(CD) .. ; \
+			elif [ -f "$$i/makefile" ] ; then \
+				$(CD) $$i ; \
+				make ; \
+				if [ $$? -ne 0 ] ; then \
+					exit 1 ; \
+				fi ; \
+				$(CD) .. ; \
+			fi ; \
+		fi ; \
+	done
+
+# clean规则
+.PHONY:clean
+clean	:
+	@for i in $(DIROBJS) ; do \
+		if [ -d "$$i" ] ; then \
+			if [ -f "$$i/makefile.Linux" ] ; then \
+				$(CD) $$i ; \
+				make -f makefile.Linux clean ; \
+				if [ $$? -ne 0 ] ; then \
+					exit 1 ; \
+				fi ; \
+				$(CD) .. ; \
+			elif [ -f "$$i/makefile" ] ; then \
+				$(CD) $$i ; \
+				make clean ; \
+				if [ $$? -ne 0 ] ; then \
+					exit 1 ; \
+				fi ; \
+				$(CD) .. ; \
+			fi ; \
+		fi ; \
+	done
+
+# install规则
+.PHONY:install
+install	:
+	@for i in $(DIROBJS) ; do \
+		if [ -d "$$i" ] ; then \
+			if [ -f "$$i/makefile.Linux" ] ; then \
+				$(CD) $$i ; \
+				make -f makefile.Linux install ; \
+				if [ $$? -ne 0 ] ; then \
+					exit 1 ; \
+				fi ; \
+				$(CD) .. ; \
+			elif [ -f "$$i/makefile" ] ; then \
+				$(CD) $$i ; \
+				make install ; \
+				if [ $$? -ne 0 ] ; then \
+					exit 1 ; \
+				fi ; \
+				$(CD) .. ; \
+			fi ; \
+		fi ; \
+	done
+
+

@@ -1,0 +1,45 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: iLOG3_a - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP9E.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"Debug/iLOG3_a.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.0\src\iLOG3.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP9E.tmp" 
+Creating command line "link.exe -lib /nologo /out:"Debug\iLOG3_a.lib"  ".\Debug\iLOG3.obj" "
+<h3>Output Window</h3>
+Compiling...
+iLOG3.c
+Creating library...
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP9F.bat" with contents
+[
+@echo off
+mkdir "%ProgramFiles%\iLOG3"
+mkdir "%ProgramFiles%\iLOG3\include"
+copy ..\..\..\src\*.h "%ProgramFiles%\iLOG3\include\" /Y
+mkdir "%ProgramFiles%\iLOG3\lib"
+copy Debug\*.lib "%ProgramFiles%\iLOG3\lib\" /Y
+]
+Creating command line "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP9F.bat"
+
+子目录或文件 C:\Program Files\iLOG3 已经存在。
+子目录或文件 C:\Program Files\iLOG3\include 已经存在。
+..\..\..\src\iLOG3.h
+已复制         1 个文件。
+子目录或文件 C:\Program Files\iLOG3\lib 已经存在。
+Debug\iLOG3_a.lib
+已复制         1 个文件。
+
+
+
+<h3>Results</h3>
+iLOG3_a.lib - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

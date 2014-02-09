@@ -1,0 +1,114 @@
+# 此文件由makelocal.sh自动生成
+# 此文件由makeobj.sh自动生成
+############################################################
+# 项目名 : 
+# 模块名 : 
+# 备  注 : 
+############################################################
+
+###### 源文件配置区
+# 编译宏
+AR		=	ar
+AFLAGS		=	rv
+SOFLAGS		=	-shared -fPIC
+ESOFLAGS	=	
+
+# c源代码文件宏及推导规则
+CC		=	gcc -g -O2
+
+c_FILE_o	=	$(c_FILE:.c=.o)
+c_FILE2_o	=	$(c_FILE2:.c=.o)
+c_FILE3_o	=	$(c_FILE3:.c=.o)
+c_FILE4_o	=	$(c_FILE4:.c=.o)
+c_FILE5_o	=	$(c_FILE5:.c=.o)
+c_FILE_CLEAN	=	$(c_FILE_o) $(c_FILE2_o) $(c_FILE3_o) $(c_FILE4_o) $(c_FILE5_o)
+
+.SUFFIXES:.c
+.c.o	:
+	$(CC) $(CFLAGS) -c $<
+
+c_FILE		=	\
+			LOG.c \
+			LOGS.c \
+			LOGCONF.c \
+			LOGSCONF.c \
+
+###### 目标文件、安装目录配置区
+LIB		=	libiLOG3.so
+LIBINST		=	$(HOME)/exlib
+LIB2		=	libiLOG3.a
+LIBINST2	=	$(HOME)/exlib
+HDER		= \
+			LOG.h \
+			LOGS.h \
+			LOGCONF.h \
+			LOGSCONF.h \
+
+HDERINST	=	$(HOME)/exinc/iLOG3
+
+###### 编译选项
+CFLAGS		=	-I. \
+
+###### 链接选项
+LFLAGS		=	-L. \
+			-lpthread \
+
+###### 额外宏定义区
+CLEAN_ADDITION	=
+
+###### 加载mktpl模板库
+# 最终目标列表
+all	:	$(BIN) $(BIN2) $(LIB) $(LIB2) $(OBJ) $(OBJ2) $(NOCLEAN_OBJ) $(NOINST_OBJ)
+
+# 文件系统宏
+CD		=	cd
+RM		=	del
+CP		=	mcopy
+MV		=	move
+MKDIR		=	mkdir
+
+# 预定义源文件清理删除关联宏
+_FILE_CLEAN	=	$(c_FILE_CLEAN) $(cpp_FILE_CLEAN) $(SQC_FILE_CLEAN) $(csm_FILE_CLEAN) $(c_html_FILE_CLEAN) $(cui_FILE_CLEAN) $(dtd_FILE_CLEAN) $(prt_FILE_CLEAN) $(fmd_FILE_CLEAN) $(smd_FILE_CLEAN) $(def_FILE_CLEAN) $(act_FILE_CLEAN)
+
+# 清理删除规则
+clean		:
+	$(RM) $(_FILE_CLEAN) $(BIN) $(BIN2) $(LIB) $(LIB2) $(OBJ) $(OBJ2) $(NOINST_OBJ) $(CLEAN_ADDITION)
+
+
+# 预定义源代码缺省头文件宏
+DFTHDER		=	$(csm_FILE_DFTHDER) $(cui_FILE_DFTHDER) $(dtd_FILE_DFTHDER) $(prt_FILE_DFTHDER) $(fmd_FILE_DFTHDER) $(smd_FILE_DFTHDER) $(def_FILE_DFTHDER) $(act_FILE_DFTHDER)
+
+# 提交安装规则
+install		:
+	@make -f makefile.WINDOWS-MinGW
+
+ifneq ($(strip $(LIB)),)
+ifneq ($(strip $(LIBINST)),)
+	-$(MKDIR) "$(LIBINST)"
+	$(CP) $(LIB) "$(LIBINST)/"
+endif
+endif
+
+ifneq ($(strip $(HDER)),)
+ifneq ($(strip $(HDERINST)),)
+	-$(MKDIR) "$(HDERINST)"
+	$(CP) $(HDER) "$(HDERINST)/"
+endif
+endif
+
+ifneq ($(strip $(DFTHDER)),)
+ifneq ($(strip $(DFTHDERINST)),)
+	-$(MKDIR) "$(DFTHDERINST)"
+	$(CP) $(DFTHDER) "$(DFTHDERINST)/"
+endif
+endif
+
+
+
+###### 目标文件依赖关系
+libiLOG3.so		:	$(c_FILE_o)
+	$(CC) -o $@ $(c_FILE_o) $(SOFLAGS) $(LFLAGS)
+
+libiLOG3.a		:	$(c_FILE_o)
+	$(AR) $(ARFLAGS) $@ $(c_FILE_o)
+
