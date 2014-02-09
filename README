@@ -52,7 +52,7 @@ int test_hello()
         
         /* 以不同日志等级写行日志 */
         DebugLogG( __FILE__ , __LINE__ , "hello iLOG3" ); /* 这行日志因等级不够，被华丽的过滤了 */
-        InfoLogG( __FILE__ , __LINE__ , "hello iLOG3" );
+        InfoLogG( __FILE__ , __LINE__ , "hello iLOG3" ); /* 如果启用c99还可以使用日志宏INFOLOGG来写日志，省却__FILE__,__LINE__两个参数 */
         WarnLogG( __FILE__ , __LINE__ , "hello iLOG3" );
         ErrorLogG( __FILE__ , __LINE__ , "hello iLOG3" );
         FatalLogG( __FILE__ , __LINE__ , "hello iLOG3" );
