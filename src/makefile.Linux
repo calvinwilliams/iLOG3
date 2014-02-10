@@ -35,16 +35,16 @@ c_FILE		=	\
 
 ###### 目标文件、安装目录配置区
 LIB		=	libiLOG3.so
-LIBINST		=	$(HOME)/exlib
+LIBINST		=	/usr/local/lib
 LIB2		=	libiLOG3.a
-LIBINST2	=	$(HOME)/exlib
+LIBINST2	=	/usr/local/lib
 HDER		= \
 			LOG.h \
 			LOGS.h \
 			LOGCONF.h \
 			LOGSCONF.h \
 
-HDERINST	=	$(HOME)/exinc/iLOG3
+HDERINST	=	/usr/local/include/iLOG3
 
 ###### 编译选项
 CFLAGS		=	-I. \
