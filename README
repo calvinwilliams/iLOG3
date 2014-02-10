@@ -20,7 +20,8 @@ iLOG3ÊÇÒ»¸öÇá±ãÒ×ÓÃ¡¢¸ÅÄî¼òµ¥£¬¸ßÐÔÄÜ¡¢¶à²ã½Ó¿Ú¡¢Ô­Éú¿çÆ½Ì¨¡¢£¨¹æ·¶Ê¹ÓÃÊ±£©Ïß³Ì°
 
 ´ËÍâ£¬Ô´´úÂë½á¹¹Ò²±È½Ï¼òµ¥£¬Ö»ÓÐÈý¶ÔÔ´ÎÄ¼þ£¬±ãÓÚ°áÔË¡¢Ç¶ÈëºÍÐÞ¸Ä¡£
 
-²»Ëµ·Ï»°£¬Ö±½ÓÉÏÊ¹ÓÃ´úÂë[code]
+²»Ëµ·Ï»°£¬Ö±½ÓÉÏÊ¹ÓÃ´úÂë
+[code]
 #include <stdio.h>
 
 #include "LOG.h"
@@ -75,8 +76,10 @@ int main()
 {
         return -test_hello();
 }
-[/code]ËµÃ÷Ò»ÏÂ£¬´úÂëÏÈ´´½¨ÁËÒ»¸öÈÕÖ¾¾ä±ú£¬ÉèÖÃÒ»Ð©ÊôÐÔ£¬È»ºóË¢Ë¢Ë¢µÄÐ´ÈÕÖ¾£¬×îºóÏú»ÙÈÕÖ¾¾ä±ú¡£
-±àÒë¡¢Á´½Ó¡¢Ö´ÐÐ[code]
+[/code]
+ËµÃ÷Ò»ÏÂ£¬´úÂëÏÈ´´½¨ÁËÒ»¸öÈÕÖ¾¾ä±ú£¬ÉèÖÃÒ»Ð©ÊôÐÔ£¬È»ºóË¢Ë¢Ë¢µÄÐ´ÈÕÖ¾£¬×îºóÏú»ÙÈÕÖ¾¾ä±ú¡£
+±àÒë¡¢Á´½Ó¡¢Ö´ÐÐ
+[code]
 $ gcc -g -fPIC -Wall -Werror -O2 -I. -std=c99 -I/home/calvin/exinc/iLOG3  -c test_LOG.c
 $ gcc -g -fPIC -Wall -Werror -O2 -o test_LOG test_LOG.o -L. -std=c99 -L/home/calvin/exlib -liLOG3
 $ ./test_iLOG3
@@ -111,7 +114,9 @@ $ cat test_iLOG3.log
 0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
 0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
 0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
-[/code]ÄãÏëÒ»´ÎÈÕÖ¾Êä³öµ½¶à¸ö¶ÔÏó£¨ÎÄ¼þ¡¢±ê×¼Êä³ö¡¢±ê×¼´íÎóÊä³ö¡¢syslogd»òWINDOWS EVENT¡¢Ô¶³ÌÈÕÖ¾·þÎñÆ÷µÈ£©£¬Ã»ÎÊÌâ£¬ÎÒÃÇÓÃÒ»¸öLOGS°üÁ½¸öLOG¾Í¿ÉÒÔÁË£¬¿´´úÂë[code]
+[/code]
+ÄãÏëÒ»´ÎÈÕÖ¾Êä³öµ½¶à¸ö¶ÔÏó£¨ÎÄ¼þ¡¢±ê×¼Êä³ö¡¢±ê×¼´íÎóÊä³ö¡¢syslogd»òWINDOWS EVENT¡¢Ô¶³ÌÈÕÖ¾·þÎñÆ÷µÈ£©£¬Ã»ÎÊÌâ£¬ÎÒÃÇÓÃÒ»¸öLOGS°üÁ½¸öLOG¾Í¿ÉÒÔÁË£¬¿´´úÂë
+[code]
 #include <stdio.h>
 
 #include "LOGS.h"
@@ -205,7 +210,9 @@ int main()
 {
         return -test_LOGS();
 }
-[/code]±àÒë¡¢Á´½Ó¡¢Ö´ÐÐ[code]
+[/code]
+±àÒë¡¢Á´½Ó¡¢Ö´ÐÐ
+[code]
 $ gcc -g -fPIC -Wall -Werror -O2 -I. -std=c99 -I/home/calvin/exinc/iLOG3  -c test_LOGS.c
 $ gcc -g -fPIC -Wall -Werror -O2 -o test_LOGS test_LOGS.o -L. -std=c99 -L/home/calvin/exlib -liLOG3
 $ ./test_LOGS
@@ -256,8 +263,10 @@ $ cat test_LOGS.log
 0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
 0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
 0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
-[/code]Äã¾õµÃÓÃº¯Êýµ÷ÓÃÀ´¹¹½¨ÈÕÖ¾¾ä±úÌ«·³ÁË£¬Ï£ÍûÓÃÅäÖÃÎÄ¼þ£¬Ã»ÎÊÌâ£¬iLOG3×Ô´øÁËÒ»¸ö¼òµ¥ÅäÖÃÎÄ¼þ¸ñÊ½£¬¿´
-hello_logsconf.conf[code]
+[/code]
+Äã¾õµÃÓÃº¯Êýµ÷ÓÃÀ´¹¹½¨ÈÕÖ¾¾ä±úÌ«·³ÁË£¬Ï£ÍûÓÃÅäÖÃÎÄ¼þ£¬Ã»ÎÊÌâ£¬iLOG3×Ô´øÁËÒ»¸ö¼òµ¥ÅäÖÃÎÄ¼þ¸ñÊ½£¬¿´
+hello_logsconf.conf
+[code]
 id		hello
 output		FILE	test_logconf.log
 level		INFO
@@ -272,7 +281,9 @@ output		STDOUT
 level		INFO
 custlabel1	COREIB1
 styles		DATETIME|CUSTLABEL1|FORMAT|NEWLINE
-[/code]ÏÂÃæ²»Ìá¹©ÍêÕû´úÂëÁË£¬¿´[code]
+[/code]
+ÏÂÃæ²»Ìá¹©ÍêÕû´úÂëÁË£¬¿´
+[code]
 #include "LOGSCONF.h"
 
 int test_logsconf()
@@ -287,7 +298,8 @@ int test_logsconf()
 	
 	return 0;
 }
-[/code]Ê²Ã´£¬ÄãÏÓÅäÖÃÎÄ¼þ¸ñÊ½Ì«ÄÑ¿´ÁË£¬ÎÒÁíÍâÐ´ÁËÒ»¸ö½ãÃÃº¯Êý¿âiLOG3CONF_SML£¬ÓÃSML±ê¼ÇÓïÑÔÀ´ÅäÖÃLOGS£¬¸ø¸öÎÒµÄÆäËü²úÆ·ÖÐÓÃµ½µÄÊ¾Àý[code]
+[/code]
+Ê²Ã´£¬ÄãÏÓÅäÖÃÎÄ¼þ¸ñÊ½Ì«ÄÑ¿´ÁË£¬ÎÒÁíÍâÐ´ÁËÒ»¸ö½ãÃÃº¯Êý¿âiLOG3CONF_SML£¬ÓÃSML±ê¼ÇÓïÑÔÀ´ÅäÖÃLOGS£¬¸ø¸öÎÒµÄÆäËü²úÆ·ÖÐÓÃµ½µÄÊ¾Àý[code]
 hetao
 {
 	logs
@@ -342,10 +354,12 @@ hetao
 		max_connections = 1024 ;
 	}
 }
-[/code]´úÂëÖÐÕâÑùÐ´¾ÍÄÜ½âÎöÅäÖÃ¹¹½¨LOGS[code]
+[/code]
+´úÂëÖÐÕâÑùÐ´¾ÍÄÜ½âÎöÅäÖÃ¹¹½¨LOGS[code]
 LOGS	*gs = NULL ;
 gs = CreateLogsHandleFromConfig_SML( "hetao.conf" , "/hetao/logs" , NULL ) ;
-[/code]ÄãÎÊÐÔÄÜÕ¦Ñù°¡£¿ÎÒÄÃÄ¿Ç°Í¬ÀàÈÕÖ¾º¯Êý¿â×öÁËÐÔÄÜ²âÊÔ£¬Ä¿Ç°iLOG3ÊÇ×î¿ìµÄ¡£¾ßÌå¿É²Î¼ûÔ´Âë°üÖÐµÄÓÃ»§Ö¸ÄÏÎÄµµÖÐµÄÐÔÄÜ±È½ÏÕÂ½Ú¡£
+[/code]
+ÄãÎÊÐÔÄÜÕ¦Ñù°¡£¿ÎÒÄÃÄ¿Ç°Í¬ÀàÈÕÖ¾º¯Êý¿â×öÁËÐÔÄÜ²âÊÔ£¬Ä¿Ç°iLOG3ÊÇ×î¿ìµÄ¡£¾ßÌå¿É²Î¼ûÔ´Âë°üÖÐµÄÓÃ»§Ö¸ÄÏÎÄµµÖÐµÄÐÔÄÜ±È½ÏÕÂ½Ú¡£
 
 ÊÇ²»ÊÇÔ½¿´Ô½ÐÄ¶¯ÁË£¿ÄÇ¾Í¸Ï½ôÏÂÔØÀ´ÍæÍæ°É
 Ê×Ò³´«ËÍÃÅ
