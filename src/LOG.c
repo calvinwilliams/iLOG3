@@ -21,7 +21,7 @@
 static char		sg_aszLogLevelDesc[][5+1] = { "DEBUG" , "INFO" , "WARN" , "ERROR" , "FATAL" , "NOLOG" } ;
 
 /* 版本标识 */
-int			_LOG_VERSION_1_0_0 = 0 ;
+_WINDLL_FUNC int	_LOG_VERSION_1_0_2 = 0 ;
 
 /* 线程本地存储全局对象 */
 #if ( defined _WIN32 )
@@ -174,11 +174,15 @@ void DestroyLogHandle( LOG *g )
 			free( g->hexlogbuf.bufbase );
 		}
 		
-		if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
+		if( g->open_flag == 1 )
 		{
-			if( g->pfuncCloseLogFinally )
+			if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
 			{
-				g->pfuncCloseLogFinally( g , & (g->open_handle) );
+				if( g->pfuncCloseLogFinally )
+				{
+					g->pfuncCloseLogFinally( g , & (g->open_handle) );
+					g->open_flag = 0 ;
+				}
 			}
 		}
 		
@@ -471,7 +475,6 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 	long		env_key_len ;
 	char		*env_val = NULL ;
 	long		env_val_len ;
-	
 	char		*p1 = NULL , *p2 = NULL ;
 	
 	int		nret = 0 ;
@@ -486,32 +489,36 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 	{
 		memset( pathfilename , 0x00 , sizeof(pathfilename) );
 		strncpy( pathfilename , log_pathfilename , sizeof(pathfilename)-1 );
-		pathfilename_len = strlen(pathfilename) ;
 		
-		p1 = strchr( pathfilename , '$' );
-		while( p1 )
+		if( output != LOG_OUTPUT_CALLBACK )
 		{
-			/* 展开环境变量 */
-			p2 = strchr( p1 + 1 , '$' ) ;
-			if( p2 == NULL )
-				return LOG_RETURN_ERROR_PARAMETER;
+			pathfilename_len = strlen(pathfilename) ;
 			
-			memset( env_key , 0x00 , sizeof(env_key) );
-			env_key_len = p2 - p1 + 1 ;
-			strncpy( env_key , p1 + 1 , env_key_len - 2 );
-			env_val = getenv( env_key ) ;
-			if( env_val == NULL )
-				return LOG_RETURN_ERROR_PARAMETER;
-			
-			env_val_len = strlen(env_val) ;
-			if( pathfilename_len + ( env_val_len - env_key_len ) > sizeof(pathfilename)-1 )
-				return LOG_RETURN_ERROR_PARAMETER;
-			
-			memmove( p2+1 + ( env_val_len - env_key_len ) , p2+1 , strlen(p2+1) + 1 );
-			memcpy( p1 , env_val , env_val_len );
-			pathfilename_len += env_val_len - env_key_len ;
-			
-			p1 = strchr( p1 + ( env_val_len - env_key_len ) , '$' );
+			p1 = strchr( pathfilename , '$' );
+			while( p1 )
+			{
+				/* 展开环境变量 */
+				p2 = strchr( p1 + 1 , '$' ) ;
+				if( p2 == NULL )
+					return LOG_RETURN_ERROR_PARAMETER;
+				
+				memset( env_key , 0x00 , sizeof(env_key) );
+				env_key_len = p2 - p1 + 1 ;
+				strncpy( env_key , p1 + 1 , env_key_len - 2 );
+				env_val = getenv( env_key ) ;
+				if( env_val == NULL )
+					return LOG_RETURN_ERROR_PARAMETER;
+				
+				env_val_len = strlen(env_val) ;
+				if( pathfilename_len + ( env_val_len - env_key_len ) > sizeof(pathfilename)-1 )
+					return LOG_RETURN_ERROR_PARAMETER;
+				
+				memmove( p2+1 + ( env_val_len - env_key_len ) , p2+1 , strlen(p2+1) + 1 );
+				memcpy( p1 , env_val , env_val_len );
+				pathfilename_len += env_val_len - env_key_len ;
+				
+				p1 = strchr( p1 + ( env_val_len - env_key_len ) , '$' );
+			}
 		}
 	}
 	
@@ -542,13 +549,15 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 		strcat( pathfilename , ".log" );
 	}
 	
-	if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
+	if( g->open_flag == 1 )
 	{
-		if( g->pfuncCloseLogFinally )
+		if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
 		{
-			nret = g->pfuncCloseLogFinally( g , & (g->open_handle) ) ;
-			if( nret )
-				return nret;
+			if( g->pfuncCloseLogFinally )
+			{
+				nret = g->pfuncCloseLogFinally( g , & (g->open_handle) ) ;
+				g->open_flag = 0 ;
+			}
 		}
 	}
 	
@@ -675,6 +684,7 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 			nret = g->pfuncOpenLogFirst( g , g->log_pathfilename , & (g->open_handle) ) ;
 			if( nret )
 				return nret;
+			g->open_flag = 1 ;
 		}
 	}
 	
@@ -1019,6 +1029,7 @@ static int RotateLogFileSize( LOG *g , long step )
 				nret = g->pfuncCloseLogFinally( g , & (g->open_handle) ) ;
 				if( nret )
 					return nret;
+				g->open_flag = 0 ;
 			}
 		}
 	}
@@ -1080,6 +1091,7 @@ static int RotateLogFilePerDate( LOG *g )
 				nret = g->pfuncCloseLogFinally( g , & (g->open_handle) ) ;
 				if( nret )
 					return nret;
+				g->open_flag = 0 ;
 			}
 		}
 	}
@@ -1140,6 +1152,7 @@ static int RotateLogFilePerHour( LOG *g )
 				nret = g->pfuncCloseLogFinally( g , & (g->open_handle) ) ;
 				if( nret )
 					return nret;
+				g->open_flag = 0 ;
 			}
 		}
 	}
@@ -1219,6 +1232,7 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 				nret = g->pfuncOpenLogFirst( g , g->log_pathfilename , & (g->open_handle) ) ;
 				if( nret )
 					return nret;
+				g->open_flag = 1 ;
 			}
 		}
 		else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE ) )
@@ -1229,6 +1243,7 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 				nret = g->pfuncOpenLog( g , g->log_pathfilename , & (g->open_handle) ) ;
 				if( nret )
 					return nret;
+				g->open_flag = 1 ;
 			}
 		}
 	}
@@ -1242,30 +1257,31 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 	}
 	
 	/* 关闭日志 */
-	if( g->output == LOG_OUTPUT_FILE || g->output == LOG_OUTPUT_CALLBACK )
+	if( g->open_flag == 1 )
 	{
-		if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
+		if( g->output == LOG_OUTPUT_FILE || g->output == LOG_OUTPUT_CALLBACK )
 		{
-			if( g->pfuncChangeTest )
+			if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
 			{
-				nret = g->pfuncChangeTest( g , & (g->test_handle) ) ;
-				if( nret )
-					return nret;
+				if( g->pfuncChangeTest )
+				{
+					nret = g->pfuncChangeTest( g , & (g->test_handle) ) ;
+					if( nret )
+						return nret;
+				}
 			}
-		}
-		else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) )
-		{
-		}
-		else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE ) )
-		{
-			/* 关闭日志文件 */
-			if( g->pfuncCloseLog )
+			else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE ) )
 			{
-				nret = g->pfuncCloseLog( g , & (g->open_handle) ) ;
-				if( nret )
-					return nret;
+				/* 关闭日志文件 */
+				if( g->pfuncCloseLog )
+				{
+					nret = g->pfuncCloseLog( g , & (g->open_handle) ) ;
+					if( nret )
+						return nret;
+					g->open_flag = 0 ;
+				}
+				
 			}
-			
 		}
 	}
 	
@@ -1498,6 +1514,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 				nret = g->pfuncOpenLogFirst( g , g->log_pathfilename , & (g->open_handle) ) ;
 				if( nret )
 					return nret;
+				g->open_flag = 1 ;
 			}
 		}
 		else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE ) )
@@ -1508,6 +1525,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 				nret = g->pfuncOpenLog( g , g->log_pathfilename , & (g->open_handle) ) ;
 				if( nret )
 					return nret;
+				g->open_flag = 1 ;
 			}
 		}
 	}
@@ -1521,30 +1539,34 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 	}
 	
 	/* 关闭日志 */
-	if( g->output == LOG_OUTPUT_FILE || g->output == LOG_OUTPUT_CALLBACK )
+	if( g->open_flag == 1 )
 	{
-		if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
+		if( g->output == LOG_OUTPUT_FILE || g->output == LOG_OUTPUT_CALLBACK )
 		{
-			if( g->pfuncChangeTest )
+			if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
 			{
-				nret = g->pfuncChangeTest( g , & (g->test_handle) ) ;
-				if( nret )
-					return nret;
+				if( g->pfuncChangeTest )
+				{
+					nret = g->pfuncChangeTest( g , & (g->test_handle) ) ;
+					if( nret )
+						return nret;
+				}
 			}
-		}
-		else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) )
-		{
-		}
-		else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE ) )
-		{
-			/* 关闭日志文件 */
-			if( g->pfuncCloseLog )
+			else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) )
 			{
-				nret = g->pfuncCloseLog( g , & (g->open_handle) ) ;
-				if( nret )
-					return nret;
 			}
-			
+			else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE ) )
+			{
+				/* 关闭日志文件 */
+				if( g->pfuncCloseLog )
+				{
+					nret = g->pfuncCloseLog( g , & (g->open_handle) ) ;
+					if( nret )
+						return nret;
+					g->open_flag = 0 ;
+				}
+				
+			}
 		}
 	}
 	

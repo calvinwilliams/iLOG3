@@ -8,12 +8,7 @@
 funcOpenLog MyOpenLogFirst ;
 int MyOpenLogFirst( LOG *g , char *log_pathfilename , void **open_handle )
 {
-	if( g->open_flag == 1 )
-		return 0;
-	
 	printf( "MyOpenLogFirst[%s]\n" , log_pathfilename );
-	
-	g->open_flag = 1 ;
 	return 0;
 }
 
@@ -31,12 +26,7 @@ int MyWriteLog( LOG *g , void **open_handle , int log_level , char *buf , long l
 funcCloseLog MyCloseLogFinally ;
 int MyCloseLogFinally( LOG *g , void **open_handle )
 {
-	if( g->open_flag == 0 )
-		return 0;
-	
 	printf( "MyCloseLogFinally\n" );
-	
-	g->open_flag = 0 ;
 	return 0;
 }
 

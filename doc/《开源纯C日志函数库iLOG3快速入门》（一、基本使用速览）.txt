@@ -36,7 +36,7 @@ int test_hello()
         long                buflen = sizeof(buffer)-1 ;
         
         /* 创建日志句柄 */
-        if(CreateLogHandleG() == NULL )
+        if( CreateLogHandleG() == NULL )
         {
                 printf( "创建日志句柄失败errno[%d]\n" , errno );
                 return -1;
