@@ -215,6 +215,9 @@ _WINDLL_FUNC int FatalHexLogG( char *c_filename , long c_fileline , char *buffer
 /*                    以下为高级特性                    */
 /********************************************************/
 
+/* 自定义检查日志等级回调函数类型 */
+typedef int funcFilterLog( LOG *g , void **open_handle , int log_level , char *buf , long len );
+
 /* 自定义标签数量 */
 #define LOG_MAXCNT_CUST_LABEL		3
 /* 自定义标签最大长度 */
@@ -242,6 +245,10 @@ _WINDLL_FUNC int FatalHexLogG( char *c_filename , long c_fileline , char *buffer
 #define LOG_ROTATE_SIZE_FILE_COUNT_DEFAULT		99999999
 #define LOG_ROTATE_SIZE_PRESSURE_FACTOR_DEFAULT		2
 
+/* 自定义日志转档前后回调函数类型 */
+typedef int funcBeforeRotateFile( LOG *g , char *rotate_log_pathfilename );
+typedef int funcAfterRotateFile( LOG *g , char *rotate_log_pathfilename );
+
 /* 缓冲区大小缺省值 */
 #define LOG_BUFSIZE_DEFAULT		(1024)		/* 缺省行日志缓冲区大小 */
 #define LOG_BUFSIZE_MAX			(16*1024)	/* 最大行日志缓冲区大小 */
@@ -249,24 +256,30 @@ _WINDLL_FUNC int FatalHexLogG( char *c_filename , long c_fileline , char *buffer
 #define LOG_HEXLOG_BUFSIZE_MAX		(16*1024*1024)	/* 最大十六进制块日志缓冲区大小 */
 
 /* 高级句柄环境设置函数 */
+_WINDLL_FUNC int SetFilterLogFunc( LOG *g , funcFilterLog *pfuncFilterLog );
 _WINDLL_FUNC int SetLogOptions( LOG *g , int log_options );
 _WINDLL_FUNC int SetLogFileChangeTest( LOG *g , long interval );
 _WINDLL_FUNC int SetLogCustLabel( LOG *g , int index , char *cust_label );
 _WINDLL_FUNC int SetLogRotateMode( LOG *g , int rotate_mode );
 _WINDLL_FUNC int SetLogRotateSize( LOG *g , long log_rotate_size );
 _WINDLL_FUNC int SetLogRotatePressureFactor( LOG *g , long pressure_factor );
+_WINDLL_FUNC int SetBeforeRotateFileFunc( LOG *g , funcAfterRotateFile *pfuncAfterRotateFile );
+_WINDLL_FUNC int SetAfterRotateFileFunc( LOG *g , funcAfterRotateFile *pfuncAfterRotateFile );
 _WINDLL_FUNC int SetLogBufferSize( LOG *g , long log_bufsize , long max_log_bufsize );
 _WINDLL_FUNC int SetHexLogBufferSize( LOG *g , long hexlog_bufsize , long max_log_hexbufsize );
 _WINDLL_FUNC int SetLogOutputFuncDirectly( LOG *g , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally );
 _WINDLL_FUNC int SetLogStyleFuncDirectly( LOG *g , funcLogStyle *pfuncLogStyle );
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+_WINDLL_FUNC int SetFilterLogFuncG( funcFilterLog *pfuncFilterLog );
 _WINDLL_FUNC int SetLogOptionsG( int log_options );
 _WINDLL_FUNC int SetLogFileChangeTestG( long interval );
 _WINDLL_FUNC int SetLogCustLabelG( int index , char *cust_label );
 _WINDLL_FUNC int SetLogRotateModeG( int rotate_mode );
 _WINDLL_FUNC int SetLogRotateSizeG( long log_rotate_size );
 _WINDLL_FUNC int SetLogRotatePressureFactorG( long pressure_factor );
+_WINDLL_FUNC int SetBeforeRotateFileFuncG( funcAfterRotateFile *pfuncAfterRotateFile );
+_WINDLL_FUNC int SetAfterRotateFileFuncG( funcAfterRotateFile *pfuncAfterRotateFile );
 _WINDLL_FUNC int SetLogBufferSizeG( long log_bufsize , long max_log_bufsize );
 _WINDLL_FUNC int SetHexLogBufferSizeG( long hexlog_bufsize , long max_log_hexbufsize );
 _WINDLL_FUNC int SetLogOutputFuncDirectlyG( funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally );
@@ -360,6 +373,8 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 		(_logbuf_)->buf_remain_len -= _offset_len_ ; \
 	}
 
+_WINDLL_FUNC int GetLogLevel( LOG *g );
+
 _WINDLL_FUNC LOGBUF *GetLogBuffer( LOG *g );
 _WINDLL_FUNC LOGBUF *GetHexLogBuffer( LOG *g );
 
@@ -402,6 +417,8 @@ struct tagLOG
 	/* 日志等级 */
 	int			log_level ;
 	
+	funcFilterLog	*pfuncFilterLog ;
+	
 	/* 行日志风格 */
 	long			log_styles ;
 	funcLogStyle		*pfuncLogStyle ;
@@ -427,6 +444,9 @@ struct tagLOG
 	long			pressure_factor ;
 	
 	long			skip_count ;
+	
+	funcAfterRotateFile	*pfuncAfterRotateFile ;
+	funcBeforeRotateFile	*pfuncBeforeRotateFile ;
 	
 	/* 行日志缓冲区 */
 	LOGBUF			logbuf ;

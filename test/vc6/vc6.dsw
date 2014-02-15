@@ -3,7 +3,31 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
+Project: "test_afterrotatefile"=".\test_afterrotatefile\test_afterrotatefile.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "test_demo"=".\test_demo\test_demo.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "test_filterlogfunc"=".\test_filterlogfunc\test_filterlogfunc.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

@@ -39,6 +39,8 @@ c_FILE		=	\
 			test_funny.c \
 			test_logconf.c \
 			test_logconf.c \
+			test_afterrotatefile.c \
+			test_filterlogfunc \
 
 ###### 目标文件、安装目录配置区
 BIN		=	$(c_FILE:.c=)
@@ -145,3 +147,8 @@ test_logconf		:	test_logconf.o
 test_logsconf		:	test_logsconf.o
 	$(CC) -o $@ test_logsconf.o $(LFLAGS)
 
+test_afterrotatefile	:	test_afterrotatefile.o
+	$(CC) -o $@ test_afterrotatefile.o $(LFLAGS)
+
+test_filterlogfunc	:	test_filterlogfunc.o
+	$(CC) -o $@ test_filterlogfunc.o $(LFLAGS)

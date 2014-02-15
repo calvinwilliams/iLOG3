@@ -125,9 +125,8 @@ $ cat test_iLOG3.log
 压测场景
     10个进程，每个进程开10个线程，每个线程写10000条日志
     每行日志格式大致是”日期 时间 | PID:TID:源代码文件名:源行号 | loglog”
-压测命令
-    $ time ./test_press_mpt 10 10 10000 ; wc *.log*
 开压!
+$ time ./test_press_mpt 10 10 10000 ; wc *.log*
 real    0m13.922s
 user    0m1.676s
 sys     0m12.211s
@@ -144,8 +143,6 @@ sys     0m12.211s
 
 
 
-首页传送门
-[url]http://git.oschina.net/calvinwilliams/iLOG3[/url]
 源代码中包含了用户指南和参考手册，里面有更详尽使用说明
 
 《iLOG3日志函数库用户指南.doc》
@@ -248,3 +245,16 @@ sys     0m12.211s
 6	简单配置文件属性列表	24
 
 欢迎使用，如果你碰到了使用问题或者有更酷的想法请告诉我，谢谢 ^_^
+
+
+
+首页传送门
+[url]http://git.oschina.net/calvinwilliams/iLOG3[/url]
+技术博客
+《开源纯C日志函数库iLOG3快速入门（一、基本使用速览）.txt》
+[url]http://my.oschina.net/u/988092/blog/198377[/url]
+《开源纯C日志函数库iLOG3快速入门（二、定制远程日志服务）.txt》
+[url]http://my.oschina.net/u/988092/blog/199698[/url]
+《开源纯C日志函数库iLOG3快速入门（三、日志过滤和转档后压缩）》
+[url]http://my.oschina.net/u/988092/blog/200005[/url]
+

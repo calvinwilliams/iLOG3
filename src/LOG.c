@@ -21,7 +21,7 @@
 static char		sg_aszLogLevelDesc[][5+1] = { "DEBUG" , "INFO" , "WARN" , "ERROR" , "FATAL" , "NOLOG" } ;
 
 /* 版本标识 */
-_WINDLL_FUNC int	_LOG_VERSION_1_0_2 = 0 ;
+_WINDLL_FUNC int	_LOG_VERSION_1_0_3 = 0 ;
 
 /* 线程本地存储全局对象 */
 #if ( defined _WIN32 )
@@ -1018,6 +1018,7 @@ static int RotateLogFileSize( LOG *g , long step )
 {
 	long		l ;
 	char		rotate_log_pathfilename[ MAXLEN_FILENAME + 1 ] ;
+	char		rotate_log_pathfilename_access[ MAXLEN_FILENAME + 1 ] ;
 	int		nret ;
 	
 	if( g->open_flag == 1 )
@@ -1052,7 +1053,10 @@ static int RotateLogFileSize( LOG *g , long step )
 			if( g->rotate_file_no > g->rotate_file_count )
 				g->rotate_file_no = 1 ;
 			SNPRINTF( rotate_log_pathfilename , sizeof(rotate_log_pathfilename) , "%s.%ld" , g->log_pathfilename , g->rotate_file_no );
-			nret = ACCESS( rotate_log_pathfilename , ACCESS_OK ) ;
+			strcpy( rotate_log_pathfilename_access , rotate_log_pathfilename );
+			if( g->pfuncBeforeRotateFile )
+				g->pfuncBeforeRotateFile( g , rotate_log_pathfilename_access );
+			nret = ACCESS( rotate_log_pathfilename_access , ACCESS_OK ) ;
 			if( nret == -1 )
 				break;
 		}
@@ -1063,6 +1067,8 @@ static int RotateLogFileSize( LOG *g , long step )
 		}
 		
 		RENAME( g->log_pathfilename , rotate_log_pathfilename );
+		if( g->pfuncAfterRotateFile )
+			g->pfuncAfterRotateFile( g , rotate_log_pathfilename );
 		g->skip_count = 1 ;
 	}
 	else
@@ -1128,6 +1134,8 @@ static int RotateLogFilePerDate( LOG *g )
 	{
 		SNPRINTF( rotate_log_pathfilename , sizeof(rotate_log_pathfilename) , "%s.%04d%02d%02d" , g->log_pathfilename , g->cache2_rotate_stime.tm_year+1900 , g->cache2_rotate_stime.tm_mon+1 , g->cache2_rotate_stime.tm_mday );
 		RENAME( g->log_pathfilename , rotate_log_pathfilename );
+		if( g->pfuncAfterRotateFile )
+			g->pfuncAfterRotateFile( g , rotate_log_pathfilename );
 		
 		memcpy( & (g->cache2_rotate_tv) , & (g->cache1_tv) , sizeof(struct timeval) );
 		memcpy( & (g->cache2_rotate_stime) , & (g->cache1_stime) , sizeof(struct tm) );
@@ -1191,6 +1199,8 @@ static int RotateLogFilePerHour( LOG *g )
 	{
 		SNPRINTF( rotate_log_pathfilename , sizeof(rotate_log_pathfilename) , "%s.%04d%02d%02d_%02d" , g->log_pathfilename , g->cache2_rotate_stime.tm_year+1900 , g->cache2_rotate_stime.tm_mon+1 , g->cache2_rotate_stime.tm_mday , g->cache2_rotate_stime.tm_hour );
 		RENAME( g->log_pathfilename , rotate_log_pathfilename );
+		if( g->pfuncAfterRotateFile )
+			g->pfuncAfterRotateFile( g , rotate_log_pathfilename );
 		
 		memcpy( & (g->cache2_rotate_tv) , & (g->cache1_tv) , sizeof(struct timeval) );
 		memcpy( & (g->cache2_rotate_stime) , & (g->cache1_stime) , sizeof(struct tm) );
@@ -1218,6 +1228,14 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 	if( g->pfuncLogStyle )
 	{
 		nret = g->pfuncLogStyle( g , & (g->logbuf) , c_filename , c_fileline , log_level , format , valist ) ;
+		if( nret )
+			return nret;
+	}
+	
+	/* 自定义检查日志等级 */
+	if( g->pfuncFilterLog )
+	{
+		nret = g->pfuncFilterLog( g , & (g->open_handle) , log_level , g->logbuf.bufbase , g->logbuf.buf_size-1-1 - g->logbuf.buf_remain_len ) ;
 		if( nret )
 			return nret;
 	}
@@ -1280,7 +1298,6 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 						return nret;
 					g->open_flag = 0 ;
 				}
-				
 			}
 		}
 	}
@@ -1504,6 +1521,14 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 	if( g->hexlogbuf.bufptr == g->hexlogbuf.bufbase )
 		return 0;
 	
+	/* 自定义检查日志等级 */
+	if( g->pfuncFilterLog )
+	{
+		nret = g->pfuncFilterLog( g , & (g->open_handle) , log_level , g->hexlogbuf.bufbase , g->hexlogbuf.buf_size-1-1 - g->hexlogbuf.buf_remain_len ) ;
+		if( nret )
+			return nret;
+	}
+	
 	/* 打开文件 */
 	if( g->open_flag == 0 )
 	{
@@ -1708,6 +1733,20 @@ int FatalHexLogG( char *c_filename , long c_fileline , char *buffer , long bufle
 /* 文件变动测试间隔 */
 #define LOG_FILECHANGETEST_INTERVAL_ON_OPEN_ONCE_DEFAULT	10
 
+/* 设置自定义检查日志等级回调函数类型 */
+int SetFilterLogFunc( LOG *g , funcFilterLog *pfuncFilterLog )
+{
+	g->pfuncFilterLog = pfuncFilterLog ;
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+int SetFilterLogFuncG( funcFilterLog *pfuncFilterLog )
+{
+	return SetFilterLogFunc( tls_g , pfuncFilterLog );
+}
+#endif
+
 /* 设置日志选项 */
 int SetLogOptions( LOG *g , int log_options )
 {
@@ -1834,6 +1873,34 @@ int SetLogRotatePressureFactorG( long pressure_factor )
 }
 #endif
 
+/* 设置自定义日志转档前回调函数 */
+int SetBeforeRotateFileFunc( LOG *g , funcBeforeRotateFile *pfuncBeforeRotateFile )
+{
+	g->pfuncBeforeRotateFile = pfuncBeforeRotateFile ;
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+int SetBeforeRotateFileFuncG( funcBeforeRotateFile *pfuncBeforeRotateFile )
+{
+	return SetBeforeRotateFileFunc( tls_g , pfuncBeforeRotateFile );
+}
+#endif
+
+/* 设置自定义日志转档后回调函数 */
+int SetAfterRotateFileFunc( LOG *g , funcAfterRotateFile *pfuncAfterRotateFile )
+{
+	g->pfuncAfterRotateFile = pfuncAfterRotateFile ;
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+int SetAfterRotateFileFuncG( funcAfterRotateFile *pfuncAfterRotateFile )
+{
+	return SetAfterRotateFileFunc( tls_g , pfuncAfterRotateFile );
+}
+#endif
+
 /* 设置行日志缓冲区大小 */
 int SetLogBufferSize( LOG *g , long log_bufsize , long max_log_bufsize )
 {
@@ -1906,6 +1973,11 @@ void SetGlobalLOG( LOG *g )
 	return;
 }
 #endif
+
+int GetLogLevel( LOG *g )
+{
+	return g->log_level;
+}
 
 LOGBUF *GetLogBuffer( LOG *g )
 {

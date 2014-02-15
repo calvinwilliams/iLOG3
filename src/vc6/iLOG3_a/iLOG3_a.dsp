@@ -93,7 +93,15 @@ SOURCE=..\..\LOG.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\LOGCONF.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\LOGS.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\LOGSCONF.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -105,7 +113,15 @@ SOURCE=..\..\LOG.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\LOGCONF.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\LOGS.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\LOGSCONF.h
 # End Source File
 # End Group
 # End Target
