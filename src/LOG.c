@@ -1733,20 +1733,6 @@ int FatalHexLogG( char *c_filename , long c_fileline , char *buffer , long bufle
 /* 文件变动测试间隔 */
 #define LOG_FILECHANGETEST_INTERVAL_ON_OPEN_ONCE_DEFAULT	10
 
-/* 设置自定义检查日志等级回调函数类型 */
-int SetFilterLogFunc( LOG *g , funcFilterLog *pfuncFilterLog )
-{
-	g->pfuncFilterLog = pfuncFilterLog ;
-	return 0;
-}
-
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
-int SetFilterLogFuncG( funcFilterLog *pfuncFilterLog )
-{
-	return SetFilterLogFunc( tls_g , pfuncFilterLog );
-}
-#endif
-
 /* 设置日志选项 */
 int SetLogOptions( LOG *g , int log_options )
 {
@@ -1898,6 +1884,20 @@ int SetAfterRotateFileFunc( LOG *g , funcAfterRotateFile *pfuncAfterRotateFile )
 int SetAfterRotateFileFuncG( funcAfterRotateFile *pfuncAfterRotateFile )
 {
 	return SetAfterRotateFileFunc( tls_g , pfuncAfterRotateFile );
+}
+#endif
+
+/* 设置自定义检查日志等级回调函数类型 */
+int SetFilterLogFunc( LOG *g , funcFilterLog *pfuncFilterLog )
+{
+	g->pfuncFilterLog = pfuncFilterLog ;
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+int SetFilterLogFuncG( funcFilterLog *pfuncFilterLog )
+{
+	return SetFilterLogFunc( tls_g , pfuncFilterLog );
 }
 #endif
 

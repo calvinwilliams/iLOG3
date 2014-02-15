@@ -19,17 +19,17 @@ int test_hello()
 		return -1;
 	}
 	
+	printf( "创建日志句柄成功\n" );
+	
 	SetLogOutput( g , LOG_OUTPUT_FILE , "test_hello.log" , LOG_NO_OUTPUTFUNC );
 	SetLogLevel( g , LOG_LEVEL_INFO );
 	SetLogStyles( g , LOG_STYLES_HELLO , LOG_NO_STYLEFUNC );
 	
-	printf( "创建日志句柄成功\n" );
-	
-	DebugLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	InfoLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	WarnLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	ErrorLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	FatalLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	DebugLog( g , __FILE__ , __LINE__ , "hello DEBUG" );
+	InfoLog( g , __FILE__ , __LINE__ , "hello INFO" );
+	WarnLog( g , __FILE__ , __LINE__ , "hello WARN" );
+	ErrorLog( g , __FILE__ , __LINE__ , "hello ERROR" );
+	FatalLog( g , __FILE__ , __LINE__ , "hello FATAL" );
 	
 	DebugHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
 	InfoHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );

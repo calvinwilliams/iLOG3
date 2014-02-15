@@ -1,0 +1,245 @@
+开源纯C日志函数库iLOG3快速入门（三、日志过滤和转档后压缩）
+
+前面一篇讲了开源日志函数库iLOG3其实是实现了一个日志控制框架，通过大量回调函数钩子，你完全可以编写自己的函数来替代和扩展内部默认实现的功能。这篇介绍另外两个钩子：日志过滤钩子和转档前后钩子。
+
+某些场合下，日志需要过滤后才真正输出，比如捕获某些关键词，或想自己来检查日志等级等组合判断，利用iLOG3的日志过滤钩子完全可以实现你的需求。
+（今天的示例都到VC6上开发，VC6不支持c99，所以用不了日志输出宏，就用日志输出函数吧）
+
+[code]
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+
+#if defined(_WIN32)
+#include <windows.h>
+#include <io.h>
+#include <fcntl.h>
+#elif defined(__linux__) || defined(__unix)
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/time.h>
+#endif
+
+#include "LOG.h"
+
+funcFilterLog FilterLog ;
+int FilterLog( LOG *g , void **open_handle , int log_level , char *buf , long len )
+{
+	if( log_level == LOG_LEVEL_ERROR )
+		return 0;
+	
+	if( strstr( buf , "FATAL" ) )
+		return 0;
+	
+	return -1;
+}
+
+#define LOG_STYLES_FILTERLOG	( LOG_STYLE_DATETIME | LOG_STYLE_FORMAT | LOG_STYLE_NEWLINE )
+
+int test_filterlog()
+{
+	if( CreateLogHandleG() == NULL )
+	{
+		printf( "创建日志句柄失败errno[%d]\n" , errno );
+		return -1;
+	}
+	else
+	{
+		printf( "创建日志句柄成功\n" );
+	}
+	
+	SetLogOutputG( LOG_OUTPUT_FILE , "test_filterlog.log" , LOG_NO_OUTPUTFUNC );
+	SetLogLevelG( LOG_LEVEL_INFO );
+	SetLogStylesG( LOG_STYLES_FILTERLOG , LOG_NO_STYLEFUNC );
+	SetFilterLogFuncG( & FilterLog );
+	
+	DebugLogG( __FILE__ , __LINE__ , "hello DEBUG" );
+	InfoLogG( __FILE__ , __LINE__ , "hello INFO" );
+	WarnLogG( __FILE__ , __LINE__ , "hello WARN" );
+	ErrorLogG( __FILE__ , __LINE__ , "hello ERROR" );
+	FatalLogG( __FILE__ , __LINE__ , "hello FATAL" );
+	
+	DestroyLogHandleG();
+	printf( "销毁句柄环境\n" );
+	
+	return 0;
+}
+
+int main()
+{
+	return -test_filterlog();
+}
+[/code]
+
+如果看过前面几篇你应该能看出以上示例和以前相比只是多个一行代码：挂接日志过滤函数FilterLog
+[code]
+SetFilterLogFuncG( & FilterLog );
+[/code]
+函数FilterLog实现了只要输出日志等级为ERROR或日志信息中出现了关键词"FATAL"就照常输出，其它都过滤掉。
+在VC6中编译，链接（加上库iLOG3.lib），运行，打开日志文件
+test_filterlogfunc.log
+[code]
+2014-02-15 09:54:47 | hello ERROR
+2014-02-15 09:54:47 | hello FATAL
+[/code]
+很简单吧？
+
+下面介绍很重要的功能，日志转档后压缩，通过转档前后回调函数钩子来实现。
+转档后压缩可以减轻系统在存储上的压力，和转档功能配合可以实现长时间自动运维。
+上示例代码：
+[code]
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+
+#if defined(_WIN32)
+#include <windows.h>
+#include <io.h>
+#include <fcntl.h>
+#elif defined(__linux__) || defined(__unix)
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/time.h>
+#endif
+
+#include "LOG.h"
+
+funcBeforeRotateFile BeforeRotateFile ;
+int BeforeRotateFile( LOG *g , char *rotate_log_pathfilename )
+{
+	strcat( rotate_log_pathfilename , ".rar" );
+	return 0;
+}
+
+funcAfterRotateFile AfterRotateFile ;
+int AfterRotateFile( LOG *g , char *rotate_log_pathfilename )
+{
+	char	cmd[ 256 + 1 ] ;
+	
+	memset( cmd , 0x00 , sizeof(cmd) );
+	SNPRINTF( cmd , sizeof(cmd)-1 , "Rar.exe m %s.rar %s" , rotate_log_pathfilename , rotate_log_pathfilename );
+	system( cmd );
+	
+	return 0;
+}
+
+#define LOG_STYLES_PRESS	( LOG_STYLE_DATETIME | LOG_STYLE_FORMAT | LOG_STYLE_NEWLINE )
+
+int test_afterrotatefile()
+{
+	long		l ;
+	
+	if( CreateLogHandleG() == NULL )
+	{
+		printf( "创建日志句柄失败errno[%d]\n" , errno );
+		return -1;
+	}
+	else
+	{
+		printf( "创建日志句柄成功\n" );
+	}
+	
+	SetLogOutputG( LOG_OUTPUT_FILE , "test_afterrotatefile.log" , LOG_NO_OUTPUTFUNC );
+	SetLogLevelG( LOG_LEVEL_INFO );
+	SetLogStylesG( LOG_STYLES_PRESS , LOG_NO_STYLEFUNC );
+	SetLogRotateModeG( LOG_ROTATEMODE_SIZE );
+	SetLogRotateSizeG( 100*1024 );
+	SetBeforeRotateFileFuncG( & BeforeRotateFile );
+	SetAfterRotateFileFuncG( & AfterRotateFile );
+	
+	for( l = 1 ; l <= 10000 ; l++ )
+	{
+		InfoLogG( __FILE__ , __LINE__ , "log" );
+	}
+	
+	DestroyLogHandleG();
+	printf( "销毁句柄环境\n" );
+	
+	return 0;
+}
+
+int main()
+{
+	return -test_afterrotatefile();
+}
+[/code]
+只是多了两行代码，设置了转档前后回调函数
+[code]
+SetBeforeRotateFileFuncG( & BeforeRotateFile );
+SetAfterRotateFileFuncG( & AfterRotateFile );
+[/code]
+转档前回调函数钩子给予一个机会微调日志文件名用于检查文件是否存在，是否存在影响了按大小转档时的转档后缀数字。转档后回调函数钩子在转档后给予一个机会用于处理转档后的日志文件。
+因为在WINDOWS上，我选择了用WinRAR压缩，那么我写的函数BeforeRotateFile把转档日志文件名微调为追加后缀.rar，函数AfterRotateFile组织一条压缩命令并执行之。
+
+编译、链接、运行
+输出
+[code]
+创建日志句柄成功
+
+RAR 3.80    版权 (C) 1993-2008 Alexander Roshal    16 九月 2008
+已注册给 Federal Agency for Education
+
+正在创建  压缩文件 test_afterrotatefile.log.1.rar
+
+正在添加    test_afterrotatefile.log.1                                  完成
+正在删除 test_afterrotatefile.log.1        已删除
+完成
+
+RAR 3.80    版权 (C) 1993-2008 Alexander Roshal    16 九月 2008
+已注册给 Federal Agency for Education
+
+正在创建  压缩文件 test_afterrotatefile.log.2.rar
+
+正在添加    test_afterrotatefile.log.2                                  完成
+正在删除 test_afterrotatefile.log.2        已删除
+完成
+销毁句柄环境
+[/code]
+
+再看一下日志输出目录下
+2014-02-14  21:15            65,178 test_afterrotatefile.log
+2014-02-14  21:15               207 test_afterrotatefile.log.1.rar
+2014-02-14  21:15               207 test_afterrotatefile.log.2.rar
+OK，转档的文件统统都被压缩了，演示成功
+
+我的工作环境绝大多数在Linux上，一般用gzip压缩，那么两个回调函数可以改成（未编译验证）
+[code]
+funcBeforeRotateFile BeforeRotateFile ;
+int BeforeRotateFile( LOG *g , char *rotate_log_pathfilename )
+{
+	strcat( rotate_log_pathfilename , ".gz" );
+	return 0;
+}
+
+funcAfterRotateFile AfterRotateFile ;
+int AfterRotateFile( LOG *g , char *rotate_log_pathfilename )
+{
+	char	cmd[ 256 + 1 ] ;
+	
+	memset( cmd , 0x00 , sizeof(cmd) );
+	SNPRINTF( cmd , sizeof(cmd)-1 , "gzip %s" , rotate_log_pathfilename );
+	system( cmd );
+	
+	return 0;
+}
+[/code]
+
+如果你写的是跨平台软件，可以用操作系统宏条件编译。
+
+如果转档大小设置很大，会导致转档后压缩耗时很长，你可以创建(fork)一个分离进程或创建一个分离线程(pthread_create或_beginthread、CreateThread)来并行压缩而不影响日志输出函数的同步返回。
+
+现在你又进一步理解了“开源日志函数库iLOG3其实是实现了一个日志控制框架”的意思了吧。
+是不是越看越心动了？那就赶紧下载来玩玩吧
+
+首页传送门 : [url]http://git.oschina.net/calvinwilliams/iLOG3[/url]
+源代码包doc目录中包含了用户指南和参考手册，里面有更详尽的说明
