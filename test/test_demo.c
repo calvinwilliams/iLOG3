@@ -10,7 +10,10 @@
 
 int test_demo()
 {
-	LOG		*g = NULL , *g2 = NULL , *g3 = NULL , *g4 = NULL ;
+	LOG		*g = NULL , *g3 = NULL , *g4 = NULL ;
+#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
+	LOG		*g2 = NULL ;
+#endif
 	
 	char		buffer[ 64 + 1 ] = "" ;
 	long		buflen = sizeof(buffer) - 1 ;

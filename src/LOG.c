@@ -1232,7 +1232,7 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 			return nret;
 	}
 	
-	/* 自定义检查日志等级 */
+	/* 自定义过滤日志 */
 	if( g->pfuncFilterLog )
 	{
 		nret = g->pfuncFilterLog( g , & (g->open_handle) , log_level , g->logbuf.bufbase , g->logbuf.buf_size-1-1 - g->logbuf.buf_remain_len ) ;
@@ -1306,7 +1306,10 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 	if( g->output == LOG_OUTPUT_FILE )
 	{
 		/* 日志转档侦测 */
-		if( g->rotate_mode == LOG_ROTATEMODE_SIZE && g->log_rotate_size > 0 )
+		if( g->rotate_mode == LOG_ROTATEMODE_NONE )
+		{
+		}
+		else if( g->rotate_mode == LOG_ROTATEMODE_SIZE && g->log_rotate_size > 0 )
 		{
 			g->skip_count--;
 			if( g->skip_count < 1 )
@@ -1521,7 +1524,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 	if( g->hexlogbuf.bufptr == g->hexlogbuf.bufbase )
 		return 0;
 	
-	/* 自定义检查日志等级 */
+	/* 自定义过滤日志 */
 	if( g->pfuncFilterLog )
 	{
 		nret = g->pfuncFilterLog( g , & (g->open_handle) , log_level , g->hexlogbuf.bufbase , g->hexlogbuf.buf_size-1-1 - g->hexlogbuf.buf_remain_len ) ;
@@ -1599,7 +1602,10 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 	if( g->output == LOG_OUTPUT_FILE )
 	{
 		/* 日志转档侦测 */
-		if( g->rotate_mode == LOG_ROTATEMODE_SIZE && g->log_rotate_size > 0 )
+		if( g->rotate_mode == LOG_ROTATEMODE_NONE )
+		{
+		}
+		else if( g->rotate_mode == LOG_ROTATEMODE_SIZE && g->log_rotate_size > 0 )
 		{
 			g->skip_count--;
 			if( g->skip_count < 1 )

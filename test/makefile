@@ -20,7 +20,8 @@ c_FILE		=	\
 			test_logconf.c \
 			test_logsconf.c \
 			test_afterrotatefile.c \
-			test_filterlogfunc \
+			test_filterlogfunc.c \
+			bench_tiny.c \
 
 ###### 目标文件、安装目录配置区
 BIN		=	$(c_FILE:.c=)
@@ -86,3 +87,7 @@ test_afterrotatefile	:	test_afterrotatefile.o
 
 test_filterlogfunc	:	test_filterlogfunc.o
 	$(CC) -o $@ test_filterlogfunc.o $(LFLAGS)
+
+bench_tiny		:	bench_tiny.o
+	$(CC) -o $@ bench_tiny.o $(LFLAGS)
+
