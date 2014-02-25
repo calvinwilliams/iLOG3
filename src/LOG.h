@@ -327,6 +327,7 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 #define STDOUT_HANDLE		1
 #define STDERR_HANDLE		2
 #define FD_NULL			-1
+#define WRITE			_write
 #define STAT			_stat
 #define ACCESS			_access
 #define ACCESS_OK		00
@@ -339,6 +340,7 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 #define STDOUT_HANDLE		STDOUT_FILENO
 #define STDERR_HANDLE		STDERR_FILENO
 #define FD_NULL			-1
+#define WRITE			write
 #define STAT			stat
 #define ACCESS			access
 #define ACCESS_OK		F_OK

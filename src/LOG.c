@@ -437,7 +437,7 @@ static int CloseLog_closelog( LOG *g , void **open_handle )
 
 static int WriteLog_write( LOG *g , void **open_handle , int log_level , char *buf , long len , long *writelen )
 {
-	(*writelen) = write( g->fd , buf , len ) ;
+	(*writelen) = WRITE( g->fd , buf , len ) ;
 	if( (*writelen) == -1 )
 		return LOG_RETURN_ERROR_WRITEFILE;
 	
