@@ -435,7 +435,7 @@ struct tagLOG
 	/* 日志等级 */
 	int			log_level ;
 	
-	funcFilterLog	*pfuncFilterLog ;
+	funcFilterLog		*pfuncFilterLog ;
 	
 	/* 行日志风格 */
 	long			log_styles ;

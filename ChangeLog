@@ -1,3 +1,6 @@
+ver 1.0.4	2014-03-24	calvin
+		* change win32api CreateFile to CreateFileA for unicode
+
 ver 1.0.3	2014-02-14	calvin
 		* add SetLogBeforeRotateFileFunc,SetLogAfterRotateFileFunc
 		* add SetFilterLogFunc

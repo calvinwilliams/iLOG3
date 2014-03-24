@@ -282,7 +282,7 @@ static int OpenLog_OpenFile( LOG *g , char *log_pathfilename , void **open_handl
 	
 	for( l = 0 ; l < LOG_WINOPENFILE_TRYCOUNT ; l++ )
 	{
-		g->hFile = CreateFile( log_pathfilename , GENERIC_WRITE , FILE_SHARE_WRITE , NULL , OPEN_ALWAYS , FILE_ATTRIBUTE_NORMAL , NULL ) ;
+		g->hFile = CreateFileA( log_pathfilename , GENERIC_WRITE , FILE_SHARE_WRITE , NULL , OPEN_ALWAYS , FILE_ATTRIBUTE_NORMAL , NULL ) ;
 		if( g->hFile != INVALID_HANDLE_VALUE )
 			break;
 	}
