@@ -2,10 +2,12 @@
 #define _H_LOGCONF_
 
 /*
- * iLOG3 - 标准c日志函数库 简单配置文件接口
- * author  : calvin
- * email   : 
- * history : 2014-02-09	v1.0.0		创建
+ * iLOG3 - 标准c日志函数库 日志句柄集合简单配置文件接口
+ * author	: calvin
+ * email	: calvinwilliams.c@gmail.com
+ * LastVersion	: v1.0.5
+ *
+ * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
 
 #ifdef __cplusplus

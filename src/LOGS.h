@@ -2,10 +2,12 @@
 #define _H_LOGS_
 
 /*
- * iLOG3 - 标准c日志函数库
- * author  : calvin
- * email   : 
- * history : 2014-01-19	v1.0.0		创建
+ * iLOG3 - 标准c日志函数库 日志句柄集合
+ * author	: calvin
+ * email	: calvinwilliams.c@gmail.com
+ * LastVersion	: v1.0.5
+ *
+ * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
 
 #ifdef __cplusplus

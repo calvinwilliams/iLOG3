@@ -1,8 +1,10 @@
 /*
- * iLOG3 - 标准c日志函数库
- * author  : calvin
- * email   : 
- * history : 2014-01-05	v1.0.0		创建
+ * iLOG3 - 标准c日志函数库 日志句柄
+ * author	: calvin
+ * email	: calvinwilliams.c@gmail.com
+ * LastVersion	: v1.0.5
+ *
+ * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
 
 #if ( defined _WIN32 )
@@ -21,7 +23,7 @@
 static char		sg_aszLogLevelDesc[][5+1] = { "DEBUG" , "INFO" , "WARN" , "ERROR" , "FATAL" , "NOLOG" } ;
 
 /* 版本标识 */
-_WINDLL_FUNC int	_LOG_VERSION_1_0_3 = 0 ;
+_WINDLL_FUNC int	_LOG_VERSION_1_0_5 = 0 ;
 
 /* 线程本地存储全局对象 */
 #if ( defined _WIN32 )
@@ -282,7 +284,7 @@ static int OpenLog_OpenFile( LOG *g , char *log_pathfilename , void **open_handl
 	
 	for( l = 0 ; l < LOG_WINOPENFILE_TRYCOUNT ; l++ )
 	{
-		g->hFile = CreateFileA( log_pathfilename , GENERIC_WRITE , FILE_SHARE_WRITE , NULL , OPEN_ALWAYS , FILE_ATTRIBUTE_NORMAL , NULL ) ;
+		g->hFile = CreateFileA( log_pathfilename , GENERIC_WRITE , FILE_SHARE_READ | FILE_SHARE_WRITE , NULL , OPEN_ALWAYS , FILE_ATTRIBUTE_NORMAL , NULL ) ;
 		if( g->hFile != INVALID_HANDLE_VALUE )
 			break;
 	}
@@ -730,7 +732,7 @@ static int LogStyle_SEPARATOR2( LOG *g , LOGBUF *logbuf , char *c_filename , lon
 static int LogStyle_DATE( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fileline , int log_level , char *format , va_list valist )
 {
 	if( g->cache1_tv.tv_sec == 0 )
-		time( & (g->cache1_tv.tv_sec) );
+		g->cache1_tv.tv_sec = time( NULL ) ;
 	if( g->cache1_tv.tv_sec != g->cache2_logstyle_tv.tv_sec )
 	{
 		LOCALTIME( g->cache1_tv.tv_sec , g->cache1_stime )
@@ -751,7 +753,7 @@ static int LogStyle_DATE( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fi
 static int LogStyle_DATETIME( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fileline , int log_level , char *format , va_list valist )
 {
 	if( g->cache1_tv.tv_sec == 0 )
-		time( & (g->cache1_tv.tv_sec) );
+		g->cache1_tv.tv_sec = time( NULL ) ;
 	if( g->cache1_tv.tv_sec != g->cache2_logstyle_tv.tv_sec )
 	{
 		LOCALTIME( g->cache1_tv.tv_sec , g->cache1_stime )
@@ -1107,7 +1109,7 @@ static int RotateLogFilePerDate( LOG *g )
 		return nret;
 	
 	if( g->cache1_tv.tv_sec == 0 )
-		time( & (g->cache1_tv.tv_sec) );
+		g->cache1_tv.tv_sec = time( NULL ) ;
 	if( g->cache1_stime.tm_mday == 0 )
 		LOCALTIME( g->cache1_tv.tv_sec , g->cache1_stime )
 	
@@ -1170,7 +1172,7 @@ static int RotateLogFilePerHour( LOG *g )
 		return nret;
 	
 	if( g->cache1_tv.tv_sec == 0 )
-		time( & (g->cache1_tv.tv_sec) );
+		g->cache1_tv.tv_sec = time( NULL ) ;
 	if( g->cache1_stime.tm_mday == 0 )
 		LOCALTIME( g->cache1_tv.tv_sec , g->cache1_stime )
 	
