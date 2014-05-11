@@ -1,0 +1,20 @@
+ver 1.0.5	2014-05-11	calvin
+		* 解决BUG : 64位windows上的struct timeval.tv_sec是long long类型引起的时间问题
+		* 解决BUG : CreateFileA打开日志文件改使用FILE_SHARE_READ|FILE_SHARE_WRITE
+
+ver 1.0.4	2014-03-24	calvin
+		* win32api CreateFile改成CreateFileA以支持unicode
+
+ver 1.0.3	2014-02-14	calvin
+		* 补充函数SetLogBeforeRotateFileFunc,SetLogAfterRotateFileFunc
+		* 补充函数SetFilterLogFunc
+
+ver 1.0.2	2014-02-09	calvin
+		* 增加日志句柄、句柄集合的配置层函数
+
+ver 1.0.1	2014-01-19	calvin
+		* 增加日志句柄集合层
+
+ver 1.0.0	2014-01-05	calvin
+		* 创建
+
