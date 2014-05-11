@@ -20,8 +20,8 @@ iLOG3ÊÇÒ»¸öÇá±ãÒ×ÓÃ¡¢¸ÅÄî¼òµ¥£¬¸ßĞÔÄÜ¡¢¶à²ã½Ó¿Ú¡¢Ô­Éú¿çÆ½Ì¨¡¢£¨¹æ·¶Ê¹ÓÃÊ±£©Ïß³Ì°
 
 ´ËÍâ£¬Ô´´úÂë½á¹¹Ò²±È½Ï¼òµ¥£¬Ö»ÓĞÈı¶ÔÔ´ÎÄ¼ş£¬±ãÓÚ°áÔË¡¢Ç¶ÈëºÍĞŞ¸Ä¡£
 
-Ê¹ÓÃ´úÂëÊ¾Àı£º 
-[code]
+º¯Êıµ÷ÓÃ·½Ê½Ê¹ÓÃ´úÂëÊ¾Àı£º 
+[code=c]
 #include <stdio.h>
 
 #include "LOG.h"
@@ -67,7 +67,7 @@ int test_hello()
         
         /* Ïú»ÙÈÕÖ¾¾ä±ú */
         DestroyLogHandleG();
-        printf( "ÊÍ·ÅÈÕÖ¾¾ä±ú\n" );
+        printf( "Ïú»ÙÈÕÖ¾¾ä±ú\n" );
         
         return 0;
 }
@@ -114,6 +114,64 @@ $ cat test_iLOG3.log
 0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
 0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
 0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+[/code]
+
+ÅäÖÃÎÄ¼ş·½Ê½Ê¹ÓÃ´úÂëÊ¾Àı£º 
+[code=c]
+#include "LOGSCONF.h"
+
+int test_logsconf( char *program )
+{
+	LOGS	*gs = NULL ;
+	char	buffer[ 64 + 1 ] = "" ;
+	long	buflen = sizeof(buffer) - 1 ;
+	
+	/* ´ÓÅäÖÃÎÄ¼şÖĞ´ò¿ªÈÕÖ¾¾ä±ú¼¯ºÏ */
+	gs = CreateLogsHandleFromConfigG( "test_logsconf.conf" , NULL ) ;
+	printf( "´ÓÅäÖÃÎÄ¼şÖĞ´ò¿ªÈÕÖ¾¾ä±ú¼¯ºÏ³É¹¦\n" );
+	
+        /* ÒÔ²»Í¬ÈÕÖ¾µÈ¼¶Ğ´ĞĞÈÕÖ¾ */
+        DEBUGLOGG( "hello DEBUG" ); /* ÕâĞĞÈÕÖ¾ÒòµÈ¼¶²»¹»£¬±»»ªÀöµÄ¹ıÂËÁË */
+        INFOLOGG( "hello INFO" );
+        WARNLOGG( "hello WARN" );
+        ERRORLOGG( "hello ERROR" );
+        FATALLOGG( "hello FATAL" );
+        
+        /* ÒÔ²»Í¬ÈÕÖ¾µÈ¼¶Ğ´Ê®Áù½øÖÆ¿éÈÕÖ¾ */
+        DEBUGHEXLOGG( buffer , buflen , "hello DEBUG buffer[%ld]" , buflen ); /* ÓÖÒ»¸ö±»»ªÀöµÄ¹ıÂË */
+        INFOHEXLOGG( buffer , buflen , "hello INFO buffer[%ld]" , buflen );
+        WARNHEXLOGG( buffer , buflen , "hello WARN buffer[%ld]" , buflen );
+        ERRORHEXLOGG( buffer , buflen , "hello ERROR buffer[%ld]" , buflen );
+        FATALHEXLOGG( buffer , buflen , "hello FATAL buffer[%ld]" , buflen );
+	
+	/* Ïú»ÙÈÕÖ¾¾ä±ú */
+	DestroyLogsHandle( gs );
+	printf( "Ïú»ÙÈÕÖ¾¾ä±ú¼¯ºÏ\n" );
+	
+	return 0;
+}
+
+int main( int argc , char *argv[] )
+{
+	return -test_logsconf( argv[0] );
+}
+[/code]
+
+ÅäÖÃÎÄ¼ştest_logsconf.conf
+[code]
+id		test_logsconf
+output		FILE	test_logsconf.log
+level		INFO
+styles		DATETIME|LOGLEVEL|PID|TID|SOURCE|FORMAT|NEWLINE
+options		CHANGE_TEST
+rotate_mode	SIZE
+rotate_size	10MB
+log_bufsize	1MB	 5MB
+
+id		stdout
+output		STDOUT
+level		INFO
+styles		DATETIME|LOGLEVEL|PID|TID|SOURCE|FORMAT|NEWLINE
 [/code]
 
 Ñ¹²âÓ²¼ş£¨2007ÄêÂòµÄÀÏÒ¯»ú£©
