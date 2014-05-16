@@ -8,7 +8,11 @@
 funcOpenLog MyOpenLogFirst ;
 int MyOpenLogFirst( LOG *g , char *log_pathfilename , void **open_handle )
 {
+	if( IsLogOpened( g ) == 1 )
+		return 0;
+	
 	printf( "MyOpenLogFirst[%s]\n" , log_pathfilename );
+	SetOpenFlag( g , 1 );
 	return 0;
 }
 
@@ -16,7 +20,10 @@ funcWriteLog MyWriteLog ;
 int MyWriteLog( LOG *g , void **open_handle , int log_level , char *buf , long len , long *writelen )
 {
 	char	*p_log_level_desc = NULL ;
-
+	
+	if( IsLogOpened( g ) == 0 )
+		return 0;
+	
 	ConvertLogLevel_itoa( log_level , & p_log_level_desc );
 	(*writelen) = printf( "MyWriteLog[%s][%ld][%s]\n" , p_log_level_desc , len , buf ) ;
 	
@@ -26,7 +33,11 @@ int MyWriteLog( LOG *g , void **open_handle , int log_level , char *buf , long l
 funcCloseLog MyCloseLogFinally ;
 int MyCloseLogFinally( LOG *g , void **open_handle )
 {
+	if( IsLogOpened( g ) == 0 )
+		return 0;
+	
 	printf( "MyCloseLogFinally\n" );
+	SetOpenFlag( g , 0 );
 	return 0;
 }
 

@@ -1,5 +1,6 @@
 id		hello
 output		FILE	test_logconf.log
+#output		FILE	""
 level		INFO
 styles		DATETIME|LOGLEVEL|PID|TID|SOURCE|FORMAT|NEWLINE
 options		CHANGE_TEST

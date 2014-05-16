@@ -5,7 +5,7 @@
  * iLOG3 - 标准c日志函数库 日志句柄
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.5
+ * LastVersion	: v1.0.6
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -66,6 +66,7 @@ struct tm *localtime_r(const time_t *timep, struct tm *result);
 /********************************************************/
 
 /* 日志输出类型 */
+#define LOG_OUTPUT_NOSET	-1	/* 不设置 */
 #define LOG_OUTPUT_STDOUT	1	/* 标准输出 */
 #define LOG_OUTPUT_STDERR	2	/* 标准错误输出 */
 #define LOG_OUTPUT_SYSLOG	3	/* UNIX&Linux的syslog 或 Windows的WINDOWS EVENT */
@@ -392,6 +393,9 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 		(_logbuf_)->bufptr += _offset_len_ ; \
 		(_logbuf_)->buf_remain_len -= _offset_len_ ; \
 	}
+
+_WINDLL_FUNC int SetOpenFlag( LOG *g , char open_flag );
+_WINDLL_FUNC char IsLogOpened( LOG *g );
 
 _WINDLL_FUNC int GetLogLevel( LOG *g );
 

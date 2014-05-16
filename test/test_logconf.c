@@ -6,12 +6,16 @@ int test_logconf()
 	char	buffer[ 64 + 1 ] = "" ;
 	long	buflen = sizeof(buffer) - 1 ;
 	
-	g = CreateLogHandleFromConfig( "test_logconf.conf" , NULL ) ;
+	g = CreateLogHandleFromConfig( "$HOME$/etc/test_logconf.conf" , NULL ) ;
 	if( g == NULL )
 	{
 		printf( "从配置文件构建日志句柄失败\n" );
 		return -1;
 	}
+	
+	/*
+	SetLogOutput( g , LOG_OUTPUT_NOSET , "$HOME$/log/test_logconf_1.log" , LOG_NO_OUTPUTFUNC );
+	*/
 	
 	printf( "创建日志句柄成功\n" );
 	

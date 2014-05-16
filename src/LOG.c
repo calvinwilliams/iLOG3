@@ -2,7 +2,7 @@
  * iLOG3 - 标准c日志函数库 日志句柄
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.5
+ * LastVersion	: v1.0.6
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -23,7 +23,7 @@
 static char		sg_aszLogLevelDesc[][5+1] = { "DEBUG" , "INFO" , "WARN" , "ERROR" , "FATAL" , "NOLOG" } ;
 
 /* 版本标识 */
-_WINDLL_FUNC int	_LOG_VERSION_1_0_5 = 0 ;
+_WINDLL_FUNC int	_LOG_VERSION_1_0_6 = 0 ;
 
 /* 线程本地存储全局对象 */
 #if ( defined _WIN32 )
@@ -279,6 +279,8 @@ static int OpenLog_OpenFile( LOG *g , char *log_pathfilename , void **open_handl
 {
 	long	l ;
 	
+	if( log_pathfilename[0] == '\0' )
+		return 0;
 	if( g->open_flag == 1 )
 		return 0;
 	
@@ -298,6 +300,9 @@ static int OpenLog_OpenFile( LOG *g , char *log_pathfilename , void **open_handl
 static int WriteLog_WriteFile( LOG *g , void **open_handle , int log_level , char *buf , long len , long *writelen )
 {
 	BOOL	bret ;
+	
+	if( g->open_flag == 0 )
+		return -1;
 	
 	SetFilePointer( g->hFile , 0 , NULL , FILE_END );
 	bret = WriteFile( g->hFile , buf , len , writelen , NULL ) ;
@@ -320,6 +325,8 @@ static int CloseLog_CloseHandle( LOG *g , void **open_handle )
 
 static int OpenLog_RegisterEventSource( LOG *g , char *log_pathfilename , void **open_handle )
 {
+	if( log_pathfilename[0] == '\0' )
+		return 0;
 	if( g->open_flag == 1 )
 		return 0;
 	
@@ -335,6 +342,9 @@ static int WriteLog_ReportEvent( LOG *g , void **open_handle , int log_level , c
 {
 	unsigned short	event_log_level ;
 	char		*ptr = NULL ;
+	
+	if( g->open_flag == 0 )
+		return -1;
 	
 	if( log_level == LOG_LEVEL_DEBUG )
 		event_log_level = EVENTLOG_INFORMATION_TYPE ;
@@ -369,6 +379,8 @@ static long CloseLog_DeregisterEventSource( LOG *g , void **open_handle )
 
 static int OpenLog_open( LOG *g , char *log_pathfilename , void **open_handle )
 {
+	if( log_pathfilename[0] == '\0' )
+		return 0;
 	if( g->open_flag == 1 )
 		return 0;
 	
@@ -393,6 +405,8 @@ static int CloseLog_close( LOG *g , void **open_handle )
 
 static int OpenLog_openlog( LOG *g , char *log_pathfilename , void **open_handle )
 {
+	if( log_pathfilename[0] == '\0' )
+		return 0;
 	if( g->open_flag == 1 )
 		return 0;
 	
@@ -405,6 +419,9 @@ static int OpenLog_openlog( LOG *g , char *log_pathfilename , void **open_handle
 static int WriteLog_syslog( LOG *g , void **open_handle , int log_level , char *buf , long len , long *writelen )
 {
 	int	syslog_log_level ;
+	
+	if( g->open_flag == 0 )
+		return -1;
 	
 	if( log_level == LOG_LEVEL_DEBUG )
 		syslog_log_level = LOG_DEBUG ;
@@ -439,6 +456,9 @@ static int CloseLog_closelog( LOG *g , void **open_handle )
 
 static int WriteLog_write( LOG *g , void **open_handle , int log_level , char *buf , long len , long *writelen )
 {
+	if( g->open_flag == 0 )
+		return -1;
+	
 	(*writelen) = WRITE( g->fd , buf , len ) ;
 	if( (*writelen) == -1 )
 		return LOG_RETURN_ERROR_WRITEFILE;
@@ -467,17 +487,51 @@ static int ChangeTest_interval( LOG *g , void **test_handle )
 	return 0;
 }
 
-/* 设置日志输出 */
-int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally )
+int ExpandPathFilename( char *pathfilename , long pathfilename_bufsize )
 {
-	char		pathfilename[ MAXLEN_FILENAME + 1 ] ;
 	long		pathfilename_len ;
 	
+	char		*p1 = NULL , *p2 = NULL ;
 	char		env_key[ MAXLEN_FILENAME + 1 ] ;
 	long		env_key_len ;
 	char		*env_val = NULL ;
 	long		env_val_len ;
-	char		*p1 = NULL , *p2 = NULL ;
+	
+	pathfilename_len = strlen(pathfilename) ;
+	
+	p1 = strchr( pathfilename , '$' );
+	while( p1 )
+	{
+		/* 展开环境变量 */
+		p2 = strchr( p1 + 1 , '$' ) ;
+		if( p2 == NULL )
+			return LOG_RETURN_ERROR_PARAMETER;
+		
+		memset( env_key , 0x00 , sizeof(env_key) );
+		env_key_len = p2 - p1 + 1 ;
+		strncpy( env_key , p1 + 1 , env_key_len - 2 );
+		env_val = getenv( env_key ) ;
+		if( env_val == NULL )
+			return LOG_RETURN_ERROR_PARAMETER;
+		
+		env_val_len = strlen(env_val) ;
+		if( pathfilename_len + ( env_val_len - env_key_len ) > pathfilename_bufsize-1 )
+			return LOG_RETURN_ERROR_PARAMETER;
+		
+		memmove( p2+1 + ( env_val_len - env_key_len ) , p2+1 , strlen(p2+1) + 1 );
+		memcpy( p1 , env_val , env_val_len );
+		pathfilename_len += env_val_len - env_key_len ;
+		
+		p1 = strchr( p1 + ( env_val_len - env_key_len ) , '$' );
+	}
+	
+	return 0;
+}
+
+/* 设置日志输出 */
+int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally )
+{
+	char		pathfilename[ MAXLEN_FILENAME + 1 ] ;
 	
 	int		nret = 0 ;
 	
@@ -494,33 +548,9 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 		
 		if( output != LOG_OUTPUT_CALLBACK )
 		{
-			pathfilename_len = strlen(pathfilename) ;
-			
-			p1 = strchr( pathfilename , '$' );
-			while( p1 )
-			{
-				/* 展开环境变量 */
-				p2 = strchr( p1 + 1 , '$' ) ;
-				if( p2 == NULL )
-					return LOG_RETURN_ERROR_PARAMETER;
-				
-				memset( env_key , 0x00 , sizeof(env_key) );
-				env_key_len = p2 - p1 + 1 ;
-				strncpy( env_key , p1 + 1 , env_key_len - 2 );
-				env_val = getenv( env_key ) ;
-				if( env_val == NULL )
-					return LOG_RETURN_ERROR_PARAMETER;
-				
-				env_val_len = strlen(env_val) ;
-				if( pathfilename_len + ( env_val_len - env_key_len ) > sizeof(pathfilename)-1 )
-					return LOG_RETURN_ERROR_PARAMETER;
-				
-				memmove( p2+1 + ( env_val_len - env_key_len ) , p2+1 , strlen(p2+1) + 1 );
-				memcpy( p1 , env_val , env_val_len );
-				pathfilename_len += env_val_len - env_key_len ;
-				
-				p1 = strchr( p1 + ( env_val_len - env_key_len ) , '$' );
-			}
+			nret = ExpandPathFilename( pathfilename , sizeof(pathfilename) ) ;
+			if( nret )
+				return nret;
 		}
 	}
 	
@@ -558,7 +588,6 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 			if( g->pfuncCloseLogFinally )
 			{
 				nret = g->pfuncCloseLogFinally( g , & (g->open_handle) ) ;
-				g->open_flag = 0 ;
 			}
 		}
 	}
@@ -573,110 +602,113 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 	memset( g->log_pathfilename , 0x00 , sizeof(g->log_pathfilename) );
 	strncpy( g->log_pathfilename , pathfilename , sizeof(g->log_pathfilename)-1 );
 	
-	g->output = output ;
-	if( g->output == LOG_OUTPUT_STDOUT )
+	if( output != LOG_OUTPUT_NOSET )
 	{
-		g->fd = STDOUT_HANDLE ;
-		g->pfuncOpenLogFirst = NULL ;
-		g->pfuncOpenLog = NULL ;
-		g->pfuncWriteLog = & WriteLog_write ;
-		g->pfuncChangeTest = NULL ;
-		g->pfuncCloseLog = NULL ;
-		g->pfuncCloseLogFinally = NULL ;
-		
-		g->log_options &= ~LOG_OPTION_OPEN_AND_CLOSE ;
-		g->log_options &= ~LOG_OPTION_CHANGE_TEST ;
-		g->log_options |= LOG_OPTION_OPEN_ONCE ;
-		
-		g->open_flag = 1 ;
-	}
-	else if( output == LOG_OUTPUT_STDERR )
-	{
-		g->fd = STDERR_HANDLE ;
-		g->pfuncOpenLogFirst = NULL ;
-		g->pfuncOpenLog = NULL ;
-		g->pfuncWriteLog = & WriteLog_write ;
-		g->pfuncChangeTest = NULL ;
-		g->pfuncCloseLog = NULL ;
-		g->pfuncCloseLogFinally = NULL ;
-		
-		g->log_options &= ~LOG_OPTION_OPEN_AND_CLOSE ;
-		g->log_options &= ~LOG_OPTION_CHANGE_TEST ;
-		g->log_options |= LOG_OPTION_OPEN_ONCE ;
-		
-		g->open_flag = 1 ;
-	}
-	else if( output == LOG_OUTPUT_SYSLOG )
-	{
-#if ( defined _WIN32 )
-		g->pfuncOpenLogFirst = & OpenLog_RegisterEventSource ;
-		g->pfuncOpenLog = NULL ;
-		g->pfuncWriteLog = & WriteLog_ReportEvent ;
-		g->pfuncChangeTest = NULL ;
-		g->pfuncCloseLog = NULL ;
-		g->pfuncCloseLogFinally = & CloseLog_DeregisterEventSource ;
-#elif ( defined __unix ) || ( defined __linux__ )
-		g->pfuncOpenLogFirst = & OpenLog_openlog ;
-		g->pfuncOpenLog = NULL ;
-		g->pfuncWriteLog = & WriteLog_syslog ;
-		g->pfuncChangeTest = NULL ;
-		g->pfuncCloseLog = NULL ;
-		g->pfuncCloseLogFinally = & CloseLog_closelog ;
-#endif
-		
-		g->log_options &= ~LOG_OPTION_OPEN_AND_CLOSE ;
-		g->log_options &= ~LOG_OPTION_CHANGE_TEST ;
-		g->log_options |= LOG_OPTION_OPEN_ONCE ;
-		
-		g->open_flag = 0 ;
-	}
-	else if( output == LOG_OUTPUT_FILE )
-	{
-#if ( defined _WIN32 )
-		if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
+		g->output = output ;
+		if( g->output == LOG_OUTPUT_STDOUT )
 		{
-			g->pfuncOpenLogFirst = & OpenLog_OpenFile ;
-			g->pfuncOpenLog = NULL ;
-			g->pfuncWriteLog = & WriteLog_WriteFile ;
-			g->pfuncChangeTest = & ChangeTest_interval ;
-			g->pfuncCloseLog = NULL ;
-			g->pfuncCloseLogFinally = & CloseLog_CloseHandle ;
-		}
-		else
-		{
+			g->fd = STDOUT_HANDLE ;
 			g->pfuncOpenLogFirst = NULL ;
-			g->pfuncOpenLog = & OpenLog_OpenFile ;
-			g->pfuncWriteLog = & WriteLog_WriteFile ;
-			g->pfuncChangeTest = NULL ;
-			g->pfuncCloseLog = & CloseLog_CloseHandle ;
-			g->pfuncCloseLogFinally = NULL ;
-		}
-#elif ( defined __unix ) || ( defined __linux__ )
-		if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
-		{
-			g->pfuncOpenLogFirst = & OpenLog_open ;
 			g->pfuncOpenLog = NULL ;
 			g->pfuncWriteLog = & WriteLog_write ;
-			g->pfuncChangeTest = & ChangeTest_interval ;
+			g->pfuncChangeTest = NULL ;
 			g->pfuncCloseLog = NULL ;
-			g->pfuncCloseLogFinally = & CloseLog_close ;
+			g->pfuncCloseLogFinally = NULL ;
+			
+			g->log_options &= ~LOG_OPTION_OPEN_AND_CLOSE ;
+			g->log_options &= ~LOG_OPTION_CHANGE_TEST ;
+			g->log_options |= LOG_OPTION_OPEN_ONCE ;
+			
+			g->open_flag = 1 ;
 		}
-		else
+		else if( output == LOG_OUTPUT_STDERR )
 		{
+			g->fd = STDERR_HANDLE ;
 			g->pfuncOpenLogFirst = NULL ;
-			g->pfuncOpenLog = & OpenLog_open ;
+			g->pfuncOpenLog = NULL ;
 			g->pfuncWriteLog = & WriteLog_write ;
 			g->pfuncChangeTest = NULL ;
-			g->pfuncCloseLog = & CloseLog_close ;
+			g->pfuncCloseLog = NULL ;
 			g->pfuncCloseLogFinally = NULL ;
+			
+			g->log_options &= ~LOG_OPTION_OPEN_AND_CLOSE ;
+			g->log_options &= ~LOG_OPTION_CHANGE_TEST ;
+			g->log_options |= LOG_OPTION_OPEN_ONCE ;
+			
+			g->open_flag = 1 ;
 		}
+		else if( output == LOG_OUTPUT_SYSLOG )
+		{
+#if ( defined _WIN32 )
+			g->pfuncOpenLogFirst = & OpenLog_RegisterEventSource ;
+			g->pfuncOpenLog = NULL ;
+			g->pfuncWriteLog = & WriteLog_ReportEvent ;
+			g->pfuncChangeTest = NULL ;
+			g->pfuncCloseLog = NULL ;
+			g->pfuncCloseLogFinally = & CloseLog_DeregisterEventSource ;
+#elif ( defined __unix ) || ( defined __linux__ )
+			g->pfuncOpenLogFirst = & OpenLog_openlog ;
+			g->pfuncOpenLog = NULL ;
+			g->pfuncWriteLog = & WriteLog_syslog ;
+			g->pfuncChangeTest = NULL ;
+			g->pfuncCloseLog = NULL ;
+			g->pfuncCloseLogFinally = & CloseLog_closelog ;
 #endif
-		g->open_flag = 0 ;
-	}
-	else if( output == LOG_OUTPUT_CALLBACK )
-	{
-		SetLogOutputFuncDirectly( g , pfuncOpenLogFirst , pfuncOpenLog , pfuncWriteLog , pfuncChangeTest , pfuncCloseLog , pfuncCloseLogFinally );
-		g->open_flag = 0 ;
+			
+			g->log_options &= ~LOG_OPTION_OPEN_AND_CLOSE ;
+			g->log_options &= ~LOG_OPTION_CHANGE_TEST ;
+			g->log_options |= LOG_OPTION_OPEN_ONCE ;
+			
+			g->open_flag = 0 ;
+		}
+		else if( output == LOG_OUTPUT_FILE )
+		{
+#if ( defined _WIN32 )
+			if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
+			{
+				g->pfuncOpenLogFirst = & OpenLog_OpenFile ;
+				g->pfuncOpenLog = NULL ;
+				g->pfuncWriteLog = & WriteLog_WriteFile ;
+				g->pfuncChangeTest = & ChangeTest_interval ;
+				g->pfuncCloseLog = NULL ;
+				g->pfuncCloseLogFinally = & CloseLog_CloseHandle ;
+			}
+			else
+			{
+				g->pfuncOpenLogFirst = NULL ;
+				g->pfuncOpenLog = & OpenLog_OpenFile ;
+				g->pfuncWriteLog = & WriteLog_WriteFile ;
+				g->pfuncChangeTest = NULL ;
+				g->pfuncCloseLog = & CloseLog_CloseHandle ;
+				g->pfuncCloseLogFinally = NULL ;
+			}
+#elif ( defined __unix ) || ( defined __linux__ )
+			if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
+			{
+				g->pfuncOpenLogFirst = & OpenLog_open ;
+				g->pfuncOpenLog = NULL ;
+				g->pfuncWriteLog = & WriteLog_write ;
+				g->pfuncChangeTest = & ChangeTest_interval ;
+				g->pfuncCloseLog = NULL ;
+				g->pfuncCloseLogFinally = & CloseLog_close ;
+			}
+			else
+			{
+				g->pfuncOpenLogFirst = NULL ;
+				g->pfuncOpenLog = & OpenLog_open ;
+				g->pfuncWriteLog = & WriteLog_write ;
+				g->pfuncChangeTest = NULL ;
+				g->pfuncCloseLog = & CloseLog_close ;
+				g->pfuncCloseLogFinally = NULL ;
+			}
+#endif
+			g->open_flag = 0 ;
+		}
+		else if( output == LOG_OUTPUT_CALLBACK )
+		{
+			SetLogOutputFuncDirectly( g , pfuncOpenLogFirst , pfuncOpenLog , pfuncWriteLog , pfuncChangeTest , pfuncCloseLog , pfuncCloseLogFinally );
+			g->open_flag = 0 ;
+		}
 	}
 	
 	if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
@@ -686,7 +718,6 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 			nret = g->pfuncOpenLogFirst( g , g->log_pathfilename , & (g->open_handle) ) ;
 			if( nret )
 				return nret;
-			g->open_flag = 1 ;
 		}
 	}
 	
@@ -1247,12 +1278,12 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 	{
 		if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) )
 		{
+			/* 打开日志文件 */
 			if( g->pfuncOpenLogFirst )
 			{
 				nret = g->pfuncOpenLogFirst( g , g->log_pathfilename , & (g->open_handle) ) ;
 				if( nret )
 					return nret;
-				g->open_flag = 1 ;
 			}
 		}
 		else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE ) )
@@ -1263,7 +1294,6 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 				nret = g->pfuncOpenLog( g , g->log_pathfilename , & (g->open_handle) ) ;
 				if( nret )
 					return nret;
-				g->open_flag = 1 ;
 			}
 		}
 	}
@@ -1283,6 +1313,7 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 		{
 			if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
 			{
+				/* 测试日志文件 */
 				if( g->pfuncChangeTest )
 				{
 					nret = g->pfuncChangeTest( g , & (g->test_handle) ) ;
@@ -1298,7 +1329,6 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 					nret = g->pfuncCloseLog( g , & (g->open_handle) ) ;
 					if( nret )
 						return nret;
-					g->open_flag = 0 ;
 				}
 			}
 		}
@@ -1539,12 +1569,12 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 	{
 		if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) )
 		{
+			/* 打开日志文件 */
 			if( g->pfuncOpenLogFirst )
 			{
 				nret = g->pfuncOpenLogFirst( g , g->log_pathfilename , & (g->open_handle) ) ;
 				if( nret )
 					return nret;
-				g->open_flag = 1 ;
 			}
 		}
 		else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE ) )
@@ -1555,7 +1585,6 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 				nret = g->pfuncOpenLog( g , g->log_pathfilename , & (g->open_handle) ) ;
 				if( nret )
 					return nret;
-				g->open_flag = 1 ;
 			}
 		}
 	}
@@ -1575,6 +1604,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 		{
 			if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
 			{
+				/* 测试日志文件 */
 				if( g->pfuncChangeTest )
 				{
 					nret = g->pfuncChangeTest( g , & (g->test_handle) ) ;
@@ -1582,9 +1612,11 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 						return nret;
 				}
 			}
+			/*
 			else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) )
 			{
 			}
+			*/
 			else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE ) )
 			{
 				/* 关闭日志文件 */
@@ -1593,7 +1625,6 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 					nret = g->pfuncCloseLog( g , & (g->open_handle) ) ;
 					if( nret )
 						return nret;
-					g->open_flag = 0 ;
 				}
 				
 			}
@@ -1981,6 +2012,17 @@ void SetGlobalLOG( LOG *g )
 	return;
 }
 #endif
+
+int SetOpenFlag( LOG *g , char open_flag )
+{
+	g->open_flag = open_flag ;
+	return 0;
+}
+
+char IsLogOpened( LOG *g )
+{
+	return g->open_flag ;
+}
 
 int GetLogLevel( LOG *g )
 {

@@ -2,7 +2,7 @@
  * iLOG3 - 标准c日志函数库 日志句柄集合简单配置文件接口
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.5
+ * LastVersion	: v1.0.6
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -54,12 +54,16 @@ _WINDLL_FUNC LOGS *ReadLogsHandleFromConfig( FILE *fp )
 	
 	return gs;
 }
-	
+
+extern int ExpandPathFilename( char *pathfilename , long pathfilename_bufsize );
+
 LOGS *CreateLogsHandleFromConfig( char *config_filename , char *postfix )
 {
 	char		config_pathfilename[ MAXLEN_FILENAME + 1 ] ;
 	FILE		*fp = NULL ;
 	LOGS		*gs = NULL ;
+	
+	int		nret ;
 	
 	if( postfix )
 	{
@@ -71,6 +75,10 @@ LOGS *CreateLogsHandleFromConfig( char *config_filename , char *postfix )
 		memset( config_pathfilename , 0x00 , sizeof(config_pathfilename) );
 		SNPRINTF( config_pathfilename , sizeof(config_pathfilename)-1 , "%s" , config_filename );
 	}
+	
+	nret = ExpandPathFilename( config_pathfilename , sizeof(config_pathfilename) ) ;
+	if( nret )
+		return NULL;
 	
 	fp = fopen( config_pathfilename , "r" ) ;
 	if( fp == NULL )

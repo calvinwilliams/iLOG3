@@ -77,7 +77,7 @@ test_funny		:	test_funny.o
 	$(CC) -o $@ test_funny.o $(LFLAGS)
 
 test_logconf		:	test_logconf.o
-	$(CC) -o $@ test_funny.o $(LFLAGS)
+	$(CC) -o $@ test_logconf.o $(LFLAGS)
 
 test_logsconf		:	test_logsconf.o
 	$(CC) -o $@ test_logsconf.o $(LFLAGS)

@@ -1,3 +1,7 @@
+ver 1.0.6	2014-05-18	calvin
+		* add function SetOpenFlag,IsLogOpened
+		* log filename and config filename support env format string , exam : "$APP_LOGDIR$/app.log"
+		
 ver 1.0.5	2014-05-11	calvin
 		* fixed a bug on windows 64bits : change "time( & (g->cache1_tv.tv_sec) ) ;" to "g->cache1_tv.tv_sec = time( NULL ) ;"
 		* fxied a bug on windows : change "CreateFileA( ... , FILE_SHARE_WRITE , ... )" to "CreateFileA( ... , FILE_SHARE_READ | FILE_SHARE_WRITE , ... )" for opening log file by editor

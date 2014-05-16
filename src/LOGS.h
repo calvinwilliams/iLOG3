@@ -5,7 +5,7 @@
  * iLOG3 - 标准c日志函数库 日志句柄集合
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.5
+ * LastVersion	: v1.0.6
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */

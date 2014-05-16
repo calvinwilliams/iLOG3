@@ -1,0 +1,42 @@
+开源纯C日志函数库iLOG3快速入门（七、一份配置应用于多个日志文件）
+
+有网友来信，他正在开发一个多线程模型的应用服务平台，考虑到iLOG3不错的输出性能而决定采用其作为平台日志模块，但是他的每个线程根据不同的交易码输出日志到不同的文件，用一份配置文件实现不了。于是，我连夜补充开发来满足他的需求，开源软件的成长本来就是需求和实现的快速迭代过程嘛。
+
+实现原理很简单，提供一个接口修改日志句柄内的日志文件名即可。来看一个例子
+
+配置文件如下
+log.conf
+[code]
+id		hello
+output		FILE	$HOME$/log/parent.log
+level		INFO
+styles		DATETIME|LOGLEVEL|PID|TID|SOURCE|FORMAT|NEWLINE
+options		CHANGE_TEST
+rotate_mode	SIZE
+rotate_size	10MB
+log_bufsize	1MB 5MB
+[/code]
+
+父线程读取配置文件，创建日志句柄
+[code=c]
+CreateLogHandleFromConfigG( "log.conf" , NULL ) ;
+[/code]
+父线程写的都是$HOME$/log/parent.log
+
+接收到新交易后创建子线程处理，子线程继承父线程的日志句柄（基于线程本地存储的缺省全局日志句柄，线程之间是安全的），只需把日志文件名改掉即可，使用日志输出类型宏LOG_OUTPUT_NOSET可以直接修改日志文件名
+[code=c]
+char	pathfilename[ MAXLEN_FILENAME + 1 ] ;
+memset( pathfilename , 0x00 , sizeof(pathfilename) );
+snprintf( pathfilename , sizeof(pathfilename)-1 , "$HOME$/log/child_%s.log" , transaction_code ); /* transaction_code是从报文中提取出来的交易码 */
+SetLogOutputG( LOG_OUTPUT_NOSET , pathfilename , LOG_NO_OUTPUTFUNC ); /* 直接修改日志句柄内的日志文件名，如果文件已打开，会先关闭之 */
+[/code]
+子线程写的都是$HOME$/log/child_(交易码).log
+
+简单几条语句，就能使多线程或多进程读取一份配置文件或者说继承一个日志句柄，根据需要输出不同的日志文件，而不需要编写多份配置文件或避免重复创建日志句柄而带来的低效性能。
+
+采用直接调用函数、非配置文件方式使用日志句柄的实现以上主题方法类似。
+
+日志函数库iLOG3优美易读的结构框架、灵活的使用方法、出众的定制扩展能力以及不错的输出性能正在被越来越多的人使用，我在这里感谢大家的信任 ^_^
+是不是越看越心动了？那就赶紧下载来玩玩吧
+首页传送门 : [url]http://git.oschina.net/calvinwilliams/iLOG3[/url]
+源代码包doc目录中包含了用户指南和参考手册，里面有更详尽的说明

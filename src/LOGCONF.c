@@ -2,7 +2,7 @@
  * iLOG3 - 标准c日志函数库 日志句柄简单配置文件接口
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.5
+ * LastVersion	: v1.0.6
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -98,6 +98,9 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 			nret = ConvertLogOutput_atoi( value , & output ) ;
 			if( nret )
 				goto ERR;
+			
+			if( strcmp( value2 , "\"\"" ) == 0 )
+				strcpy( value2 , "" );
 			
 			nret = SetLogOutput( g , output , value2 , LOG_NO_OUTPUTFUNC ) ;
 			if( nret )
@@ -253,11 +256,15 @@ ERR :
 	return NULL;
 }
 
+extern int ExpandPathFilename( char *pathfilename , long pathfilename_bufsize );
+
 LOG *CreateLogHandleFromConfig( char *config_filename , char *postfix )
 {
 	char		config_pathfilename[ MAXLEN_FILENAME + 1 ] ;
 	FILE		*fp = NULL ;
 	LOG		*g = NULL ;
+	
+	int		nret ;
 	
 	if( postfix )
 	{
@@ -269,6 +276,10 @@ LOG *CreateLogHandleFromConfig( char *config_filename , char *postfix )
 		memset( config_pathfilename , 0x00 , sizeof(config_pathfilename) );
 		SNPRINTF( config_pathfilename , sizeof(config_pathfilename)-1 , "%s" , config_filename );
 	}
+	
+	nret = ExpandPathFilename( config_pathfilename , sizeof(config_pathfilename) ) ;
+	if( nret )
+		return NULL;
 	
 	fp = fopen( config_pathfilename , "r" ) ;
 	if( fp == NULL )

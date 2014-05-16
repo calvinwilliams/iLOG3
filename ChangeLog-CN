@@ -1,3 +1,7 @@
+ver 1.0.6	2014-05-18	calvin
+		* 新增函数SetOpenFlag,IsLogOpened
+		* 日志文件名、配置文件名表达都支持内嵌环境变量，如"$APP_LOGDIR$/app.log"
+		
 ver 1.0.5	2014-05-11	calvin
 		* 解决BUG : 64位windows上的struct timeval.tv_sec是long long类型引起的时间问题
 		* 解决BUG : CreateFileA打开日志文件改使用FILE_SHARE_READ|FILE_SHARE_WRITE
