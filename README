@@ -310,9 +310,9 @@ sys     0m12.211s
 [url]http://git.oschina.net/calvinwilliams/iLOG3[/url]
 
 技术博客
-《开源纯C日志函数库iLOG3快速入门（一、基本使用速览）.txt》
+《开源纯C日志函数库iLOG3快速入门（一、基本使用速览）》
 [url]http://my.oschina.net/u/988092/blog/198377[/url]
-《开源纯C日志函数库iLOG3快速入门（二、定制远程日志服务）.txt》
+《开源纯C日志函数库iLOG3快速入门（二、定制远程日志服务）》
 [url]http://my.oschina.net/u/988092/blog/199698[/url]
 《开源纯C日志函数库iLOG3快速入门（三、日志过滤和转档后压缩）》
 [url]http://my.oschina.net/u/988092/blog/200005[/url]
@@ -322,3 +322,5 @@ sys     0m12.211s
 [url]http://my.oschina.net/u/988092/blog/202240[/url]
 《开源纯C日志函数库iLOG3快速入门（六、日志配置文件）》
 [url]http://my.oschina.net/u/988092/blog/203743[/url]
+《开源纯C日志函数库iLOG3快速入门（七、一份配置应用于多个日志文件）》
+[url]http://my.oschina.net/u/988092/blog/265787[/url]
