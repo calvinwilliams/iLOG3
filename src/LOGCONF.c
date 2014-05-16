@@ -55,13 +55,13 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 		memset( key , 0x00 , sizeof(key) );
 		memset( value , 0x00 , sizeof(value) );
 		memset( value2 , 0x00 , sizeof(value2) );
-		sscanf( filebuffer , "%s %s %s" , key , value , value2 );
+		sscanf( filebuffer , "%s %s %[^\n]" , key , value , value2 );
 		if( key[0] == '\0' )
 			break;
 		if( value2[0] == '\"' )
 		{
 			long	len2 ;
-			sscanf( filebuffer , "%s%s%[^\"]s" , key , value , value2 );
+			sscanf( filebuffer , "%s%s%*[\"]%[^\"\n]" , key , value , value2 );
 			len2 = strlen(value2) ;
 			value2[len2-1] = '\0' ;
 			memmove( value2 , value2 + 1 , len2 - 1 );
@@ -98,9 +98,6 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 			nret = ConvertLogOutput_atoi( value , & output ) ;
 			if( nret )
 				goto ERR;
-			
-			if( strcmp( value2 , "\"\"" ) == 0 )
-				strcpy( value2 , "" );
 			
 			nret = SetLogOutput( g , output , value2 , LOG_NO_OUTPUTFUNC ) ;
 			if( nret )

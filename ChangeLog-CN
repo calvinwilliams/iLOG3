@@ -1,6 +1,7 @@
 ver 1.0.6	2014-05-18	calvin
 		* 新增函数SetOpenFlag,IsLogOpened
 		* 日志文件名、配置文件名表达都支持内嵌环境变量，如"$APP_LOGDIR$/app.log"
+		* 修正了BUG : 配置文件output行的有些路径文件名组合表达无法正确解析
 		
 ver 1.0.5	2014-05-11	calvin
 		* 解决BUG : 64位windows上的struct timeval.tv_sec是long long类型引起的时间问题
