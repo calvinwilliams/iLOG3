@@ -58,6 +58,7 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 		sscanf( filebuffer , "%s %s %[^\n]" , key , value , value2 );
 		if( key[0] == '\0' )
 			break;
+		
 		if( value2[0] == '\"' )
 		{
 			long	len2 ;
