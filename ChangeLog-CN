@@ -1,14 +1,14 @@
 ver 1.0.6	2014-05-18	calvin
 		* 新增函数SetOpenFlag,IsLogOpened用于自定义输出回调函数自己管理日志打开标志
 		* 日志文件名、配置文件名表达都支持内嵌环境变量，如"$APP_LOGDIR$/app.log"
-		* 修正了BUG : 配置文件output行的有些路径文件名组合表达无法正确解析
+		* 修正了BUG : 配置文件output行的有些路径文件名组合表达无法正确解析；感谢网友found
 		
 ver 1.0.5	2014-05-11	calvin
-		* 解决BUG : 64位windows上的struct timeval.tv_sec是long long类型引起的时间问题
-		* 解决BUG : CreateFileA打开日志文件改使用FILE_SHARE_READ|FILE_SHARE_WRITE
+		* 解决BUG : 64位windows上的struct timeval.tv_sec是long long类型引起的时间问题；感谢网友MichaelZH
+		* 解决BUG : CreateFileA打开日志文件改使用FILE_SHARE_READ|FILE_SHARE_WRITE；感谢网友MichaelZH
 
 ver 1.0.4	2014-03-24	calvin
-		* win32api CreateFile改成CreateFileA以支持unicode
+		* 解决BUG : win32api CreateFile改成CreateFileA以支持unicode；感谢网友shidapao
 
 ver 1.0.3	2014-02-14	calvin
 		* 补充函数SetLogBeforeRotateFileFunc,SetLogAfterRotateFileFunc

@@ -1,14 +1,14 @@
 ver 1.0.6	2014-05-18	calvin
 		* add function SetOpenFlag,IsLogOpened for output callback function processing open flag
 		* log filename and config filename support env format string , exam : "$APP_LOGDIR$/app.log"
-		* fixed bug : filename can't parse correctly on output item in config
+		* fixed bug : filename can't parse correctly on output item in config ; thanks to found
 		
 ver 1.0.5	2014-05-11	calvin
-		* fixed a bug on windows 64bits : change "time( & (g->cache1_tv.tv_sec) ) ;" to "g->cache1_tv.tv_sec = time( NULL ) ;"
-		* fxied a bug on windows : change "CreateFileA( ... , FILE_SHARE_WRITE , ... )" to "CreateFileA( ... , FILE_SHARE_READ | FILE_SHARE_WRITE , ... )" for opening log file by editor
+		* fixed a bug on windows 64bits : change "time( & (g->cache1_tv.tv_sec) ) ;" to "g->cache1_tv.tv_sec = time( NULL ) ;" ; thanks to MichaelZH
+		* fxied a bug on windows : change "CreateFileA( ... , FILE_SHARE_WRITE , ... )" to "CreateFileA( ... , FILE_SHARE_READ | FILE_SHARE_WRITE , ... )" for opening log file by editor ; thanks to MichaelZH
 
 ver 1.0.4	2014-03-24	calvin
-		* change win32api CreateFile to CreateFileA for unicode
+		* change win32api CreateFile to CreateFileA for unicode ; thanks to shidapao
 
 ver 1.0.3	2014-02-14	calvin
 		* add SetLogBeforeRotateFileFunc,SetLogAfterRotateFileFunc
