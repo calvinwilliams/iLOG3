@@ -2,7 +2,7 @@
 #define _H_LOGS_
 
 /*
- * iLOG3 - 标准c日志函数库 日志句柄集合
+ * iLOG3 - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
  * LastVersion	: v1.0.6

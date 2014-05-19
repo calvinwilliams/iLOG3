@@ -1,3 +1,6 @@
+ver 1.0.7	2014-05-20	calvin
+		* 编写英文文档
+
 ver 1.0.6	2014-05-18	calvin
 		* 新增函数SetOpenFlag,IsLogOpened用于自定义输出回调函数自己管理日志打开标志
 		* 日志文件名、配置文件名表达都支持内嵌环境变量，如"$APP_LOGDIR$/app.log"

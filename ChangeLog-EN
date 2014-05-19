@@ -1,3 +1,6 @@
+ver 1.0.7	2014-05-20	calvin
+		* add english doc
+
 ver 1.0.6	2014-05-18	calvin
 		* add function SetOpenFlag,IsLogOpened for output callback function processing open flag
 		* log filename and config filename support env format string , exam : "$APP_LOGDIR$/app.log"

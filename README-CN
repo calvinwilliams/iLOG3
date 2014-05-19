@@ -1,0 +1,326 @@
+iLOG3是一个轻便易用、概念简单，高性能、多层接口、原生跨平台、（规范使用时）线程安全的遵循LGPL开源协议的标准c快速日志函数库。
+
+基本特性如下：
+·原生跨平台，这意味着你的软件在日志层面上是可轻松移植的，目前支持WINDOWS & UNIX & Linux ，iLOG3会在不同的操作系统上做相应的实现和优化
+·五类日志等级
+·变参的日志函数和日志宏
+·行日志风格方案选配
+·输出介质有文件、标准输出、标准错误输出、syslogd或WINDOWS EVENT、自定义介质
+
+高级特性如下：
+·支持日志选项组合
+·支持按日志文件大小、每天、每小时转档
+·支持行日志风格自定义回调函数，很容易定制自己的行日志格式
+·支持日志文件的打开、输出、关闭自定义回调函数，很容易扩展成日志输出到远程日志服务器落地
+·线程安全、简易MDC、基于线程本地存储的缺省全局日志句柄
+
+ 分层实施“日志句柄层(LOG)->日志句柄集合层(LOGS)->配置文件接口层(LOGCONF、LOGSCONF)”。其实大部分用户的 日志需求很简单，一个进程写一个日志文件（使用日志句柄层函数即可），但也考虑到另外一些用户有多个输出对象需求（使用日志句柄集合层函数即可），还有用 户喜欢用外部配置文件来配置日志（使用配置文件接口层函数即可），不同用户在不同项目场景中使用iLOG3的不同层接口，不至于杀鸡用牛刀、小刀砍大树。
+
+我还开发了一个姐妹函数库iLOG3CONF_SML来支持用SML标记语言配置文件来配置日志句柄，有兴趣的朋友也可以调用日志句柄层或日志句柄集合层函 数开发自己的iLOG3CONF_*，实现用XML或现在流行的json或自己项目统一配置文件格式，来实现用外部配置文件配置iLOG3日志句柄环境。
+
+此外，源代码结构也比较简单，只有三对源文件，便于搬运、嵌入和修改。
+
+函数调用方式使用代码示例： 
+[code=c]
+#include <stdio.h>
+
+#include "LOG.h"
+
+#define LOG_STYLES_HELLO        ( LOG_STYLE_DATETIMEMS | LOG_STYLE_LOGLEVEL | LOG_STYLE_PID | LOG_STYLE_TID | LOG_STYLE_SOURCE | LOG_STYLE_FORMAT | LOG_STYLE_NEWLINE )
+
+int test_hello()
+{
+        char                buffer[ 64 + 1 ] = "" ;
+        long                buflen = sizeof(buffer)-1 ;
+        
+        /* 创建日志句柄 */
+        if(CreateLogHandleG() == NULL )
+        {
+                printf( "创建日志句柄失败errno[%d]\n" , errno );
+                return -1;
+        }
+        else
+        {
+                printf( "创建日志句柄成功\n" );
+        }
+        
+        /* 设置日志输出文件名 */
+        SetLogOutputG( LOG_OUTPUT_FILE , "test_iLOG3.log" , LOG_NO_OUTPUTFUNC );
+        /* 设置当前日志过滤等级 */
+        SetLogLevelG( LOG_LEVEL_INFO );
+        /* 设置当前行日志风格方案 */
+        SetLogStylesG( LOG_STYLES_HELLO , LOG_NO_STYLEFUNC);
+        
+        /* 以不同日志等级写行日志 */
+        DEBUGLOGG( "hello DEBUG" ); /* 这行日志因等级不够，被华丽的过滤了 */
+        INFOLOGG( "hello INFO" );
+        WARNLOGG( "hello WARN" );
+        ERRORLOGG( "hello ERROR" );
+        FATALLOGG( "hello FATAL" );
+        
+        /* 以不同日志等级写十六进制块日志 */
+        DEBUGHEXLOGG( buffer , buflen , "hello DEBUG buffer[%ld]" , buflen ); /* 又一个被华丽的过滤 */
+        INFOHEXLOGG( buffer , buflen , "hello INFO buffer[%ld]" , buflen );
+        WARNHEXLOGG( buffer , buflen , "hello WARN buffer[%ld]" , buflen );
+        ERRORHEXLOGG( buffer , buflen , "hello ERROR buffer[%ld]" , buflen );
+        FATALHEXLOGG( buffer , buflen , "hello FATAL buffer[%ld]" , buflen );
+        
+        /* 销毁日志句柄 */
+        DestroyLogHandleG();
+        printf( "销毁日志句柄\n" );
+        
+        return 0;
+}
+
+int main()
+{
+        return -test_hello();
+}
+[/code]
+说明一下，代码先创建了一个日志句柄，设置一些属性，然后刷刷刷的写日志，最后销毁日志句柄。
+编译、链接、执行
+[code]
+$ gcc -g -fPIC -Wall -Werror -O2 -I. -std=c99 -I/home/calvin/exinc/iLOG3  -c test_LOG.c
+$ gcc -g -fPIC -Wall -Werror -O2 -o test_LOG test_LOG.o -L. -std=c99 -L/home/calvin/exlib -liLOG3
+$ ./test_iLOG3
+创建日志句柄成功
+释放日志句柄
+$ cat test_iLOG3.log
+2014-02-10 00:26:07.418678 | INFO  | 2045:3086292688:test_iLOG3.c:32 | hello INFO
+2014-02-10 00:26:07.419236 | WARN  | 2045:3086292688:test_iLOG3.c:33 | hello WARN
+2014-02-10 00:26:07.419506 | ERROR | 2045:3086292688:test_iLOG3.c:34 | hello ERROR
+2014-02-10 00:26:07.419518 | FATAL | 2045:3086292688:test_iLOG3.c:35 | hello FATAL
+2014-02-10 00:26:07.419529 | INFO  | 2045:3086292688:test_iLOG3.c:39 | hello INFO buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-10 00:26:07.419586 | WARN  | 2045:3086292688:test_iLOG3.c:40 | hello WARN buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-10 00:26:07.419627 | ERROR | 2045:3086292688:test_iLOG3.c:41 | hello ERROR buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-10 00:26:07.419686 | FATAL | 2045:3086292688:test_iLOG3.c:42 | hello FATAL buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+[/code]
+
+配置文件方式使用代码示例： 
+[code=c]
+#include "LOGSCONF.h"
+
+int test_logsconf( char *program )
+{
+	LOGS	*gs = NULL ;
+	char	buffer[ 64 + 1 ] = "" ;
+	long	buflen = sizeof(buffer) - 1 ;
+	
+	/* 从配置文件中打开日志句柄集合 */
+	gs = CreateLogsHandleFromConfigG( "test_logsconf.conf" , NULL ) ;
+	printf( "从配置文件中打开日志句柄集合成功\n" );
+	
+        /* 以不同日志等级写行日志 */
+        DEBUGLOGG( "hello DEBUG" ); /* 这行日志因等级不够，被华丽的过滤了 */
+        INFOLOGG( "hello INFO" );
+        WARNLOGG( "hello WARN" );
+        ERRORLOGG( "hello ERROR" );
+        FATALLOGG( "hello FATAL" );
+        
+        /* 以不同日志等级写十六进制块日志 */
+        DEBUGHEXLOGG( buffer , buflen , "hello DEBUG buffer[%ld]" , buflen ); /* 又一个被华丽的过滤 */
+        INFOHEXLOGG( buffer , buflen , "hello INFO buffer[%ld]" , buflen );
+        WARNHEXLOGG( buffer , buflen , "hello WARN buffer[%ld]" , buflen );
+        ERRORHEXLOGG( buffer , buflen , "hello ERROR buffer[%ld]" , buflen );
+        FATALHEXLOGG( buffer , buflen , "hello FATAL buffer[%ld]" , buflen );
+	
+	/* 销毁日志句柄 */
+	DestroyLogsHandle( gs );
+	printf( "销毁日志句柄集合\n" );
+	
+	return 0;
+}
+
+int main( int argc , char *argv[] )
+{
+	return -test_logsconf( argv[0] );
+}
+[/code]
+
+配置文件test_logsconf.conf
+[code]
+id		test_logsconf
+output		FILE	test_logsconf.log
+level		INFO
+styles		DATETIME|LOGLEVEL|PID|TID|SOURCE|FORMAT|NEWLINE
+options		CHANGE_TEST
+rotate_mode	SIZE
+rotate_size	10MB
+log_bufsize	1MB	 5MB
+
+id		stdout
+output		STDOUT
+level		INFO
+styles		DATETIME|LOGLEVEL|PID|TID|SOURCE|FORMAT|NEWLINE
+[/code]
+
+压测硬件（2007年买的老爷机）
+    CPU  : Intel Dual E2160 1.8GHz 1.81GHz
+    内存 : 2GB
+    硬盘 : 希捷 250GB 7200转
+压测软件
+    Windows XP SP3 ( VMware 6.0 ( RedHat Enterprise Linux 5.4 分了256MB内存 ) )
+压测场景
+    10个进程，每个进程开10个线程，每个线程写10000条日志
+    每行日志格式大致是”日期 时间 | PID:TID:源代码文件名:源行号 | loglog”
+开压!
+$ time ./test_press_mpt 10 10 10000 ; wc *.log*
+real    0m13.922s
+user    0m1.676s
+sys     0m12.211s
+ 124671   997368  9100983 test_press_mpt.log
+ 148650  1189200 10851450 test_press_mpt.log.1
+ 143668  1149344 10487764 test_press_mpt.log.2
+ 143657  1149256 10486961 test_press_mpt.log.3
+ 150482  1203856 10985186 test_press_mpt.log.4
+ 143699  1149592 10490027 test_press_mpt.log.5
+ 145173  1161384 10597629 test_press_mpt.log.6
+1000000  8000000 73000000 total
+
+另外，在公司的PC SERVER也跑过，速度提高到real 6s左右
+
+
+
+源代码中包含了用户指南和参考手册，里面有更详尽使用说明
+
+《iLOG3日志函数库用户指南.doc》
+目录索引
+1	前言	5
+2	概述	5
+3	编译安装	6
+3.1	依赖库	6
+3.2	用自带makefile或VC6工程文件编译安装	7
+3.3	自己手动编译安装	9
+4	基本使用	10
+4.1	一点点概念	10
+4.2	第一个示例	10
+4.3	行日志风格方案选配	13
+5	高级特性	14
+5.1	设置日志选项	14
+5.2	日志文件转档	14
+5.3	自定义行日志风格	15
+5.4	自定义日志输出类型	16
+5.5	自定义日志的打开、输出、关闭	16
+5.6	线程安全	18
+5.6.1	MDC	18
+5.6.2	基于线程本地存储的缺省全局日志句柄	19
+5.7	一个常用示例	20
+6	日志句柄集合层	21
+7	配置文件接口层	24
+7.1	自带的简单配置文件接口层	24
+7.2	配置文件接口展望	26
+8	源码分析	27
+8.1	第一条线：日志句柄的创建销毁	28
+8.2	第二条线：日志句柄的环境设置	29
+8.3	第三条线：写日志	37
+9	同类日志函数库比较	41
+9.1	性能比较	41
+9.2	功能比较	45
+10	源代码包结构	47
+
+《iLOG3日志函数库参考手册.doc》
+目录索引
+1	宏	6
+1.1	错误码宏	6
+1.2	日志输出类型宏	6
+1.3	日志等级宏	6
+1.4	行日志风格组合宏	7
+1.5	日志选项组合宏	8
+1.6	日志转档模式宏	8
+2	日志句柄函数	9
+2.1	管理日志句柄	9
+2.1.1	创建日志句柄	9
+2.1.2	销毁日志句柄	9
+2.2	句柄环境设置	9
+2.2.1	设置日志输出	9
+2.2.2	设置当前日志过滤等级	10
+2.2.3	设置行日志风格方案	10
+2.3	高级句柄环境设置	11
+2.3.1	设置日志句柄选项	11
+2.3.2	设置自定义标签	11
+2.3.3	设置日志转档模式	11
+2.3.4	设置日志文件转档大小	12
+2.3.5	设置日志文件转档大小的压迫系数	12
+2.3.6	设置行日志缓冲区大小	12
+2.3.7	设置十六进制块日志缓冲区大小	13
+2.4	行日志输出	13
+2.4.1	带日志等级的写行日志	13
+2.4.2	写调试行日志	14
+2.4.3	写普通信息行日志	14
+2.4.4	写警告行日志	14
+2.4.5	写错误行日志	15
+2.4.6	写严重错误行日志	15
+2.5	十六进制块日志输出	16
+2.5.1	带日志等级的写十六进制块日志	16
+2.5.2	写十六进制块调试日志	16
+2.5.3	写十六进制普通信息块日志	17
+2.5.4	写十六进制块警告日志	17
+2.5.5	写十六进制块错误日志	18
+2.5.6	写十六进制块严重错误日志	18
+3	日志句柄集合函数	19
+3.1	管理日志句柄集合	19
+3.1.1	创建日志句柄集合	19
+3.1.2	销毁日志句柄集合	19
+3.2	管理日志句柄集合中的日志句柄	19
+3.2.1	压入一个日志句柄到日志句柄集合中	19
+3.2.2	从一个日志句柄集合中弹出一个指定标识的日志句柄	20
+3.2.3	从一个日志句柄集合中查询一个指定标识的日志句柄	20
+3.2.4	遍历一个日志句柄集合中所有日志句柄	20
+4	配置文件接口层函数	21
+4.1	日志句柄	21
+4.1.1	从配置文件构建日志句柄	21
+4.2	日志句柄集合	21
+4.2.1	从配置文件构建日志句柄集合	21
+5	配置辅助函数	22
+5.1	属性转换函数	22
+5.1.1	日志输出类型（字符串转换为整型）	22
+5.1.2	日志等级类型（字符串转换为整型）	22
+5.1.3	日志等级类型（整型转换为字符串）	22
+5.1.4	行日志风格（字符串转换为整型）	23
+5.1.5	日志选项（字符串转换为整型）	23
+5.1.6	日志转档模式（字符串转换为整型）	23
+5.1.7	日志缓冲区（字符串转换为整型）	24
+6	简单配置文件属性列表	24
+
+欢迎使用，如果你碰到了使用问题或者有更酷的想法请告诉我，谢谢 ^_^
+
+
+
+首页传送门
+[url]http://git.oschina.net/calvinwilliams/iLOG3[/url]
+
+技术博客
+《开源纯C日志函数库iLOG3快速入门（一、基本使用速览）》
+[url]http://my.oschina.net/u/988092/blog/198377[/url]
+《开源纯C日志函数库iLOG3快速入门（二、定制远程日志服务）》
+[url]http://my.oschina.net/u/988092/blog/199698[/url]
+《开源纯C日志函数库iLOG3快速入门（三、日志过滤和转档后压缩）》
+[url]http://my.oschina.net/u/988092/blog/200005[/url]
+《开源纯C日志函数库iLOG3快速入门（四、使用合适的日志输出函数或宏）》
+[url]http://my.oschina.net/u/988092/blog/200013[/url]
+《开源纯C日志函数库iLOG3快速入门（五、与随手写的简单写日志函数的比较）》
+[url]http://my.oschina.net/u/988092/blog/202240[/url]
+《开源纯C日志函数库iLOG3快速入门（六、日志配置文件）》
+[url]http://my.oschina.net/u/988092/blog/203743[/url]
+《开源纯C日志函数库iLOG3快速入门（七、一份配置应用于多个日志文件）》
+[url]http://my.oschina.net/u/988092/blog/265787[/url]
