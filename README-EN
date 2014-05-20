@@ -1,4 +1,4 @@
-iLOG3 is a portable and easy to use, simple concept, high performance, multiple interfaces, native cross-platform, thread safety , following the LGPL source protocol standard c log function library.
+iLOG3 is a portable and easy to use, simple concept, high performance, multiple interfaces, native cross-platform, thread safety , following the LGPL source protocol , standard c log function library.
 
 The basic features are as follows £º
 * Native cross-platform, which means that your software on the log module is easily transplanted, currently supported WINDOWS & UNIX & Linux, iLOG3 will accordingly implementation and optimization on different operating systems
