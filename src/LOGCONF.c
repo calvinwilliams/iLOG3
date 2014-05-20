@@ -62,9 +62,9 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 		if( value2[0] == '\"' )
 		{
 			long	len2 ;
-			sscanf( filebuffer , "%s%s%*[\"]%[^\"\n]" , key , value , value2 );
 			len2 = strlen(value2) ;
-			value2[len2-1] = '\0' ;
+			if( value2[len2-1] == '\"' ) /* 如果最后为引号，去掉之 by found */
+				value2[len2-1] = '\0' ;
 			memmove( value2 , value2 + 1 , len2 - 1 );
 		}
 		
