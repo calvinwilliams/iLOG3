@@ -2,7 +2,7 @@
  * iLOG3 - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.6
+ * LastVersion	: v1.0.8
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -47,7 +47,7 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 	
 	while(1)
 	{
-		/* 读入一行并分解之 */
+		/* 读入一行并分解之 */ /* read a row and decomposition */
 		memset( filebuffer , 0x00 , sizeof(filebuffer) );
 		if( fgets( filebuffer , sizeof(filebuffer)-1 , fp ) == NULL )
 			break;
@@ -63,7 +63,7 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 		{
 			long	len2 ;
 			len2 = strlen(value2) ;
-			if( value2[len2-1] == '\"' ) /* 如果最后为引号，去掉之 by found */
+			if( value2[len2-1] == '\"' ) /* 如果最后为引号，去掉之 */ /* by found */
 				value2[len2-1] = '\0' ;
 			memmove( value2 , value2 + 1 , len2 - 1 );
 		}
@@ -75,7 +75,6 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 		}
 		else if( STRCMP( key , == , "options" ) )
 		{
-			/* 日志选项 */
 			options = 0 ;
 			pc = strtok( value , "|" ) ;
 			while( pc )
@@ -95,7 +94,6 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 		}
 		else if( STRCMP( key , == , "output" ) )
 		{
-			/* 输出类型 */
 			nret = ConvertLogOutput_atoi( value , & output ) ;
 			if( nret )
 				goto ERR;
@@ -106,7 +104,6 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 		}
 		else if( STRCMP( key , == , "level" ) )
 		{
-			/* 日志等级 */
 			nret = ConvertLogLevel_atoi( value , & level ) ;
 			if( nret )
 				goto ERR;
@@ -117,7 +114,6 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 		}
 		else if( STRCMP( key , == , "styles" ) )
 		{
-			/* 行日志风格 */
 			styles = 0 ;
 			pc = strtok( value , "|" ) ;
 			while( pc )
@@ -137,28 +133,24 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 		}
 		else if( STRCMP( key , == , "custlabel1" ) )
 		{
-			/* 自定义标签 */
 			nret = SetLogCustLabel( g , 1 , value ) ;
 			if( nret )
 				goto ERR;
 		}
 		else if( STRCMP( key , == , "custlabel2" ) )
 		{
-			/* 自定义标签 */
 			nret = SetLogCustLabel( g , 2 , value ) ;
 			if( nret )
 				goto ERR;
 		}
 		else if( STRCMP( key , == , "custlabel3" ) )
 		{
-			/* 自定义标签 */
 			nret = SetLogCustLabel( g , 3 , value ) ;
 			if( nret )
 				goto ERR;
 		}
 		else if( STRCMP( key , == , "rotate_mode" ) )
 		{
-			/* 转档模式 */
 			nret = ConvertLogRotateMode_atoi( value , & log_rotate_mode ) ;
 			if( nret )
 				goto ERR;
@@ -169,7 +161,6 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 		}
 		else if( STRCMP( key , == , "rotate_size" ) )
 		{
-			/* 转档大小 */
 			nret = ConvertBufferSize_atol( value , & log_rotate_size ) ;
 			if( nret )
 				goto ERR;
@@ -180,14 +171,12 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 		}
 		else if( STRCMP( key , == , "rotate_pressure_factor" ) )
 		{
-			/* 转档压迫系数  */
 			nret = SetLogRotatePressureFactor( g , atol(value) ) ;
 			if( nret )
 				goto ERR;
 		}
 		else if( STRCMP( key , == , "log_bufsize" ) )
 		{
-			/* 行日志缓冲区大小 */
 			if( STRCMP( value , != , "" ) )
 			{
 				nret = ConvertBufferSize_atol( value , & log_bufsize ) ;
@@ -216,7 +205,6 @@ _WINDLL_FUNC LOG *ReadLogHandleFromConfig( FILE *fp , char *id )
 		}
 		else if( STRCMP( key , == , "hexlog_bufsize" ) )
 		{
-			/* 十六进制块日志缓冲区大小 */
 			if( STRCMP( value , != , "" ) )
 			{
 				nret = ConvertBufferSize_atol( value , & hexlog_bufsize ) ;

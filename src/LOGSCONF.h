@@ -5,7 +5,7 @@
  * iLOG3 - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.6
+ * LastVersion	: v1.0.8
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -28,8 +28,10 @@ extern "C" {
 #include "LOGS.h"
 #include "LOGCONF.h"
 
-/* 函数返回值宏 */
+/* 读取配置文件，创建日志句柄集合 */ /* create log handles from config file */
 _WINDLL_FUNC LOGS *CreateLogsHandleFromConfig( char *config_filename , char *postfix );
+
+#define create_logs_handle_from_config		CreateLogsHandleFromConfig
 
 #ifdef __cplusplus
 }

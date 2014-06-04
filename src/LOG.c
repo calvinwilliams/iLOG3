@@ -2,7 +2,7 @@
  * iLOG3 - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.6
+ * LastVersion	: v1.0.8
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -19,20 +19,20 @@
 
 #include "LOG.h"
 
-/* 日志等级描述对照表 */
+/* 日志等级描述对照表 */ /* log level describe */
 static char		sg_aszLogLevelDesc[][5+1] = { "DEBUG" , "INFO" , "WARN" , "ERROR" , "FATAL" , "NOLOG" } ;
 
-/* 版本标识 */
-_WINDLL_FUNC int	_LOG_VERSION_1_0_6 = 0 ;
+/* 版本标识 */ /* version */
+_WINDLL_FUNC int	_LOG_VERSION_1_0_8 = 0 ;
 
-/* 线程本地存储全局对象 */
+/* 线程本地存储全局对象 */ /* TLS */
 #if ( defined _WIN32 )
 __declspec( thread ) LOG	*tls_g = NULL ;
 #elif ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
 __thread LOG			*tls_g = NULL ;
 #endif
 
-/* 临界区 */
+/* 临界区 */ /* critical region */
 #if ( defined __linux__ ) || ( defined __unix )
 pthread_mutex_t		g_pthread_mutex = PTHREAD_MUTEX_INITIALIZER ;
 #endif
@@ -122,7 +122,7 @@ static int LeaveMutexSection( LOG *g )
 	return 0;
 }
 
-/* 调整缓冲区大小 */
+/* 调整缓冲区大小 */ /* adjust buffer size */
 static int SetBufferSize( LOG *g , LOGBUF *logbuf , long buf_size , long max_buf_size )
 {
 	if( g == NULL )
@@ -162,7 +162,7 @@ static int SetBufferSize( LOG *g , LOGBUF *logbuf , long buf_size , long max_buf
 	return 0;
 }
 
-/* 销毁日志句柄 */
+/* 销毁日志句柄 */ /* destruction of log handle */
 void DestroyLogHandle( LOG *g )
 {
 	if( g )
@@ -204,7 +204,7 @@ void DestroyLogHandleG()
 }
 #endif
 
-/* 创建日志句柄 */
+/* 创建日志句柄 */ /* create log handle */
 LOG *CreateLogHandle()
 {
 	LOG		*g = NULL ;
@@ -270,7 +270,7 @@ LOG *CreateLogHandleG()
 }
 #endif
 
-/* 日志输出函数 */
+/* 打开、输出、关闭日志函数 */ /* open , write , close log functions */
 #if ( defined _WIN32 )
 
 #define LOG_WINOPENFILE_TRYCOUNT	1000	/* windows上多线程打开同一文件会有互斥现象 */
@@ -502,7 +502,7 @@ int ExpandPathFilename( char *pathfilename , long pathfilename_bufsize )
 	p1 = strchr( pathfilename , '$' );
 	while( p1 )
 	{
-		/* 展开环境变量 */
+		/* 展开环境变量 */ /* expand environment variable */
 		p2 = strchr( p1 + 1 , '$' ) ;
 		if( p2 == NULL )
 			return LOG_RETURN_ERROR_PARAMETER;
@@ -528,7 +528,7 @@ int ExpandPathFilename( char *pathfilename , long pathfilename_bufsize )
 	return 0;
 }
 
-/* 设置日志输出 */
+/* 设置日志输出 */ /* set log output */
 int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally )
 {
 	char		pathfilename[ MAXLEN_FILENAME + 1 ] ;
@@ -731,7 +731,7 @@ int SetLogOutputG( int output , char *log_pathfilename , funcOpenLog *pfuncOpenL
 }
 #endif
 
-/* 设置日志等级 */
+/* 设置日志等级 */ /* set log level */
 int SetLogLevel( LOG *g , int log_level )
 {
 	if( g == NULL )
@@ -747,7 +747,7 @@ int SetLogLevelG( int log_level )
 }
 #endif
 
-/* 行格式函数集合 */
+/* 行格式函数集合 */ /* log style functions */
 static int LogStyle_SEPARATOR( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fileline , int log_level , char *format , va_list valist )
 {
 	MemcatLogBuffer( g , logbuf , " | " , 3 );
@@ -933,13 +933,13 @@ static int LogStyle_NEWLINE( LOG *g , LOGBUF *logbuf , char *c_filename , long c
 	return 0;
 }
 
-/* 填充行日志段 */
+/* 填充行日志段 */ /* fill log segments */
 static int LogStyle_FuncArray( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fileline , int log_level , char *format , va_list valist )
 {
 	int		format_func_index ;
 	funcLogStyle	**ppfuncLogStyle = NULL ;
 	int		nret ;
-	/* 遍历格式函数数组 */
+	/* 遍历格式函数数组 */ /* travel all log style functions */
 	for( format_func_index = 0 , ppfuncLogStyle = g->pfuncLogStyles ; format_func_index < g->style_func_count ; format_func_index++ , ppfuncLogStyle++ )
 	{
 		nret = (*ppfuncLogStyle)( g , logbuf , c_filename , c_fileline , log_level , format , valist ) ;
@@ -950,7 +950,7 @@ static int LogStyle_FuncArray( LOG *g , LOGBUF *logbuf , char *c_filename , long
 	return 0;
 }
 
-/* 设置行日志风格 */
+/* 设置行日志风格 */ /* set log styles */
 int SetLogStyles( LOG *g , long log_styles , funcLogStyle *pfuncLogStyle )
 {
 	if( g == NULL )
@@ -1046,7 +1046,7 @@ int SetLogStylesG( long log_styles , funcLogStyle *pfuncLogStyles )
 }
 #endif
 
-/* 转档日志文件 */
+/* 转档日志文件 */ /* rotate log file */
 static int RotateLogFileSize( LOG *g , long step )
 {
 	long		l ;
@@ -1244,7 +1244,7 @@ static int RotateLogFilePerHour( LOG *g )
 	return 0;
 }
 
-/* 写日志基函数 */
+/* 写日志基函数 */ /* output log */
 int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , char *format , va_list valist )
 {
 	long		writelen ;
@@ -1253,11 +1253,11 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 	if( format == NULL )
 		return 0;
 	
-	/* 初始化行日志缓冲区 */
+	/* 初始化行日志缓冲区 */ /* initialize log buffer  */
 	g->logbuf.buf_remain_len = g->logbuf.buf_size - 1 - 1 ;
 	g->logbuf.bufptr = g->logbuf.bufbase ;
 	
-	/* 填充行日志缓冲区 */
+	/* 填充行日志缓冲区 */ /* fill log buffer */
 	if( g->pfuncLogStyle )
 	{
 		nret = g->pfuncLogStyle( g , & (g->logbuf) , c_filename , c_fileline , log_level , format , valist ) ;
@@ -1265,7 +1265,7 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 			return nret;
 	}
 	
-	/* 自定义过滤日志 */
+	/* 自定义过滤日志 */ /* filter log */
 	if( g->pfuncFilterLog )
 	{
 		nret = g->pfuncFilterLog( g , & (g->open_handle) , log_level , g->logbuf.bufbase , g->logbuf.buf_size-1-1 - g->logbuf.buf_remain_len ) ;
@@ -1273,7 +1273,7 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 			return nret;
 	}
 	
-	/* 打开文件 */
+	/* 打开文件 */ /* open log */
 	if( g->open_flag == 0 )
 	{
 		if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) )
@@ -1298,7 +1298,7 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 		}
 	}
 	
-	/* 导出日志缓冲区 */
+	/* 导出日志缓冲区 */ /* output log */
 	if( g->pfuncWriteLog )
 	{
 		nret = g->pfuncWriteLog( g , & (g->open_handle) , log_level , g->logbuf.bufbase , g->logbuf.buf_size-1-1 - g->logbuf.buf_remain_len , & writelen ) ;
@@ -1306,7 +1306,7 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 			return nret;
 	}
 	
-	/* 关闭日志 */
+	/* 关闭日志 */ /* close log */
 	if( g->open_flag == 1 )
 	{
 		if( g->output == LOG_OUTPUT_FILE || g->output == LOG_OUTPUT_CALLBACK )
@@ -1337,7 +1337,7 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 	/* 如果输出到文件 */
 	if( g->output == LOG_OUTPUT_FILE )
 	{
-		/* 日志转档侦测 */
+		/* 日志转档侦测 */ /* rotate log file */
 		if( g->rotate_mode == LOG_ROTATEMODE_NONE )
 		{
 		}
@@ -1359,14 +1359,14 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 		}
 	}
 	
-	/* 清空一级缓存 */
+	/* 清空一级缓存 */ /* clean level 1 cache */
 	g->cache1_tv.tv_sec = 0 ;
 	g->cache1_stime.tm_mday = 0 ;
 	
 	return 0;
 }
 
-/* 代码宏 */
+/* 代码宏 */ /* code macros */
 #define WRITELOGBASE(_g_,_log_level_) \
 	va_list		valist; \
 	int		nret ; \
@@ -1382,7 +1382,7 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 	if( nret < 0 ) \
 		return nret;
 
-/* 带日志等级的写日志 */
+/* 带日志等级的写日志 */ /* write log */
 int WriteLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *format , ... )
 {
 	WRITELOGBASE( g , log_level )
@@ -1397,7 +1397,7 @@ int WriteLogG( char *c_filename , long c_fileline , int log_level , char *format
 }
 #endif
 
-/* 写调试日志 */
+/* 写调试日志 */ /* write debug log */
 int DebugLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( g , LOG_LEVEL_DEBUG )
@@ -1412,7 +1412,7 @@ int DebugLogG( char *c_filename , long c_fileline , char *format , ... )
 }
 #endif
 
-/* 写普通信息日志 */
+/* 写普通信息日志 */ /* write info log */
 int InfoLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( g , LOG_LEVEL_INFO )
@@ -1427,7 +1427,7 @@ int InfoLogG( char *c_filename , long c_fileline , char *format , ... )
 }
 #endif
 
-/* 写警告日志 */
+/* 写警告日志 */ /* write warn log */
 int WarnLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( g , LOG_LEVEL_WARN )
@@ -1442,7 +1442,7 @@ int WarnLogG( char *c_filename , long c_fileline , char *format , ... )
 }
 #endif
 
-/* 写错误日志 */
+/* 写错误日志 */ /* write error log */
 int ErrorLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( g , LOG_LEVEL_ERROR )
@@ -1457,7 +1457,7 @@ int ErrorLogG( char *c_filename , long c_fileline , char *format , ... )
 }
 #endif
 
-/* 写致命错误日志 */
+/* 写致命错误日志 */ /* write fatal log */
 int FatalLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( g , LOG_LEVEL_FATAL )
@@ -1472,7 +1472,7 @@ int FatalLogG( char *c_filename , long c_fileline , char *format , ... )
 }
 #endif
 
-/* 写十六进制块日志基函数 */
+/* 写十六进制块日志基函数 */ /* output log */
 int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , va_list valist )
 {
 	int		row_offset , col_offset ;
@@ -1480,11 +1480,11 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 	long		writelen ;
 	int		nret ;
 	
-	/* 初始化十六进制块日志缓冲区 */
+	/* 初始化十六进制块日志缓冲区 */ /* initialize log buffer  */
 	g->hexlogbuf.buf_remain_len = g->hexlogbuf.buf_size - 1 - 1 ;
 	g->hexlogbuf.bufptr = g->hexlogbuf.bufbase ;
 	
-	/* 填充行日志缓冲区 */
+	/* 填充行日志缓冲区 */ /* fill log buffer */
 	if( format )
 	{
 		if( g->pfuncLogStyle )
@@ -1495,7 +1495,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 		}
 	}
 	
-	/* 填充十六进制块日志缓冲区 */
+	/* 填充十六进制块日志缓冲区 */ /* fill hex log buffer */
 	if( buffer && buflen > 0 )
 	{
 		len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF" ) ;
@@ -1556,7 +1556,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 	if( g->hexlogbuf.bufptr == g->hexlogbuf.bufbase )
 		return 0;
 	
-	/* 自定义过滤日志 */
+	/* 自定义过滤日志 */ /* filter log */
 	if( g->pfuncFilterLog )
 	{
 		nret = g->pfuncFilterLog( g , & (g->open_handle) , log_level , g->hexlogbuf.bufbase , g->hexlogbuf.buf_size-1-1 - g->hexlogbuf.buf_remain_len ) ;
@@ -1564,7 +1564,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 			return nret;
 	}
 	
-	/* 打开文件 */
+	/* 打开文件 */ /* open log */
 	if( g->open_flag == 0 )
 	{
 		if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) )
@@ -1589,7 +1589,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 		}
 	}
 	
-	/* 导出日志缓冲区 */
+	/* 导出日志缓冲区 */ /* output file */
 	if( g->pfuncWriteLog )
 	{
 		nret = g->pfuncWriteLog( g , & (g->open_handle) , log_level , g->hexlogbuf.bufbase , g->hexlogbuf.buf_size-1-1 - g->hexlogbuf.buf_remain_len , & writelen ) ;
@@ -1597,7 +1597,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 			return nret;
 	}
 	
-	/* 关闭日志 */
+	/* 关闭日志 */ /* close file */
 	if( g->open_flag == 1 )
 	{
 		if( g->output == LOG_OUTPUT_FILE || g->output == LOG_OUTPUT_CALLBACK )
@@ -1634,7 +1634,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 	/* 如果输出到文件 */
 	if( g->output == LOG_OUTPUT_FILE )
 	{
-		/* 日志转档侦测 */
+		/* 日志转档侦测 */ /* rotate log file */
 		if( g->rotate_mode == LOG_ROTATEMODE_NONE )
 		{
 		}
@@ -1656,14 +1656,14 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 		}
 	}
 	
-	/* 清空一级缓存 */
+	/* 清空一级缓存 */ /* clean level 1 cache */
 	g->cache1_tv.tv_sec = 0 ;
 	g->cache1_stime.tm_mday = 0 ;
 	
 	return 0;
 }
 
-/* 代码宏 */
+/* 代码宏 */ /* code macro */
 #define WRITEHEXLOGBASE(_g_,_log_level_) \
 	va_list		valist; \
 	int		nret ; \
@@ -1679,7 +1679,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 	if( nret ) \
 		return nret;
 
-/* 带日志等级的写十六进制块日志 */
+/* 带日志等级的写十六进制块日志 */ /* write hex log */
 int WriteHexLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( g , log_level )
@@ -1694,7 +1694,7 @@ int WriteHexLogG( char *c_filename , long c_fileline , int log_level , char *buf
 }
 #endif
 
-/* 写十六进制块调试日志 */
+/* 写十六进制块调试日志 */ /* write debug hex log */
 int DebugHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( g , LOG_LEVEL_DEBUG )
@@ -1709,7 +1709,7 @@ int DebugHexLogG( char *c_filename , long c_fileline , char *buffer , long bufle
 }
 #endif
 
-/* 写十六进制块普通信息日志 */
+/* 写十六进制块普通信息日志 */ /* write info hex log */
 int InfoHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( g , LOG_LEVEL_INFO )
@@ -1724,7 +1724,7 @@ int InfoHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen
 }
 #endif
 
-/* 写十六进制块警告日志 */
+/* 写十六进制块警告日志 */ /* write warn hex log */
 int WarnHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( g , LOG_LEVEL_WARN )
@@ -1739,7 +1739,7 @@ int WarnHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen
 }
 #endif
 
-/* 写十六进制块错误日志 */
+/* 写十六进制块错误日志 */ /* write error hex log */
 int ErrorHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( g , LOG_LEVEL_ERROR )
@@ -1754,7 +1754,7 @@ int ErrorHexLogG( char *c_filename , long c_fileline , char *buffer , long bufle
 }
 #endif
 
-/* 写十六进制块致命错误日志 */
+/* 写十六进制块致命错误日志 */ /* write fatal hex log */
 int FatalHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( g , LOG_LEVEL_FATAL )
@@ -1772,7 +1772,7 @@ int FatalHexLogG( char *c_filename , long c_fileline , char *buffer , long bufle
 /* 文件变动测试间隔 */
 #define LOG_FILECHANGETEST_INTERVAL_ON_OPEN_ONCE_DEFAULT	10
 
-/* 设置日志选项 */
+/* 设置日志选项 */ /* set log options */
 int SetLogOptions( LOG *g , int log_options )
 {
 	if( g == NULL )
@@ -1812,7 +1812,7 @@ int SetLogFileChangeTestG( long interval )
 }
 #endif
 
-/* 设置日志自定义标签 */
+/* 设置日志自定义标签 */ /* set log custom labels */
 int SetLogCustLabel( LOG *g , int index , char *cust_label )
 {
 	if( g == NULL )
@@ -1837,7 +1837,7 @@ int SetLogCustLabelG( int index , char *cust_label )
 }
 #endif
 
-/* 设置日志转档模式 */
+/* 设置日志转档模式 */ /* set log rotate mode */
 int SetLogRotateMode( LOG *g , int rotate_mode )
 {
 	if( g == NULL )
@@ -1862,7 +1862,7 @@ int SetLogRotateModeG( int rotate_mode )
 }
 #endif
 
-/* 设置日志转档大小 */
+/* 设置日志转档大小 */ /* set rotate size */
 int SetLogRotateSize( LOG *g , long log_rotate_size )
 {
 	if( g == NULL )
@@ -1880,7 +1880,7 @@ int SetLogRotateSizeG( long log_rotate_size )
 }
 #endif
 
-/* 设置日志转档紧迫系数 */
+/* 设置日志转档紧迫系数 */ /* set rotate pressure fator */
 int SetLogRotatePressureFactor( LOG *g , long pressure_factor )
 {
 	if( g == NULL )
@@ -1898,7 +1898,7 @@ int SetLogRotatePressureFactorG( long pressure_factor )
 }
 #endif
 
-/* 设置自定义日志转档前回调函数 */
+/* 设置自定义日志转档前回调函数 */ /* set custom callback function before rotate log */
 int SetBeforeRotateFileFunc( LOG *g , funcBeforeRotateFile *pfuncBeforeRotateFile )
 {
 	g->pfuncBeforeRotateFile = pfuncBeforeRotateFile ;
@@ -1912,7 +1912,7 @@ int SetBeforeRotateFileFuncG( funcBeforeRotateFile *pfuncBeforeRotateFile )
 }
 #endif
 
-/* 设置自定义日志转档后回调函数 */
+/* 设置自定义日志转档后回调函数 */ /* set custom callback function after rotate log */
 int SetAfterRotateFileFunc( LOG *g , funcAfterRotateFile *pfuncAfterRotateFile )
 {
 	g->pfuncAfterRotateFile = pfuncAfterRotateFile ;
@@ -1926,7 +1926,7 @@ int SetAfterRotateFileFuncG( funcAfterRotateFile *pfuncAfterRotateFile )
 }
 #endif
 
-/* 设置自定义检查日志等级回调函数类型 */
+/* 设置自定义检查日志等级回调函数类型 */ /* set custom filter callback function */
 int SetFilterLogFunc( LOG *g , funcFilterLog *pfuncFilterLog )
 {
 	g->pfuncFilterLog = pfuncFilterLog ;
@@ -1940,7 +1940,7 @@ int SetFilterLogFuncG( funcFilterLog *pfuncFilterLog )
 }
 #endif
 
-/* 设置行日志缓冲区大小 */
+/* 设置行日志缓冲区大小 */ /* set log buffer size */
 int SetLogBufferSize( LOG *g , long log_bufsize , long max_log_bufsize )
 {
 	return SetBufferSize( g , & (g->logbuf) , log_bufsize , max_log_bufsize );
@@ -1953,7 +1953,7 @@ int SetLogBufferSizeG( long log_bufsize , long max_log_bufsize )
 }
 #endif
 
-/* 设置十六进制日志缓冲区大小 */
+/* 设置十六进制日志缓冲区大小 */ /* set hex log buffer size */
 int SetHexLogBufferSize( LOG *g , long hexlog_bufsize , long max_hexlog_bufsize )
 {
 	return SetBufferSize( g , & (g->hexlogbuf) , hexlog_bufsize , max_hexlog_bufsize );

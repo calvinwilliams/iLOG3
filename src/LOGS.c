@@ -2,7 +2,7 @@
  * iLOG3 - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.6
+ * LastVersion	: v1.0.8
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -19,21 +19,21 @@
 
 #include "LOGS.h"
 
-/* 日志句柄集合结构 */
+/* 日志句柄集合结构 */ /* log handle collection structure */
 struct tagLOGS
 {
 	char	*g_id[ LOGS_MAXCNT_LOG + 1 ] ;
 	LOG	*g[ LOGS_MAXCNT_LOG + 1 ] ;
 } ;
 
-/* 线程本地存储全局对象 */
+/* 线程本地存储全局对象 */ /* TLS */
 #if ( defined _WIN32 )
 __declspec( thread ) LOGS	*tls_gs = NULL ;
 #elif ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
 __thread LOGS			*tls_gs = NULL ;
 #endif
 
-/* 销毁日志句柄 */
+/* 销毁日志句柄集合 */ /* destruction of logging handle collection */
 void DestroyLogsHandle( LOGS *gs )
 {
 	if( gs )
@@ -63,7 +63,7 @@ void DestroyLogsHandleG()
 }
 #endif
 
-/* 创建日志句柄 */
+/* 创建日志句柄集合 */ /* create log handle collection */
 LOGS *CreateLogsHandle()
 {
 	LOGS	*gs = NULL ;
@@ -216,7 +216,7 @@ void SetGlobalLOGS( LOGS *gs )
 
 extern int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , char *format , va_list valist );
 
-/* 代码宏 */
+/* 代码宏 */ /* code macro */
 #define WRITELOGSBASE(_gs_,_log_level_) \
 	long		g_no ; \
 	LOG		**pp_g = NULL ; \
@@ -239,7 +239,7 @@ extern int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_l
 			return nret; \
 	}
 
-/* 带日志等级的写日志 */
+/* 带日志等级的写日志 */ /* write log handle collection */
 int WriteLogs( LOGS *gs , char *c_filename , long c_fileline , int log_level , char *format , ... )
 {
 	WRITELOGSBASE( gs , log_level )
@@ -253,7 +253,7 @@ int WriteLogsG( char *c_filename , long c_fileline , int log_level , char *forma
 	return 0;
 }
 
-/* 写调试日志 */
+/* 写调试日志 */ /* write debug log handle collection */
 int DebugLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( gs , LOG_LEVEL_DEBUG )
@@ -268,7 +268,7 @@ int DebugLogsG( char *c_filename , long c_fileline , char *format , ... )
 }
 #endif
 
-/* 写普通信息日志 */
+/* 写普通信息日志 */ /* write info log handle collection */
 int InfoLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( gs , LOG_LEVEL_INFO )
@@ -283,7 +283,7 @@ int InfoLogsG( char *c_filename , long c_fileline , char *format , ... )
 }
 #endif
 
-/* 写警告日志 */
+/* 写警告日志 */ /* write warn log handle collection */
 int WarnLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( gs , LOG_LEVEL_WARN )
@@ -298,7 +298,7 @@ int WarnLogsG( char *c_filename , long c_fileline , char *format , ... )
 }
 #endif
 
-/* 写错误日志 */
+/* 写错误日志 */ /* write error log handle collection */
 int ErrorLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( gs , LOG_LEVEL_ERROR )
@@ -313,7 +313,7 @@ int ErrorLogsG( char *c_filename , long c_fileline , char *format , ... )
 }
 #endif
 
-/* 写致命错误日志 */
+/* 写致命错误日志 */ /* write fatal log handle collection */
 int FatalLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( gs , LOG_LEVEL_FATAL )
@@ -330,7 +330,7 @@ int FatalLogsG( char *c_filename , long c_fileline , char *format , ... )
 
 extern int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , va_list valist );
 
-/* 代码宏 */
+/* 代码宏 */ /* code macro */
 #define WRITEHEXLOGSBASE(_gs_,_log_level_) \
 	long		g_no ; \
 	LOG		**pp_g = NULL ; \
@@ -353,7 +353,7 @@ extern int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int lo
 			return nret; \
 	}
 
-/* 带日志等级的写十六进制块日志 */
+/* 带日志等级的写十六进制块日志 */ /* write hex log handle collection */
 int WriteHexLogs( LOGS *gs , char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( gs , log_level )
@@ -368,7 +368,7 @@ int WriteHexLogsG( char *c_filename , long c_fileline , int log_level , char *bu
 }
 #endif
 
-/* 写十六进制块调试日志 */
+/* 写十六进制块调试日志 */ /* write debug hex log handle collection */
 int DebugHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( gs , LOG_LEVEL_DEBUG )
@@ -383,7 +383,7 @@ int DebugHexLogsG( char *c_filename , long c_fileline , char *buffer , long bufl
 }
 #endif
 
-/* 写十六进制块普通信息日志 */
+/* 写十六进制块普通信息日志 */ /* write info hex log handle collection */
 int InfoHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( gs , LOG_LEVEL_INFO )
@@ -398,7 +398,7 @@ int InfoHexLogsG( char *c_filename , long c_fileline , char *buffer , long bufle
 }
 #endif
 
-/* 写十六进制块警告日志 */
+/* 写十六进制块警告日志 */ /* write warn hex log handle collection */
 int WarnHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( gs , LOG_LEVEL_WARN )
@@ -413,7 +413,7 @@ int WarnHexLogsG( char *c_filename , long c_fileline , char *buffer , long bufle
 }
 #endif
 
-/* 写十六进制块错误日志 */
+/* 写十六进制块错误日志 */ /* write error hex log handle collection */
 int ErrorHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( gs , LOG_LEVEL_ERROR )
@@ -428,7 +428,7 @@ int ErrorHexLogsG( char *c_filename , long c_fileline , char *buffer , long bufl
 }
 #endif
 
-/* 写十六进制块致命错误日志 */
+/* 写十六进制块致命错误日志 */ /* write fatal hex log handle collection */
 int FatalHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( gs , LOG_LEVEL_FATAL )

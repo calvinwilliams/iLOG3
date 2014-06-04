@@ -21,7 +21,7 @@ int test_hello()
 	
 	printf( "创建日志句柄成功\n" );
 	
-	SetLogOutput( g , LOG_OUTPUT_FILE , "test_hello.log" , LOG_NO_OUTPUTFUNC );
+	SetLogOutput( g , LOG_OUTPUT_FILE , "$HOME$/log/test_hello.log" , LOG_NO_OUTPUTFUNC );
 	SetLogLevel( g , LOG_LEVEL_INFO );
 	SetLogStyles( g , LOG_STYLES_HELLO , LOG_NO_STYLEFUNC );
 	

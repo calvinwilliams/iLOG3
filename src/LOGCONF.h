@@ -5,7 +5,7 @@
  * iLOG3 - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.6
+ * LastVersion	: v1.0.8
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -26,11 +26,14 @@ extern "C" {
 
 #include "LOG.h"
 
-/* 函数返回值宏 */
+/* 函数返回值宏 */ /* function returns value macros */
 #define LOGCONF_RETURN_ERROR_CONFIGFILE_NOTFOUND	-51	/* 找不到配置文件 */
 #define LOGCONF_RETURN_ERROR_CONFIGFILE_INVALID		-52	/* 配置文件无效 */
 
+/* 读取配置文件，创建日志句柄 */ /* create log handle from config file */
 _WINDLL_FUNC LOG *CreateLogHandleFromConfig( char *config_filename , char *postfix );
+
+#define create_log_handle_from_config		CreateLogHandleFromConfig
 
 #ifdef __cplusplus
 }

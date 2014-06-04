@@ -1,0 +1,382 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: test_afterrotatefile - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP215.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_afterrotatefile.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_afterrotatefile.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP215.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP216.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_afterrotatefile.pdb" /debug /machine:I386 /out:"Debug/test_afterrotatefile.exe" /pdbtype:sept 
+".\Debug\test_afterrotatefile.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP216.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_afterrotatefile.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_afterrotatefile.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_demo - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP218.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_demo.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_demo.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP218.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP219.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_demo.pdb" /debug /machine:I386 /out:"Debug/test_demo.exe" /pdbtype:sept 
+".\Debug\test_demo.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP219.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_demo.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_demo.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_filterlogfunc - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP21B.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_filterlogfunc.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_filterlogfunc.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP21B.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP21C.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_filterlogfunc.pdb" /debug /machine:I386 /out:"Debug/test_filterlogfunc.exe" /pdbtype:sept 
+".\Debug\test_filterlogfunc.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP21C.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_filterlogfunc.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_filterlogfunc.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_funny - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP21E.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_funny.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_funny.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP21E.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP21F.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_funny.pdb" /debug /machine:I386 /out:"Debug/test_funny.exe" /pdbtype:sept 
+".\Debug\test_funny.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP21F.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_funny.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_funny.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_hello - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP221.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "LOG_GLOBAL_ENV" /Fp"Debug/test_hello.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_hello.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP221.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP222.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_hello.pdb" /debug /machine:I386 /out:"Debug/test_hello.exe" /pdbtype:sept 
+".\Debug\test_hello.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP222.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_hello.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_hello.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_logconf - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP224.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_logconf.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_logconf.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP224.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP225.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_logconf.pdb" /debug /machine:I386 /out:"Debug/test_logconf.exe" /pdbtype:sept 
+".\Debug\test_logconf.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP225.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_logconf.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_logconf.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_logs - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP227.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_logs.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_logs.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP227.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP228.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_logs.pdb" /debug /machine:I386 /out:"Debug/test_logs.exe" /pdbtype:sept 
+".\Debug\test_logs.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP228.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_logs.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_logs.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_logsconf - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP22A.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_logsconf.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_logsconf.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP22A.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP22B.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_logsconf.pdb" /debug /machine:I386 /out:"Debug/test_logsconf.exe" /pdbtype:sept 
+".\Debug\test_logsconf.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP22B.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_logsconf.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_logsconf.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_memoryleak - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP22D.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_memoryleak.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_memoryleak.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP22D.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP22E.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_memoryleak.pdb" /debug /machine:I386 /out:"Debug/test_memoryleak.exe" /pdbtype:sept 
+".\Debug\test_memoryleak.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP22E.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_memoryleak.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_memoryleak.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_outputfunc - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP230.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_outputfunc.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_outputfunc.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP230.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP231.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_outputfunc.pdb" /debug /machine:I386 /out:"Debug/test_outputfunc.exe" /pdbtype:sept 
+".\Debug\test_outputfunc.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP231.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_outputfunc.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_outputfunc.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_press - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP233.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_press.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_press.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP233.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP234.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_press.pdb" /debug /machine:I386 /out:"Debug/test_press.exe" /pdbtype:sept 
+".\Debug\test_press.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP234.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_press.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_press.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_press_mpt - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP236.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_press_mpt.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_press_mpt.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP236.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP237.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_press_mpt.pdb" /debug /machine:I386 /out:"Debug/test_press_mpt.exe" /pdbtype:sept 
+".\Debug\test_press_mpt.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP237.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_press_mpt.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_press_mpt.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_press_mpt_tls - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP239.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_press_mpt_tls.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_press_mpt_tls.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP239.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP23A.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_press_mpt_tls.pdb" /debug /machine:I386 /out:"Debug/test_press_mpt_tls.exe" /pdbtype:sept 
+".\Debug\test_press_mpt_tls.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP23A.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_press_mpt_tls.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_press_mpt_tls.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_stylesfunc - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP23C.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_stylesfunc.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_stylesfunc.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP23C.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP23D.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_stylesfunc.pdb" /debug /machine:I386 /out:"Debug/test_stylesfunc.exe" /pdbtype:sept 
+".\Debug\test_stylesfunc.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP23D.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_stylesfunc.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_stylesfunc.exe - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: test_hello2 - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP23F.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/test_hello2.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ  /c 
+"D:\Work\C Projects\iLOG3-1.0.8\test\test_hello2.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP23F.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP240.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib  kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib iLOG3.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/test_hello2.pdb" /debug /machine:I386 /out:"Debug/test_hello2.exe" /pdbtype:sept 
+".\Debug\test_hello2.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSP240.tmp"
+<h3>Output Window</h3>
+Compiling...
+test_hello2.c
+Linking...
+
+
+
+<h3>Results</h3>
+test_hello2.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
