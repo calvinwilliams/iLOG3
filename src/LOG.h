@@ -5,7 +5,7 @@
  * iLOG3 - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.8
+ * LastVersion	: v1.0.9
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -145,20 +145,29 @@ typedef int funcLogStyle( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fi
 
 /* 句柄环境设置函数 */ /* set log handle environment */
 _WINDLL_FUNC int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally );
+_WINDLL_FUNC int SetLogOutput2( LOG *g , int output , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally , char *log_pathfilename_format , ... );
 _WINDLL_FUNC int SetLogLevel( LOG *g , int log_level );
 _WINDLL_FUNC int SetLogStyles( LOG *g , long log_styles , funcLogStyle *pfuncLogStyle );
 
 #define set_log_output		SetLogOutput
+#define set_log_output2		SetLogOutput2
 #define set_log_level		SetLogLevel
 #define set_log_styles		SetLogStyles
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
 _WINDLL_FUNC int SetLogOutputG( int output , char *log_pathfilename , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally );
+#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
+#define SetLogOutput2G(_output_,_pfuncOpenLogFirst_,_pfuncOpenLog_,_pfuncWriteLog_,_pfuncChangeTest_,_pfuncCloseLog_,_pfuncCloseLogFinally_,_log_pathfilename_format_,...) \
+	SetLogOutput2(_output_,_pfuncOpenLogFirst_,_pfuncOpenLog_,_pfuncWriteLog_,_pfuncChangeTest_,_pfuncCloseLog_,_pfuncCloseLogFinally_,_log_pathfilename_format_,__VA_ARGS__)
+#endif
 _WINDLL_FUNC int SetLogLevelG( int log_level );
 _WINDLL_FUNC int SetLogStylesG( long log_styles , funcLogStyle *pfuncLogStyles );
 #endif
 
 #define set_log_output_g	SetLogOutputG
+#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
+#define set_log_output2_g	SetLogOutput2G
+#endif
 #define set_log_level_g		SetLogLevelG
 #define set_log_styles_g	SetLogStylesG
 

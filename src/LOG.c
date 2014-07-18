@@ -2,7 +2,7 @@
  * iLOG3 - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.8
+ * LastVersion	: v1.0.9
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -722,6 +722,19 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 	}
 	
 	return 0;
+}
+
+int SetLogOutput2( LOG *g , int output , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally , char *log_pathfilename_format , ... )
+{
+	va_list		valist ;
+	char		log_pathfilename[ MAXLEN_FILENAME + 1 ] ;
+	
+	memset( log_pathfilename , 0x00 , sizeof(log_pathfilename) );
+	va_start( valist , log_pathfilename_format );
+	VSNPRINTF( log_pathfilename , sizeof(log_pathfilename)-1 , log_pathfilename_format , valist );
+	va_end( valist );
+	
+	return SetLogOutput( g , output , log_pathfilename , pfuncOpenLogFirst , pfuncOpenLog , pfuncWriteLog , pfuncChangeTest , pfuncCloseLog , pfuncCloseLogFinally );
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )

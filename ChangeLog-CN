@@ -1,3 +1,8 @@
+ver 1.0.9	2014-07-18	calvin
+		* 新增函数SetLogOutput2,SetLogOutput2G
+		* 增加iLOG3迷你版LOGC.h,LOGC.c
+		  给只想要简单日志函数的人使用，直接把这两个文件拖到你的项目中一起编译即可
+
 ver 1.0.8	2014-06-04	calvin
 		* 增加UNIX风格函数宏
 		* 增加英文代码注释

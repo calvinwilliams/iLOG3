@@ -26,6 +26,7 @@ int test_demo()
 	}
 	
 	SetLogOutput( g , LOG_OUTPUT_FILE , "test_demo.log" , LOG_NO_OUTPUTFUNC );
+	SetLogOutput2( g , LOG_OUTPUT_FILE , LOG_NO_OUTPUTFUNC , "%s/test_demo.log" , getenv("HOME") );
 	SetLogLevel( g , LOG_LEVEL_INFO );
 	SetLogStyles( g , LOG_STYLES_DEMO , LOG_NO_STYLEFUNC );
 	

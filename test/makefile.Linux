@@ -86,7 +86,36 @@ DFTHDER		=	$(csm_FILE_DFTHDER) $(cui_FILE_DFTHDER) $(dtd_FILE_DFTHDER) $(prt_FIL
 
 # 提交安装规则
 .PHONY:install
-install		:	all
+install		:
+	@make -f makefile.Linux
+
+ifneq ($(strip $(BIN)),)
+ifneq ($(strip $(BININST)),)
+	@if [ ! -d "$(BININST)" ] ; then \
+		echo $(MKDIR) $(BININST) ; \
+		$(MKDIR) $(BININST) ; \
+	fi ; \
+	for FILE in `echo $(BIN)` ; do \
+		echo $(CP) $$FILE $(BININST)/ ; \
+		$(RM) $(BININST)/$$FILE ; \
+		$(CP) $$FILE $(BININST)/ ; \
+	done
+endif
+endif
+
+ifneq ($(strip $(DFTHDER)),)
+ifneq ($(strip $(DFTHDERINST)),)
+	@if [ ! -d "$(DFTHDERINST)" ] ; then \
+		echo $(MKDIR) $(DFTHDERINST) ; \
+		$(MKDIR) $(DFTHDERINST) ; \
+	fi ; \
+	for FILE in `echo $(DFTHDER)` ; do \
+		echo $(CP) $$FILE $(DFTHDERINST)/ ; \
+		$(RM) $(DFTHDERINST)/$$FILE ; \
+		$(CP) $$FILE $(DFTHDERINST)/ ; \
+	done
+endif
+endif
 
 
 

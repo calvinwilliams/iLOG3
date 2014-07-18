@@ -82,7 +82,9 @@ clean		:
 DFTHDER		=	$(csm_FILE_DFTHDER) $(cui_FILE_DFTHDER) $(dtd_FILE_DFTHDER) $(prt_FILE_DFTHDER) $(fmd_FILE_DFTHDER) $(smd_FILE_DFTHDER) $(def_FILE_DFTHDER) $(act_FILE_DFTHDER)
 
 # 提交安装规则
-install		:	all
+install		:
+	@make -f makefile.AIX
+
 	@if [ -n "$(LIB)" -a -n "$(LIBINST)" ] ; then \
 		if [ ! -d "$(LIBINST)" ] ; then \
 			echo $(MKDIR) $(LIBINST) ; \

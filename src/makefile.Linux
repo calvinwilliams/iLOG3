@@ -84,7 +84,9 @@ DFTHDER		=	$(csm_FILE_DFTHDER) $(cui_FILE_DFTHDER) $(dtd_FILE_DFTHDER) $(prt_FIL
 
 # 提交安装规则
 .PHONY:install
-install		:	all
+install		:
+	@make -f makefile.Linux
+
 ifneq ($(strip $(LIB)),)
 ifneq ($(strip $(LIBINST)),)
 	@if [ ! -d "$(LIBINST)" ] ; then \
