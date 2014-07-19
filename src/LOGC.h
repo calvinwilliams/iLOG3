@@ -2,7 +2,7 @@
 #define _H_LOGC_
 
 /*
- * iLOG3 - log function library written in c
+ * iLOG3Lite - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
  * LastVersion	: v1.0.9
@@ -62,6 +62,7 @@ extern "C" {
 #define CLOSE		close
 #define PROCESSID	(unsigned long)getpid()
 #define THREADID	(unsigned long)pthread_self()
+#define NEWLINE		"\n"
 #elif ( defined _WIN32 )
 #define TLS		__declspec( thread )
 #define VSNPRINTF	_vsnprintf
@@ -72,6 +73,7 @@ extern "C" {
 #define CLOSE		_close
 #define PROCESSID	(unsigned long)GetCurrentProcessId()
 #define THREADID	(unsigned long)GetCurrentThreadId()
+#define NEWLINE		"\r\n"
 #endif
 
 /* 简单日志函数 */
@@ -85,11 +87,34 @@ extern "C" {
 
 void SetLogFile( char *format , ... );
 void SetLogLevel( int log_level );
+
 int FatalLog( char *c_filename , long c_fileline , char *format , ... );
 int ErrorLog( char *c_filename , long c_fileline , char *format , ... );
 int WarnLog( char *c_filename , long c_fileline , char *format , ... );
 int InfoLog( char *c_filename , long c_fileline , char *format , ... );
 int DebugLog( char *c_filename , long c_fileline , char *format , ... );
+
+int FatalHexLog( char *c_filename , long c_fileline , char *buf , long buflen , char *format , ... );
+int ErrorHexLog( char *c_filename , long c_fileline , char *buf , long buflen , char *format , ... );
+int WarnHexLog( char *c_filename , long c_fileline , char *buf , long buflen , char *format , ... );
+int InfoHexLog( char *c_filename , long c_fileline , char *buf , long buflen , char *format , ... );
+int DebugHexLog( char *c_filename , long c_fileline , char *buf , long buflen , char *format , ... );
+
+#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
+
+#define FATALLOG(...)			FatalLog( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define ERRORLOG(...)			ErrorLog( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define WARNLOG(...)			WarnLog( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define INFOLOG(...)			InfoLog( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define DEBUGLOG(...)			DebugLog( __FILE__ , __LINE__ , __VA_ARGS__ );
+
+#define FATALHEXLOG(_buf_,_buflen_,...)	FatalHexLog( __FILE__ , __LINE__ , buf , buflen , __VA_ARGS__ );
+#define ERRORHEXLOG(_buf_,_buflen_,...)	ErrorHexLog( __FILE__ , __LINE__ , buf , buflen , __VA_ARGS__ );
+#define WARNHEXLOG(_buf_,_buflen_,...)	WarnHexLog( __FILE__ , __LINE__ , buf , buflen , __VA_ARGS__ );
+#define INFOHEXLOG(_buf_,_buflen_,...)	InfoHexLog( __FILE__ , __LINE__ , buf , buflen , __VA_ARGS__ );
+#define DEBUGHEXLOG(_buf_,_buflen_,...)	DebugHexLog( __FILE__ , __LINE__ , buf , buflen , __VA_ARGS__ );
+
+#endif
 
 #ifdef __cplusplus
 }

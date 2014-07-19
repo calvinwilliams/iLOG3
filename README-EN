@@ -83,7 +83,7 @@ Compile and link and run
 [code]
 $ gcc -g -fPIC -Wall -Werror -O2 -I. -std=c99 -I/home/calvin/exinc/iLOG3  -c test_LOG.c
 $ gcc -g -fPIC -Wall -Werror -O2 -o test_LOG test_LOG.o -L. -std=c99 -L/home/calvin/exlib -liLOG3
-$ ./test_iLOG3
+$ ./test_LOG
 Create log handle success
 Destruction of log handle
 $ cat test_iLOG3.log
