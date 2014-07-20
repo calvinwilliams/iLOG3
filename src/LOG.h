@@ -112,17 +112,6 @@ typedef struct tagLOGBUF LOGBUF ;
 _WINDLL_FUNC LOG *CreateLogHandle();
 _WINDLL_FUNC void DestroyLogHandle( LOG *g );
 
-#define create_log_handle	CreateLogHandle
-#define destroy_log_handle	DestroyLogHandle
-
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
-_WINDLL_FUNC LOG *CreateLogHandleG();
-_WINDLL_FUNC void DestroyLogHandleG();
-#endif
-
-#define create_log_handle_g	CreateLogHandleG
-#define destroy_log_handle_g	DestroyLogHandleG
-
 /* 自定义打开、输出、关闭日志函数类型 */ /* custom open , write , close log callback functions */
 typedef int funcOpenLog( LOG *g , char *log_pathfilename , void **open_handle );
 typedef int funcWriteLog( LOG *g , void **open_handle , int log_level , char *buf , long len , long *writelen );
@@ -130,11 +119,6 @@ typedef int funcChangeTest( LOG *g , void **test_handle );
 typedef int funcCloseLog( LOG *g , void **open_handle );
 
 #define LOG_NO_OUTPUTFUNC	NULL , NULL , NULL , NULL , NULL , NULL
-
-#define func_open_log		funcOpenLog
-#define func_write_log		funcWriteLog
-#define func_change_test	funcChangeTest
-#define func_close_log		funcCloseLog
 
 /* 自定义行日志风格函数类型 */ /* custom log style callback functions */
 typedef int funcLogStyle( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fileline , int log_level , char *format , va_list valist );
@@ -149,28 +133,6 @@ _WINDLL_FUNC int SetLogOutput2( LOG *g , int output , funcOpenLog *pfuncOpenLogF
 _WINDLL_FUNC int SetLogLevel( LOG *g , int log_level );
 _WINDLL_FUNC int SetLogStyles( LOG *g , long log_styles , funcLogStyle *pfuncLogStyle );
 
-#define set_log_output		SetLogOutput
-#define set_log_output2		SetLogOutput2
-#define set_log_level		SetLogLevel
-#define set_log_styles		SetLogStyles
-
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
-_WINDLL_FUNC int SetLogOutputG( int output , char *log_pathfilename , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally );
-#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
-#define SetLogOutput2G(_output_,_pfuncOpenLogFirst_,_pfuncOpenLog_,_pfuncWriteLog_,_pfuncChangeTest_,_pfuncCloseLog_,_pfuncCloseLogFinally_,_log_pathfilename_format_,...) \
-	SetLogOutput2(_output_,_pfuncOpenLogFirst_,_pfuncOpenLog_,_pfuncWriteLog_,_pfuncChangeTest_,_pfuncCloseLog_,_pfuncCloseLogFinally_,_log_pathfilename_format_,__VA_ARGS__)
-#endif
-_WINDLL_FUNC int SetLogLevelG( int log_level );
-_WINDLL_FUNC int SetLogStylesG( long log_styles , funcLogStyle *pfuncLogStyles );
-#endif
-
-#define set_log_output_g	SetLogOutputG
-#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
-#define set_log_output2_g	SetLogOutput2G
-#endif
-#define set_log_level_g		SetLogLevelG
-#define set_log_styles_g	SetLogStylesG
-
 /* 写日志函数 */ /* output log */
 _WINDLL_FUNC int WriteLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *format , ... );
 _WINDLL_FUNC int DebugLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
@@ -178,32 +140,6 @@ _WINDLL_FUNC int InfoLog( LOG *g , char *c_filename , long c_fileline , char *fo
 _WINDLL_FUNC int WarnLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
 _WINDLL_FUNC int ErrorLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
 _WINDLL_FUNC int FatalLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
-
-/*
-使用示例 sample
-InfoLog( g , __FILE__ , __LINE__ , "... is done , response code[%d]" , nret );
-*/
-
-#define write_log		WriteLog
-#define debug_log		DebugLog
-#define info_log		InfoLog
-#define warn_log		WarnLog
-#define error_log		ErrorLog
-#define fatal_log		FatalLog
-
-/* 写日志函数的可变参数宏 */ /* output log macros */
-#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
-#define WRITELOG( _g_ , _log_level_ , ... )	WriteLog( _g_ , __FILE__ , __LINE__ , _log_level_ , __VA_ARGS__ );
-#define DEBUGLOG( _g_ , ... )			DebugLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
-#define INFOLOG( _g_ , ... )			InfoLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
-#define WARNLOG( _g_ , ... )			WarnLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
-#define ERRORLOG( _g_ , ... )			ErrorLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
-#define FATALLOG( _g_ , ... )			FatalLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
-/*
-使用示例
-INFOLOG( g , "... is done , respnose code[%d]" , nret );
-*/
-#endif
 
 /* 写十六进制块日志函数 */ /* output hex log */
 _WINDLL_FUNC int WriteHexLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... );
@@ -213,6 +149,47 @@ _WINDLL_FUNC int WarnHexLog( LOG *g , char *c_filename , long c_fileline , char 
 _WINDLL_FUNC int ErrorHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
 _WINDLL_FUNC int FatalHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
 
+#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
+
+/* 写日志函数的可变参数宏 */ /* output log macros */
+#define WRITELOG( _g_ , _log_level_ , ... )	WriteLog( _g_ , __FILE__ , __LINE__ , _log_level_ , __VA_ARGS__ );
+#define DEBUGLOG( _g_ , ... )			DebugLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#define INFOLOG( _g_ , ... )			InfoLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#define WARNLOG( _g_ , ... )			WarnLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#define ERRORLOG( _g_ , ... )			ErrorLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#define FATALLOG( _g_ , ... )			FatalLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+
+/* 写十六进制块日志的可变参数宏 */ /* output hex log macros */
+#define WRITEHEXLOG( _g_ , _log_level_ , _buf_ , _buf_size_ , ... )	WriteHexLog( _g_ , __FILE__ , __LINE__ , _log_level_ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define DEBUGHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			DebugHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define INFOHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			InfoHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define WARNHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			WarnHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define ERRORHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			ErrorHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define FATALHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			FatalHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+
+#endif
+
+/* 风格替换宏 */
+#define create_log_handle	CreateLogHandle
+#define destroy_log_handle	DestroyLogHandle
+
+#define func_open_log		funcOpenLog
+#define func_write_log		funcWriteLog
+#define func_change_test	funcChangeTest
+#define func_close_log		funcCloseLog
+
+#define set_log_output		SetLogOutput
+#define set_log_output2		SetLogOutput2
+#define set_log_level		SetLogLevel
+#define set_log_styles		SetLogStyles
+
+#define write_log		WriteLog
+#define debug_log		DebugLog
+#define info_log		InfoLog
+#define warn_log		WarnLog
+#define error_log		ErrorLog
+#define fatal_log		FatalLog
+
 #define write_hex_log		WriteHexLog
 #define debug_hex_log		DebugHexLog
 #define info_hex_log		InfoHexLog
@@ -220,17 +197,19 @@ _WINDLL_FUNC int FatalHexLog( LOG *g , char *c_filename , long c_fileline , char
 #define error_hex_log		ErrorHexLog
 #define fatal_hex_log		FatalHexLog
 
-/* 写十六进制块日志的可变参数宏 */ /* output hex log macros */
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+
+_WINDLL_FUNC LOG *CreateLogHandleG();
+_WINDLL_FUNC void DestroyLogHandleG();
+
+_WINDLL_FUNC int SetLogOutputG( int output , char *log_pathfilename , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally );
+_WINDLL_FUNC int SetLogLevelG( int log_level );
+_WINDLL_FUNC int SetLogStylesG( long log_styles , funcLogStyle *pfuncLogStyles );
 #if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
-#define WRITEHEXLOG( _g_ , _log_level_ , _buf_ , _buf_size_ , ... )	WriteHexLog( _g_ , __FILE__ , __LINE__ , _log_level_ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define DEBUGHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			DebugHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define INFOHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			InfoHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define WARNHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			WarnHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define ERRORHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			ErrorHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define FATALHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			FatalHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define SetLogOutput2G(_output_,_pfuncOpenLogFirst_,_pfuncOpenLog_,_pfuncWriteLog_,_pfuncChangeTest_,_pfuncCloseLog_,_pfuncCloseLogFinally_,_log_pathfilename_format_,...)
+	SetLogOutput2(_output_,_pfuncOpenLogFirst_,_pfuncOpenLog_,_pfuncWriteLog_,_pfuncChangeTest_,_pfuncCloseLog_,_pfuncCloseLogFinally_,_log_pathfilename_format_,__VA_ARGS__)
 #endif
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
 /* 写日志函数（基于线程本地存储的缺省日志句柄的函数集合版本） */ /* output log for TLS */
 _WINDLL_FUNC int WriteLogG( char *c_filename , long c_fileline , int log_level , char *format , ... );
 _WINDLL_FUNC int DebugLogG( char *c_filename , long c_fileline , char *format , ... );
@@ -239,34 +218,6 @@ _WINDLL_FUNC int WarnLogG( char *c_filename , long c_fileline , char *format , .
 _WINDLL_FUNC int ErrorLogG( char *c_filename , long c_fileline , char *format , ... );
 _WINDLL_FUNC int FatalLogG( char *c_filename , long c_fileline , char *format , ... );
 
-/*
-使用示例 sample
-InfoLogG( __FILE__ , __LINE__ , "... is done , response code[%d]" , nret );
-*/
-
-#define write_log_g		WriteLogG
-#define debug_log_g		DebugLogG
-#define info_log_g		InfoLogG
-#define warn_log_g		WarnLogG
-#define error_log_g		ErrorLogG
-#define fatal_log_g		FatalLogG
-
-/* 写日志函数的可变参数宏（基于线程本地存储的缺省日志句柄的函数集合版本） */  /* output log macros for TLS */
-#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
-#define WRITELOGG( _log_level_ , ... )	WriteLogG( __FILE__ , __LINE__ , _log_level_ , __VA_ARGS__ );
-#define DEBUGLOGG( ... )		DebugLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
-#define INFOLOGG( ... )			InfoLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
-#define WARNLOGG( ... )			WarnLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
-#define ERRORLOGG( ... )		ErrorLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
-#define FATALLOGG( ... )		FatalLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
-/*
-使用示例
-INFOLOGG( "... is done , response code[%d]" , nret );
-*/
-#endif
-#endif
-
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
 /* 写十六进制块日志函数（基于线程本地存储的缺省日志句柄的函数集合版本） */ /* output hex log for TLS */
 _WINDLL_FUNC int WriteHexLogG( char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... );
 _WINDLL_FUNC int DebugHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
@@ -275,6 +226,42 @@ _WINDLL_FUNC int WarnHexLogG( char *c_filename , long c_fileline , char *buffer 
 _WINDLL_FUNC int ErrorHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
 _WINDLL_FUNC int FatalHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
 
+#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
+
+/* 写日志函数的可变参数宏（基于线程本地存储的缺省日志句柄的函数集合版本） */  /* output log macros for TLS */
+#define WRITELOGG( _log_level_ , ... )	WriteLogG( __FILE__ , __LINE__ , _log_level_ , __VA_ARGS__ );
+#define DEBUGLOGG( ... )		DebugLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define INFOLOGG( ... )			InfoLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define WARNLOGG( ... )			WarnLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define ERRORLOGG( ... )		ErrorLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define FATALLOGG( ... )		FatalLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
+
+/* 写十六进制块日志的可变参数宏（基于线程本地存储的缺省日志句柄的函数集合版本） */ /* output hex log macros for TLS */
+#define WRITEHEXLOGG( _log_level_ , _buf_ , _buf_size_ , ... )	WriteHexLogG( __FILE__ , __LINE__ , _log_level_ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define DEBUGHEXLOGG( _buf_ , _buf_size_ , ... )		DebugHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define INFOHEXLOGG( _buf_ , _buf_size_ , ... )			InfoHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define WARNHEXLOGG( _buf_ , _buf_size_ , ... )			WarnHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define ERRORHEXLOGG( _buf_ , _buf_size_ , ... )		ErrorHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define FATALHEXLOGG( _buf_ , _buf_size_ , ... )		FatalHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+
+#endif
+
+/* 风格替换宏 */
+#define create_log_handle_g	CreateLogHandleG
+#define destroy_log_handle_g	DestroyLogHandleG
+
+#define set_log_output_g	SetLogOutputG
+#define set_log_level_g		SetLogLevelG
+#define set_log_styles_g	SetLogStylesG
+#define set_log_output2_g	SetLogOutput2G
+
+#define write_log_g		WriteLogG
+#define debug_log_g		DebugLogG
+#define info_log_g		InfoLogG
+#define warn_log_g		WarnLogG
+#define error_log_g		ErrorLogG
+#define fatal_log_g		FatalLogG
+
 #define write_hex_log_g		WriteHexLogG
 #define debug_hex_log_g		DebugHexLogG
 #define info_hex_log_g		InfoHexLogG
@@ -282,15 +269,6 @@ _WINDLL_FUNC int FatalHexLogG( char *c_filename , long c_fileline , char *buffer
 #define error_hex_log_g		ErrorHexLogG
 #define fatal_hex_log_g		FatalHexLogG
 
-/* 写十六进制块日志的可变参数宏（基于线程本地存储的缺省日志句柄的函数集合版本） */ /* output hex log macros for TLS */
-#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
-#define WRITEHEXLOGG( _log_level_ , _buf_ , _buf_size_ , ... )	WriteHexLogG( __FILE__ , __LINE__ , _log_level_ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define DEBUGHEXLOGG( _buf_ , _buf_size_ , ... )		DebugHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define INFOHEXLOGG( _buf_ , _buf_size_ , ... )			InfoHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define WARNHEXLOGG( _buf_ , _buf_size_ , ... )			WarnHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define ERRORHEXLOGG( _buf_ , _buf_size_ , ... )		ErrorHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define FATALHEXLOGG( _buf_ , _buf_size_ , ... )		FatalHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#endif
 #endif
 
 /********************************************************/
@@ -357,6 +335,7 @@ _WINDLL_FUNC int SetHexLogBufferSize( LOG *g , long hexlog_bufsize , long max_lo
 _WINDLL_FUNC int SetLogOutputFuncDirectly( LOG *g , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally );
 _WINDLL_FUNC int SetLogStyleFuncDirectly( LOG *g , funcLogStyle *pfuncLogStyle );
 
+/* 风格替换宏 */
 #define set_log_options			SetLogOptions
 #define set_log_file_change_test	SetLogFileChangeTest
 #define set_log_cust_label		SetLogCustLabel
@@ -387,6 +366,7 @@ _WINDLL_FUNC int SetLogOutputFuncDirectlyG( funcOpenLog *pfuncOpenLogFirst , fun
 _WINDLL_FUNC int SetLogStyleFuncDirectlyG( funcLogStyle *pfuncLogStyle );
 #endif
 
+/* 风格替换宏 */
 #define set_log_options_g			SetLogOptionsG
 #define set_log_file_change_test_g		SetLogFileChangeTestG
 #define set_log_cust_label_g			SetLogCustLabelG
@@ -411,7 +391,6 @@ _WINDLL_FUNC int SetLogStyleFuncDirectlyG( funcLogStyle *pfuncLogStyle );
 /* 得到基于线程本地存储的缺省日志句柄的函数版本 */ /* log handle get/set function for TLS */
 _WINDLL_FUNC LOG *GetGlobalLOG();
 _WINDLL_FUNC void SetGlobalLOG( LOG *g );
-
 #define get_global_log	GetGlobalLOG
 #define set_global_log	SetGlobalLOG
 #endif
@@ -496,22 +475,22 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 _WINDLL_FUNC int SetOpenFlag( LOG *g , char open_flag );
 _WINDLL_FUNC char IsLogOpened( LOG *g );
 
-#define set_open_flag		SetOpenFlag
-#define is_log_opened		IsLogOpened
-
 _WINDLL_FUNC int GetLogLevel( LOG *g );
-
-#define get_log_level		GetLogLevel
 
 _WINDLL_FUNC LOGBUF *GetLogBuffer( LOG *g );
 _WINDLL_FUNC LOGBUF *GetHexLogBuffer( LOG *g );
 
-#define get_log_buffer		GetLogBuffer
-#define get_hex_log_buffer	GetHexLogBuffer
-
 _WINDLL_FUNC long FormatLogBuffer( LOG *g , LOGBUF *logbuf , char *format , ... );
 _WINDLL_FUNC long FormatLogBufferV( LOG *g , LOGBUF *logbuf , char *format , va_list valist );
 _WINDLL_FUNC long MemcatLogBuffer( LOG *g , LOGBUF *logbuf , char *append , long len );
+
+#define set_open_flag		SetOpenFlag
+#define is_log_opened		IsLogOpened
+
+#define get_log_level		GetLogLevel
+
+#define get_log_buffer		GetLogBuffer
+#define get_hex_log_buffer	GetHexLogBuffer
 
 #define format_log_buffer	FormatLogBuffer
 #define format_log_buffer_v	FormatLogBufferV

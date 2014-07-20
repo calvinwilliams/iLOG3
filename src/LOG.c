@@ -28,7 +28,7 @@ _WINDLL_FUNC int	_LOG_VERSION_1_0_8 = 0 ;
 /* 线程本地存储全局对象 */ /* TLS */
 #if ( defined _WIN32 )
 __declspec( thread ) LOG	*tls_g = NULL ;
-#elif ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#elif ( defined __linux__ ) || ( defined _AIX )
 __thread LOG			*tls_g = NULL ;
 #endif
 

@@ -33,6 +33,7 @@ extern "C" {
 /* 读取配置文件，创建日志句柄 */ /* create log handle from config file */
 _WINDLL_FUNC LOG *CreateLogHandleFromConfig( char *config_filename , char *postfix );
 
+/* 风格替换宏 */
 #define create_log_handle_from_config		CreateLogHandleFromConfig
 
 #ifdef __cplusplus

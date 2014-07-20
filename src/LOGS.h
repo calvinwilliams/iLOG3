@@ -40,46 +40,10 @@ typedef struct tagLOGS LOGS ;
 _WINDLL_FUNC LOGS *CreateLogsHandle();
 _WINDLL_FUNC void DestroyLogsHandle( LOGS *gs );
 
-#define create_logs_handle		CreateLogsHandle
-#define destroy_logs_handle		DestroyLogsHandle
-
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
-_WINDLL_FUNC LOGS *CreateLogsHandleG();
-_WINDLL_FUNC void DestroyLogsHandleG();
-#define create_logs_handle_g		CreateLogsHandleG
-#define destroy_logs_handle_g		DestroyLogsHandleG
-#endif
-
-#define LOG_TRAVELLOG_INDEX_INIT	-1
-
 _WINDLL_FUNC int AddLogToLogs( LOGS *gs , char *g_id , LOG *g );
 _WINDLL_FUNC LOG *RemoveOutLogFromLogs( LOGS *gs , char *g_id );
 _WINDLL_FUNC LOG *GetLogFromLogs( LOGS *gs , char *g_id );
 _WINDLL_FUNC int TravelLogFromLogs( LOGS *gs , long *p_index , char **pp_g_id , LOG **pp_g );
-
-#define add_log_to_logs			AddLogToLogs
-#define remove_out_log_from_logs	RemoveOutLogFromLogs
-#define get_log_from_logs		GetLogFromLogs
-#define travel_log_from_logs		TravelLogFromLogs
-
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
-_WINDLL_FUNC int AddLogToLogsG( char *g_id , LOG *g );
-_WINDLL_FUNC LOG *RemoveOutLogFromLogsG( char *g_id );
-_WINDLL_FUNC LOG *GetLogFromLogsG( char *g_id );
-_WINDLL_FUNC int TravelLogFromLogsG( long *p_index , char **pp_g_id , LOG **pp_g );
-#define add_log_to_logs_g		AddLogToLogsG
-#define remove_out_log_from_logs_g	RemoveOutLogFromLogsG
-#define get_log_from_logs_g		GetLogFromLogsG
-#define travel_log_from_logs_g		TravelLogFromLogsG
-#endif
-
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
-/* 得到基于线程本地存储的缺省日志句柄集合的函数版本 */ /* log handle collection get/set function for TLS */
-_WINDLL_FUNC LOGS *GetGlobalLOGS();
-_WINDLL_FUNC void SetGlobalLOGS( LOGS *gs );
-#define get_global_logs		GetGlobalLOGS
-#define set_global_logs		SetGlobalLOGS
-#endif
 
 /* 写日志集合函数 */ /* output logs */
 _WINDLL_FUNC int WriteLogs( LOGS *g , char *c_filename , long c_fileline , int log_level , char *format , ... );
@@ -89,23 +53,6 @@ _WINDLL_FUNC int WarnLogs( LOGS *g , char *c_filename , long c_fileline , char *
 _WINDLL_FUNC int ErrorLogs( LOGS *g , char *c_filename , long c_fileline , char *format , ... );
 _WINDLL_FUNC int FatalLogs( LOGS *g , char *c_filename , long c_fileline , char *format , ... );
 
-#define write_logs		WriteLogs
-#define debug_logs		DebugLogs
-#define info_logs		InfoLogs
-#define warn_logs		WarnLogs
-#define error_logs		ErrorLogs
-#define fatal_logs		FatalLogs
-
-/* 写日志集合函数的可变参数宏 */ /* output log collection macros */
-#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
-#define WRITELOGS( _g_ , _log_level_ , ... )	WriteLogs( _g_ , __FILE__ , __LINE__ , _log_level_ , __VA_ARGS__ );
-#define DEBUGLOGS( _g_ , ... )			DebugLogs( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
-#define INFOLOGS( _g_ , ... )			InfoLogs( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
-#define WARNLOGS( _g_ , ... )			WarnLogs( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
-#define ERRORLOGS( _g_ , ... )			ErrorLogs( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
-#define FATALLOGS( _g_ , ... )			FatalLogs( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
-#endif
-
 /* 写十六进制块日志集合函数 */ /* output hex log collection */
 _WINDLL_FUNC int WriteHexLogs( LOGS *g , char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... );
 _WINDLL_FUNC int DebugHexLogs( LOGS *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
@@ -114,24 +61,61 @@ _WINDLL_FUNC int WarnHexLogs( LOGS *g , char *c_filename , long c_fileline , cha
 _WINDLL_FUNC int ErrorHexLogs( LOGS *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
 _WINDLL_FUNC int FatalHexLogs( LOGS *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
 
-#define write_hex_logs		WriteLogs
-#define debug_hex_logs		DebugHexLogs
-#define info_hex_logs		InfoHexLogs
-#define warn_hex_logs		WarnHexLogs
-#define error_hex_logs		ErrorHexLogs
-#define fatal_hex_logs		FatalHexLogs
+#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
+
+/* 写日志集合函数的可变参数宏 */ /* output log collection macros */
+#define WRITELOGS( _g_ , _log_level_ , ... )	WriteLogs( _g_ , __FILE__ , __LINE__ , _log_level_ , __VA_ARGS__ );
+#define DEBUGLOGS( _g_ , ... )			DebugLogs( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#define INFOLOGS( _g_ , ... )			InfoLogs( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#define WARNLOGS( _g_ , ... )			WarnLogs( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#define ERRORLOGS( _g_ , ... )			ErrorLogs( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#define FATALLOGS( _g_ , ... )			FatalLogs( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
 
 /* 写十六进制块日志集合的可变参数宏 */ /* output hex log collection macros */
-#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
 #define WRITEHEXLOGS( _g_ , _log_level_ , _buf_ , _buf_size_ , ... )	WriteHexLogs( _g_ , __FILE__ , __LINE__ , _log_level_ , _buf_ , _buf_size_ , __VA_ARGS__ );
 #define DEBUGHEXLOGS( _g_ , _buf_ , _buf_size_ , ... )			DebugHexLogs( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
 #define INFOHEXLOGS( _g_ , _buf_ , _buf_size_ , ... )			InfoHexLogs( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
 #define WARNHEXLOGS( _g_ , _buf_ , _buf_size_ , ... )			WarnHexLogs( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
 #define ERRORHEXLOGS( _g_ , _buf_ , _buf_size_ , ... )			ErrorHexLogs( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
 #define FATALHEXLOGS( _g_ , _buf_ , _buf_size_ , ... )			FatalHexLogs( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+
 #endif
 
+/* 风格替换宏 */
+#define create_logs_handle		CreateLogsHandle
+#define destroy_logs_handle		DestroyLogsHandle
+
+#define add_log_to_logs			AddLogToLogs
+#define remove_out_log_from_logs	RemoveOutLogFromLogs
+#define get_log_from_logs		GetLogFromLogs
+#define travel_log_from_logs		TravelLogFromLogs
+
+#define write_logs			WriteLogs
+#define debug_logs			DebugLogs
+#define info_logs			InfoLogs
+#define warn_logs			WarnLogs
+#define error_logs			ErrorLogs
+#define fatal_logs			FatalLogs
+
+#define write_hex_logs			WriteLogs
+#define debug_hex_logs			DebugHexLogs
+#define info_hex_logs			InfoHexLogs
+#define warn_hex_logs			WarnHexLogs
+#define error_hex_logs			ErrorHexLogs
+#define fatal_hex_logs			FatalHexLogs
+
+#define LOG_TRAVELLOG_INDEX_INIT	-1
+
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+
+_WINDLL_FUNC LOGS *CreateLogsHandleG();
+_WINDLL_FUNC void DestroyLogsHandleG();
+
+_WINDLL_FUNC int AddLogToLogsG( char *g_id , LOG *g );
+_WINDLL_FUNC LOG *RemoveOutLogFromLogsG( char *g_id );
+_WINDLL_FUNC LOG *GetLogFromLogsG( char *g_id );
+_WINDLL_FUNC int TravelLogFromLogsG( long *p_index , char **pp_g_id , LOG **pp_g );
+
 /* 写日志集合函数（基于线程本地存储的缺省日志句柄的函数集合版本） */ /* output log collection functions for TLS */
 _WINDLL_FUNC int WriteLogsG( char *c_filename , long c_fileline , int log_level , char *format , ... );
 _WINDLL_FUNC int DebugLogsG( char *c_filename , long c_fileline , char *format , ... );
@@ -140,25 +124,6 @@ _WINDLL_FUNC int WarnLogsG( char *c_filename , long c_fileline , char *format , 
 _WINDLL_FUNC int ErrorLogsG( char *c_filename , long c_fileline , char *format , ... );
 _WINDLL_FUNC int FatalLogsG( char *c_filename , long c_fileline , char *format , ... );
 
-#define write_logs_g		WriteLogsG
-#define debug_logs_g		DebugLogsG
-#define info_logs_g		InfoLogsG
-#define warn_logs_g		WarnLogsG
-#define error_logs_g		ErrorLogsG
-#define fatal_logs_g		FatalLogsG
-
-/* 写日志集合函数的可变参数宏（基于线程本地存储的缺省日志句柄的函数集合版本） */ /* output log collection macros for TLS */
-#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
-#define WRITELOGSG( _log_level_ , ... )	WriteLogsG( __FILE__ , __LINE__ , _log_level_ , __VA_ARGS__ );
-#define DEBUGLOGSG( ... )		DebugLogsG( __FILE__ , __LINE__ , __VA_ARGS__ );
-#define INFOLOGSG( ... )			InfoLogsG( __FILE__ , __LINE__ , __VA_ARGS__ );
-#define WARNLOGSG( ... )			WarnLogsG( __FILE__ , __LINE__ , __VA_ARGS__ );
-#define ERRORLOGSG( ... )		ErrorLogsG( __FILE__ , __LINE__ , __VA_ARGS__ );
-#define FATALLOGSG( ... )		FatalLogsG( __FILE__ , __LINE__ , __VA_ARGS__ );
-#endif
-#endif
-
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
 /* 写十六进制块日志集合函数（基于线程本地存储的缺省日志句柄的函数集合版本） */ /* output hex log collection functions for TLS */
 _WINDLL_FUNC int WriteHexLogsG( char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... );
 _WINDLL_FUNC int DebugHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
@@ -167,6 +132,42 @@ _WINDLL_FUNC int WarnHexLogsG( char *c_filename , long c_fileline , char *buffer
 _WINDLL_FUNC int ErrorHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
 _WINDLL_FUNC int FatalHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
 
+#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
+
+/* 写日志集合函数的可变参数宏（基于线程本地存储的缺省日志句柄的函数集合版本） */ /* output log collection macros for TLS */
+#define WRITELOGSG( _log_level_ , ... )	WriteLogsG( __FILE__ , __LINE__ , _log_level_ , __VA_ARGS__ );
+#define DEBUGLOGSG( ... )		DebugLogsG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define INFOLOGSG( ... )		InfoLogsG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define WARNLOGSG( ... )		WarnLogsG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define ERRORLOGSG( ... )		ErrorLogsG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define FATALLOGSG( ... )		FatalLogsG( __FILE__ , __LINE__ , __VA_ARGS__ );
+
+/* 写十六进制块日志集合的可变参数宏（基于线程本地存储的缺省日志句柄的函数集合版本） */ /* output hex log collection macros for TLS */
+#define WRITEHEXLOGSG( _log_level_ , _buf_ , _buf_size_ , ... )	WriteHexLogsG( __FILE__ , __LINE__ , _log_level_ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define DEBUGHEXLOGSG( _buf_ , _buf_size_ , ... )		DebugHexLogsG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define INFOHEXLOGSG( _buf_ , _buf_size_ , ... )		InfoHexLogsG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define WARNHEXLOGSG( _buf_ , _buf_size_ , ... )		WarnHexLogsG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define ERRORHEXLOGSG( _buf_ , _buf_size_ , ... )		ErrorHexLogsG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define FATALHEXLOGSG( _buf_ , _buf_size_ , ... )		FatalHexLogsG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+
+#endif
+
+/* 风格替换宏 */
+#define create_logs_handle_g		CreateLogsHandleG
+#define destroy_logs_handle_g		DestroyLogsHandleG
+
+#define add_log_to_logs_g		AddLogToLogsG
+#define remove_out_log_from_logs_g	RemoveOutLogFromLogsG
+#define get_log_from_logs_g		GetLogFromLogsG
+#define travel_log_from_logs_g		TravelLogFromLogsG
+
+#define write_logs_g			WriteLogsG
+#define debug_logs_g			DebugLogsG
+#define info_logs_g			InfoLogsG
+#define warn_logs_g			WarnLogsG
+#define error_logs_g			ErrorLogsG
+#define fatal_logs_g			FatalLogsG
+
 #define write_hex_logs_g		WriteHexLogsG
 #define debug_hex_logs_g		DebugHexLogsG
 #define info_hex_logs_g			InfoHexLogsG
@@ -174,15 +175,12 @@ _WINDLL_FUNC int FatalHexLogsG( char *c_filename , long c_fileline , char *buffe
 #define error_hex_logs_g		ErrorHexLogsG
 #define fatal_hex_logs_g		FatalHexLogsG
 
-/* 写十六进制块日志集合的可变参数宏（基于线程本地存储的缺省日志句柄的函数集合版本） */ /* output hex log collection macros for TLS */
-#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
-#define WRITEHEXLOGSG( _log_level_ , _buf_ , _buf_size_ , ... )	WriteHexLogsG( __FILE__ , __LINE__ , _log_level_ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define DEBUGHEXLOGSG( _buf_ , _buf_size_ , ... )		DebugHexLogsG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define INFOHEXLOGSG( _buf_ , _buf_size_ , ... )			InfoHexLogsG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define WARNHEXLOGSG( _buf_ , _buf_size_ , ... )			WarnHexLogsG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define ERRORHEXLOGSG( _buf_ , _buf_size_ , ... )		ErrorHexLogsG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#define FATALHEXLOGSG( _buf_ , _buf_size_ , ... )		FatalHexLogsG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
-#endif
+/* 得到基于线程本地存储的缺省日志句柄集合的函数版本 */ /* log handle collection get/set function for TLS */
+_WINDLL_FUNC LOGS *GetGlobalLOGS();
+_WINDLL_FUNC void SetGlobalLOGS( LOGS *gs );
+#define get_global_logs		GetGlobalLOGS
+#define set_global_logs		SetGlobalLOGS
+
 #endif
 
 #ifdef __cplusplus
