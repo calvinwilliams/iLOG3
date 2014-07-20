@@ -40,7 +40,8 @@ c_FILE		=	\
 			test_logconf.c \
 			test_logconf.c \
 			test_afterrotatefile.c \
-			test_filterlogfunc \
+			test_filterlogfunc.c \
+			test_logc.c \
 
 ###### 目标文件、安装目录配置区
 BIN		=	$(c_FILE:.c=)
@@ -56,7 +57,7 @@ LFLAGS		=	-L. \
 			-lpthread \
 
 ###### 额外宏定义区
-CLEAN_ADDITION	=
+CLEAN_ADDITION	=	LOGC.o
 
 ###### 加载mktpl模板库
 # 最终目标列表
@@ -152,3 +153,10 @@ test_afterrotatefile	:	test_afterrotatefile.o
 
 test_filterlogfunc	:	test_filterlogfunc.o
 	$(CC) -o $@ test_filterlogfunc.o $(LFLAGS)
+
+LOGC.o			:	../src/LOGC.c
+	$(CC) $(CFLAGS) -c ../src/LOGC.c
+
+test_logc		:	test_logc.o LOGC.o
+	$(CC) -o $@ test_logc.o LOGC.o -lpthread
+

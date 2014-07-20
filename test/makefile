@@ -21,7 +21,7 @@ c_FILE		=	\
 			test_logsconf.c \
 			test_afterrotatefile.c \
 			test_filterlogfunc.c \
-			bench_tiny.c \
+			test_logc.c \
 
 ###### 目标文件、安装目录配置区
 BIN		=	$(c_FILE:.c=)
@@ -37,7 +37,7 @@ LFLAGS		=	-L. \
 			-lpthread \
 
 ###### 额外宏定义区
-CLEAN_ADDITION	=
+CLEAN_ADDITION	=	LOGC.o
 
 ###### 加载mktpl模板库
 #@ make_all
@@ -90,4 +90,10 @@ test_filterlogfunc	:	test_filterlogfunc.o
 
 bench_tiny		:	bench_tiny.o
 	$(CC) -o $@ bench_tiny.o $(LFLAGS)
+
+LOGC.o			:	../src/LOGC.c
+	$(CC) $(CFLAGS) -c ../src/LOGC.c
+
+test_logc		:	test_logc.o LOGC.o
+	$(CC) -o $@ test_logc.o LOGC.o -lpthread
 

@@ -88,12 +88,14 @@ extern "C" {
 void SetLogFile( char *format , ... );
 void SetLogLevel( int log_level );
 
+int WriteLog( int log_level , char *c_filename , long c_fileline , char *format , ... );
 int FatalLog( char *c_filename , long c_fileline , char *format , ... );
 int ErrorLog( char *c_filename , long c_fileline , char *format , ... );
 int WarnLog( char *c_filename , long c_fileline , char *format , ... );
 int InfoLog( char *c_filename , long c_fileline , char *format , ... );
 int DebugLog( char *c_filename , long c_fileline , char *format , ... );
 
+int WriteHexLog( int log_level , char *c_filename , long c_fileline , char *buf , long buflen , char *format , ... );
 int FatalHexLog( char *c_filename , long c_fileline , char *buf , long buflen , char *format , ... );
 int ErrorHexLog( char *c_filename , long c_fileline , char *buf , long buflen , char *format , ... );
 int WarnHexLog( char *c_filename , long c_fileline , char *buf , long buflen , char *format , ... );
@@ -102,12 +104,14 @@ int DebugHexLog( char *c_filename , long c_fileline , char *buf , long buflen , 
 
 #if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
 
+#define WRITELOG(_log_level_,...)	WriteLog( _log_level_ , __FILE__ , __LINE__ , __VA_ARGS__ );
 #define FATALLOG(...)			FatalLog( __FILE__ , __LINE__ , __VA_ARGS__ );
 #define ERRORLOG(...)			ErrorLog( __FILE__ , __LINE__ , __VA_ARGS__ );
 #define WARNLOG(...)			WarnLog( __FILE__ , __LINE__ , __VA_ARGS__ );
 #define INFOLOG(...)			InfoLog( __FILE__ , __LINE__ , __VA_ARGS__ );
 #define DEBUGLOG(...)			DebugLog( __FILE__ , __LINE__ , __VA_ARGS__ );
 
+#define WRITEHEXLOG(_log_level_,_buf_,_buflen_,...)	WriteHexLog( _log_level_ , __FILE__ , __LINE__ , buf , buflen , __VA_ARGS__ );
 #define FATALHEXLOG(_buf_,_buflen_,...)	FatalHexLog( __FILE__ , __LINE__ , buf , buflen , __VA_ARGS__ );
 #define ERRORHEXLOG(_buf_,_buflen_,...)	ErrorHexLog( __FILE__ , __LINE__ , buf , buflen , __VA_ARGS__ );
 #define WARNHEXLOG(_buf_,_buflen_,...)	WarnHexLog( __FILE__ , __LINE__ , buf , buflen , __VA_ARGS__ );
@@ -118,20 +122,22 @@ int DebugHexLog( char *c_filename , long c_fileline , char *buf , long buflen , 
 
 #if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
 
-#define set_log_file(...)		SetLogFile( __VA_ARGS__ )
-#define set_log_level(_log_level_)	SetLogLevel( _log_level_ );
+#define set_log_file		SetLogFile
+#define set_log_level		SetLogLevel
 
-#define fatal_log(_c_filename_,_c_fileline_,...)	FatalLog( _c_filename_ , _c_fileline_ , __VA_ARGS__ );
-#define error_log(_c_filename_,_c_fileline_,...)	ErrorLog( _c_filename_ , _c_fileline_ , __VA_ARGS__ );
-#define warn_log(_c_filename_,_c_fileline_,...)		WarnLog( _c_filename_ , _c_fileline_ , __VA_ARGS__ );
-#define info_log(_c_filename_,_c_fileline_,...)		InfoLog( _c_filename_ , _c_fileline_ , __VA_ARGS__ );
-#define debug_log(_c_filename_,_c_fileline_,...)	DebugLog( _c_filename_ , _c_fileline_ , __VA_ARGS__ );
+#define write_log		WriteLog
+#define fatal_log		FatalLog
+#define error_log		ErrorLog
+#define warn_log		WarnLog
+#define info_log		InfoLog
+#define debug_log		DebugLog
 
-#define fatal_hex_log(_c_filename_,_c_fileline_,_buf_,_buflen_,...)	FatalHexLog( _c_filename_ , _c_fileline_ , _buf_ , _buflen_ , __VA_ARGS__ );
-#define error_hex_log(_c_filename_,_c_fileline_,_buf_,_buflen_,...)	ErrorHexLog( _c_filename_ , _c_fileline_ , _buf_ , _buflen_ , __VA_ARGS__ );
-#define warn_hex_log(_c_filename_,_c_fileline_,_buf_,_buflen_,...)	WarnHexLog( _c_filename_ , _c_fileline_ , _buf_ , _buflen_ , __VA_ARGS__ );
-#define info_hex_log(_c_filename_,_c_fileline_,_buf_,_buflen_,...)	InfoHexLog( _c_filename_ , _c_fileline_ , _buf_ , _buflen_ , __VA_ARGS__ );
-#define debug_hex_log(_c_filename_,_c_fileline_,_buf_,_buflen_,...)	DebugHexLog( _c_filename_ , _c_fileline_ , _buf_ , _buflen_ , __VA_ARGS__ );
+#define write_hex_log		WriteHexLog
+#define fatal_hex_log		FatalHexLog
+#define error_hex_log		ErrorHexLog
+#define warn_hex_log		WarnHexLog
+#define info_hex_log		InfoHexLog
+#define debug_hex_log		DebugHexLog
 
 #endif
 

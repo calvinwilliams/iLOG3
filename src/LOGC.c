@@ -97,9 +97,11 @@ static int WriteLogBase( int log_level , char *c_filename , long c_fileline , ch
 	OFFSET_BUFPTR( log_buffer , log_bufptr , len , log_buflen , log_buf_remain_len );
 	len = SNPRINTF( log_bufptr , log_buf_remain_len , " | %-5s" , log_level_itoa[log_level] ) ;
 	OFFSET_BUFPTR( log_buffer , log_bufptr , len , log_buflen , log_buf_remain_len );
-	len = SNPRINTF( log_bufptr , log_buf_remain_len , " | %ld:%ld:%s:%ld | ", PROCESSID , THREADID , p_c_filename , c_fileline ) ;
+	len = SNPRINTF( log_bufptr , log_buf_remain_len , " | %ld:%ld:%s:%ld | " , PROCESSID , THREADID , p_c_filename , c_fileline ) ;
 	OFFSET_BUFPTR( log_buffer , log_bufptr , len , log_buflen , log_buf_remain_len );
 	len = VSNPRINTF( log_bufptr , log_buf_remain_len , format , valist );
+	OFFSET_BUFPTR( log_buffer , log_bufptr , len , log_buflen , log_buf_remain_len );
+	len = SNPRINTF( log_bufptr , log_buf_remain_len , NEWLINE ) ;
 	OFFSET_BUFPTR( log_buffer , log_bufptr , len , log_buflen , log_buf_remain_len );
 	
 	/* 输出行日志 */
@@ -114,7 +116,7 @@ static int WriteLogBase( int log_level , char *c_filename , long c_fileline , ch
 #if ( defined __linux__ ) || ( defined __unix )
 		fd = OPEN( g_log_pathfilename , O_CREAT | O_WRONLY | O_APPEND , S_IRWXU | S_IRWXG | S_IRWXO ) ;
 #elif ( defined _WIN32 )
-		fd = OPEN( g_log_pathfilename , _O_CREAT | _O_WRONLY | _O_APPEND , _S_IREAD | _S_IWRITE ) ;
+		fd = OPEN( g_log_pathfilename , _O_CREAT | _O_WRONLY | _O_APPEND | _O_BINARY , _S_IREAD | _S_IWRITE ) ;
 #endif
 		if( fd == -1 )
 			return -1;
@@ -123,6 +125,20 @@ static int WriteLogBase( int log_level , char *c_filename , long c_fileline , ch
 		
 		CLOSE( fd );
 	}
+	
+	return 0;
+}
+
+int WriteLog( int log_level , char *c_filename , long c_fileline , char *format , ... )
+{
+	va_list		valist ;
+	
+	if( log_level < g_log_level )
+		return 0;
+	
+	va_start( valist , format );
+	WriteLogBase( log_level , c_filename , c_fileline , format , valist );
+	va_end( valist );
 	
 	return 0;
 }
@@ -287,7 +303,7 @@ static int WriteHexLogBase( int log_level , char *c_filename , long c_fileline ,
 #if ( defined __linux__ ) || ( defined __unix )
 		fd = OPEN( g_log_pathfilename , O_CREAT | O_WRONLY | O_APPEND , S_IRWXU | S_IRWXG | S_IRWXO ) ;
 #elif ( defined _WIN32 )
-		fd = OPEN( g_log_pathfilename , _O_CREAT | _O_WRONLY | _O_APPEND , _S_IREAD | _S_IWRITE ) ;
+		fd = OPEN( g_log_pathfilename , _O_CREAT | _O_WRONLY | _O_APPEND | _O_BINARY , _S_IREAD | _S_IWRITE ) ;
 #endif
 		if( fd == -1 )
 			return -1;
@@ -296,6 +312,20 @@ static int WriteHexLogBase( int log_level , char *c_filename , long c_fileline ,
 		
 		CLOSE( fd );
 	}
+	
+	return 0;
+}
+
+int WriteHexLog( int log_level , char *c_filename , long c_fileline , char *buf , long buflen , char *format , ... )
+{
+	va_list		valist ;
+	
+	if( log_level < g_log_level )
+		return 0;
+	
+	va_start( valist , format );
+	WriteHexLogBase( log_level , c_filename , c_fileline , buf , buflen , format , valist );
+	va_end( valist );
 	
 	return 0;
 }
