@@ -1,3 +1,6 @@
+ver 1.0.10	2014-08-17	calvin
+		* Enhance the stability of multithreaded environment
+
 ver 1.0.9	2014-07-18	calvin
 		* add function SetLogOutput2,SetLogOutput2G
 		* Increase iLOG3 lite version : LOGC.h,LOGC.c

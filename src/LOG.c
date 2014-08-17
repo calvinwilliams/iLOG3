@@ -2,7 +2,7 @@
  * iLOG3 - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.9
+ * LastVersion	: v1.0.10
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -23,7 +23,7 @@
 static char		sg_aszLogLevelDesc[][5+1] = { "DEBUG" , "INFO" , "WARN" , "ERROR" , "FATAL" , "NOLOG" } ;
 
 /* 版本标识 */ /* version */
-_WINDLL_FUNC int	_LOG_VERSION_1_0_8 = 0 ;
+_WINDLL_FUNC int	_LOG_VERSION_1_0_10 = 0 ;
 
 /* 线程本地存储全局对象 */ /* TLS */
 #if ( defined _WIN32 )
@@ -91,9 +91,8 @@ static int EnterMutexSection( LOG *g )
 	nret = fcntl( g->rotate_lock , F_SETLKW , & (g->lock) ) ;
 	if( nret == -1 )
 		return LOG_RETURN_ERROR_INTERNAL;
-#if ( defined __linux__ ) || ( defined __unix )
+	
 	pthread_mutex_lock( & g_pthread_mutex );
-#endif
 #endif
 	return 0;
 }
@@ -107,9 +106,9 @@ static int LeaveMutexSection( LOG *g )
 		return LOG_RETURN_ERROR_INTERNAL;
 #elif ( defined __unix ) || ( defined __linux__ )
 	int	nret ;
-#if ( defined __linux__ ) || ( defined __unix )
+	
 	pthread_mutex_unlock( & g_pthread_mutex );
-#endif
+	
 	memset( & (g->lock) , 0x00 , sizeof(g->lock) );
 	g->lock.l_type = F_UNLCK ;
 	g->lock.l_whence = SEEK_SET ;
@@ -125,6 +124,8 @@ static int LeaveMutexSection( LOG *g )
 /* 调整缓冲区大小 */ /* adjust buffer size */
 static int SetBufferSize( LOG *g , LOGBUF *logbuf , long buf_size , long max_buf_size )
 {
+	int		nret = 0 ;
+	
 	if( g == NULL )
 		return LOG_RETURN_ERROR_PARAMETER;
 	if( logbuf == NULL )
@@ -139,9 +140,14 @@ static int SetBufferSize( LOG *g , LOGBUF *logbuf , long buf_size , long max_buf
 	{
 		if( logbuf->bufbase == NULL )
 		{
+			nret = EnterMutexSection( g ) ;
+			if( nret )
+				return nret;
 			logbuf->bufbase = (char*)malloc( buf_size ) ;
+			LeaveMutexSection( g );
 			if( logbuf->bufbase == NULL )
 				return LOG_RETURN_ERROR_ALLOC;
+			
 			logbuf->buf_size = buf_size ;
 			memset( logbuf->bufbase , 0x00 , logbuf->buf_size );
 		}
@@ -149,9 +155,14 @@ static int SetBufferSize( LOG *g , LOGBUF *logbuf , long buf_size , long max_buf
 		{
 			char	*tmp = NULL ;
 			
+			nret = EnterMutexSection( g ) ;
+			if( nret )
+				return nret;
 			tmp = (char*)realloc( logbuf->bufbase , buf_size ) ;
+			LeaveMutexSection( g );
 			if( tmp == NULL )
 				return LOG_RETURN_ERROR_ALLOC;
+			
 			logbuf->buf_remain_len = logbuf->buf_remain_len + ( buf_size - logbuf->buf_size ) ;
 			logbuf->bufptr = logbuf->bufptr - logbuf->bufbase + tmp ;
 			logbuf->bufbase = tmp ;
@@ -207,7 +218,7 @@ void DestroyLogHandleG()
 /* 创建日志句柄 */ /* create log handle */
 LOG *CreateLogHandle()
 {
-	LOG		*g = NULL ;
+	LOG		_g , *g = NULL ;
 	int		nret ;
 	
 #if ( defined _WIN32 )
@@ -216,10 +227,20 @@ LOG *CreateLogHandle()
 	return LOG_RETURN_ERROR_NOTSUPPORT;
 #endif
 	
+	memset( & _g , 0x00 , sizeof(LOG) );
+	nret = CreateMutexSection( & _g ) ;
+	if( nret )
+		return NULL;
+	
+	nret = EnterMutexSection( & _g ) ;
+	if( nret )
+		return NULL;
 	g = (LOG *)malloc( sizeof(LOG) ) ;
+	LeaveMutexSection( & _g );
 	if( g == NULL )
 		return NULL;
-	memset( g , 0x00 , sizeof(LOG) );
+	
+	memcpy( g , & _g , sizeof(LOG) );
 	
 	SetLogLevel( g , LOG_LEVEL_DEFAULT );
 	SetLogStyles( g , LOG_STYLES_DEFAULT , LOG_NO_STYLEFUNC );
@@ -246,13 +267,6 @@ LOG *CreateLogHandle()
 	g->hexlogbuf.bufptr = NULL ;
 	g->hexlogbuf.buf_remain_len = 0 ;
 	nret = SetHexLogBufferSize( g , LOG_HEXLOG_BUFSIZE_DEFAULT , LOG_HEXLOG_BUFSIZE_MAX ) ;
-	if( nret )
-	{
-		DestroyLogHandle( g );
-		return NULL;
-	}
-	
-	nret = CreateMutexSection( g ) ;
 	if( nret )
 	{
 		DestroyLogHandle( g );

@@ -1,3 +1,6 @@
+ver 1.0.10	2014-08-17	calvin
+		* 增强了多线程环境中的稳定性
+
 ver 1.0.9	2014-07-18	calvin
 		* 新增函数SetLogOutput2,SetLogOutput2G
 		* 增加iLOG3迷你版LOGC.h,LOGC.c
