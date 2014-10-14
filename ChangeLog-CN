@@ -1,3 +1,6 @@
+ver 1.0.11	2014-10-14	calvin
+		* 解决了Swap:cached过高的BUG
+
 ver 1.0.10	2014-08-17	calvin
 		* 增强了多线程环境中的稳定性
 

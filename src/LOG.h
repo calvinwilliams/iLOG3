@@ -5,7 +5,7 @@
  * iLOG3 - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.10
+ * LastVersion	: v1.0.11
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */

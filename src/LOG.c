@@ -2,7 +2,7 @@
  * iLOG3 - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.10
+ * LastVersion	: v1.0.11
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -23,7 +23,7 @@
 static char		sg_aszLogLevelDesc[][5+1] = { "DEBUG" , "INFO" , "WARN" , "ERROR" , "FATAL" , "NOLOG" } ;
 
 /* 版本标识 */ /* version */
-_WINDLL_FUNC int	_LOG_VERSION_1_0_10 = 0 ;
+_WINDLL_FUNC int	_LOG_VERSION_1_0_11 = 0 ;
 
 /* 线程本地存储全局对象 */ /* TLS */
 #if ( defined _WIN32 )
@@ -410,6 +410,8 @@ static int CloseLog_close( LOG *g , void **open_handle )
 {
 	if( g->open_flag == 0 )
 		return 0;
+	
+	fsync( g->fd );
 	
 	close( g->fd );
 	
