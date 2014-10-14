@@ -6,16 +6,16 @@
 --------------------Configuration: iLOG3 - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPCD.tmp" with contents
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPDE.tmp" with contents
 [
 /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ILOG3_EXPORTS" /D "LOG_GLOBAL_ENV" /Fp"Debug/iLOG3.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
-"D:\Work\C Projects\iLOG3-1.0.10\src\LOG.c"
-"D:\Work\C Projects\iLOG3-1.0.10\src\LOGCONF.c"
-"D:\Work\C Projects\iLOG3-1.0.10\src\LOGS.c"
-"D:\Work\C Projects\iLOG3-1.0.10\src\LOGSCONF.c"
+"D:\Work\C Projects\iLOG3-1.0.11\src\LOG.c"
+"D:\Work\C Projects\iLOG3-1.0.11\src\LOGCONF.c"
+"D:\Work\C Projects\iLOG3-1.0.11\src\LOGS.c"
+"D:\Work\C Projects\iLOG3-1.0.11\src\LOGSCONF.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPCD.tmp" 
-Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPCE.tmp" with contents
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPDE.tmp" 
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPDF.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:yes /pdb:"Debug/iLOG3.pdb" /debug /machine:I386 /out:"Debug/iLOG3.dll" /implib:"Debug/iLOG3.lib" /pdbtype:sept 
 ".\Debug\LOG.obj"
@@ -23,7 +23,7 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\LOGS.obj"
 ".\Debug\LOGSCONF.obj"
 ]
-Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPCE.tmp"
+Creating command line "link.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPDF.tmp"
 <h3>Output Window</h3>
 Compiling...
 LOG.c
@@ -32,7 +32,7 @@ LOGS.c
 LOGSCONF.c
 Linking...
    Creating library Debug/iLOG3.lib and object Debug/iLOG3.exp
-Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPD2.bat" with contents
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPE3.bat" with contents
 [
 @echo off
 mkdir "%ProgramFiles%\iLOG3"
@@ -43,7 +43,7 @@ copy Debug\*.dll "%ProgramFiles%\iLOG3\bin\" /Y
 mkdir "%ProgramFiles%\iLOG3\lib"
 copy Debug\*.lib "%ProgramFiles%\iLOG3\lib\" /Y
 ]
-Creating command line "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPD2.bat"
+Creating command line "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPE3.bat"
 
 子目录或文件 C:\Program Files\iLOG3 已经存在。
 子目录或文件 C:\Program Files\iLOG3\include 已经存在。
@@ -68,15 +68,15 @@ iLOG3.dll - 0 error(s), 0 warning(s)
 --------------------Configuration: iLOG3_a - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPD3.tmp" with contents
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPE4.tmp" with contents
 [
 /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /D "LOG_GLOBAL_ENV" /Fp"Debug/iLOG3_a.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
-"D:\Work\C Projects\iLOG3-1.0.10\src\LOG.c"
-"D:\Work\C Projects\iLOG3-1.0.10\src\LOGCONF.c"
-"D:\Work\C Projects\iLOG3-1.0.10\src\LOGS.c"
-"D:\Work\C Projects\iLOG3-1.0.10\src\LOGSCONF.c"
+"D:\Work\C Projects\iLOG3-1.0.11\src\LOG.c"
+"D:\Work\C Projects\iLOG3-1.0.11\src\LOGCONF.c"
+"D:\Work\C Projects\iLOG3-1.0.11\src\LOGS.c"
+"D:\Work\C Projects\iLOG3-1.0.11\src\LOGSCONF.c"
 ]
-Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPD3.tmp" 
+Creating command line "cl.exe @C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPE4.tmp" 
 Creating command line "link.exe -lib /nologo /out:"Debug\iLOG3_a.lib"  ".\Debug\LOG.obj" ".\Debug\LOGCONF.obj" ".\Debug\LOGS.obj" ".\Debug\LOGSCONF.obj" "
 <h3>Output Window</h3>
 Compiling...
@@ -85,7 +85,7 @@ LOGCONF.c
 LOGS.c
 LOGSCONF.c
 Creating library...
-Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPD4.bat" with contents
+Creating temporary file "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPE5.bat" with contents
 [
 @echo off
 mkdir "%ProgramFiles%\iLOG3"
@@ -94,7 +94,7 @@ copy ..\..\..\src\*.h "%ProgramFiles%\iLOG3\include\" /Y
 mkdir "%ProgramFiles%\iLOG3\lib"
 copy Debug\*.lib "%ProgramFiles%\iLOG3\lib\" /Y
 ]
-Creating command line "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPD4.bat"
+Creating command line "C:\DOCUME~1\calvin\LOCALS~1\Temp\RSPE5.bat"
 
 子目录或文件 C:\Program Files\iLOG3 已经存在。
 子目录或文件 C:\Program Files\iLOG3\include 已经存在。
