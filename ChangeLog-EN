@@ -1,5 +1,8 @@
 ver 1.0.11	2014-10-14	calvin
 		* Fixed bug : Swap:cached too high
+		* Support hpux
+		* Fixed a bug : not reused filename that deleted
+		* Fixed a bug : ignore when rotating file existed
 
 ver 1.0.10	2014-08-17	calvin
 		* Enhance the stability of multithreaded environment

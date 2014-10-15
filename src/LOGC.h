@@ -25,7 +25,7 @@
 #include <share.h>
 #include <io.h>
 #include <fcntl.h>
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/time.h>

@@ -37,7 +37,7 @@ c_FILE		=	\
 LIB		=	libiLOG3.so
 LIBINST		=	/usr/local/lib
 LIB2		=	libiLOG3.a
-LIBINST2	=	/usr/local/lib
+# LIBINST2	=	/usr/local/lib
 HDER		= \
 			LOG.h \
 			LOGS.h \

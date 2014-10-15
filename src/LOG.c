@@ -11,7 +11,7 @@
 #ifndef _WINDLL_FUNC
 #define _WINDLL_FUNC		_declspec(dllexport)
 #endif
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 #ifndef _WINDLL_FUNC
 #define _WINDLL_FUNC
 #endif
@@ -45,7 +45,7 @@ static int CreateMutexSection( LOG *g )
 	g->rotate_lock = CreateMutex( NULL , FALSE , lock_pathfilename ) ;
 	if( g->rotate_lock == NULL )
 		return LOG_RETURN_ERROR_INTERNAL;
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 	char		lock_pathfilename[ MAXLEN_FILENAME + 1 ] ;
 	mode_t		m ;
 	SNPRINTF( lock_pathfilename , sizeof(lock_pathfilename) , "/tmp/iLOG3.lock" );
@@ -65,7 +65,7 @@ static int DestroyMutexSection( LOG *g )
 	{
 		CloseHandle( g->rotate_lock );
 	}
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 	if( g->rotate_lock != -1 )
 	{
 		close( g->rotate_lock );
@@ -81,7 +81,7 @@ static int EnterMutexSection( LOG *g )
 	dw = WaitForSingleObject( g->rotate_lock , INFINITE ) ;
 	if( dw != WAIT_OBJECT_0 )
 		return LOG_RETURN_ERROR_INTERNAL;
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 	int	nret ;
 	memset( & (g->lock) , 0x00 , sizeof(g->lock) );
 	g->lock.l_type = F_WRLCK ;
@@ -104,7 +104,7 @@ static int LeaveMutexSection( LOG *g )
 	bret = ReleaseMutex( g->rotate_lock ) ;
 	if( bret != TRUE )
 		return LOG_RETURN_ERROR_INTERNAL;
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 	int	nret ;
 	
 	pthread_mutex_unlock( & g_pthread_mutex );
@@ -208,7 +208,7 @@ void DestroyLogHandle( LOG *g )
 	return;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 void DestroyLogHandleG()
 {
 	DestroyLogHandle( tls_g );
@@ -222,7 +222,7 @@ LOG *CreateLogHandle()
 	int		nret ;
 	
 #if ( defined _WIN32 )
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 #else
 	return LOG_RETURN_ERROR_NOTSUPPORT;
 #endif
@@ -250,6 +250,8 @@ LOG *CreateLogHandle()
 	g->rotate_file_no = 1 ;
 	g->rotate_file_count = LOG_ROTATE_SIZE_FILE_COUNT_DEFAULT ;
 	g->pressure_factor = LOG_ROTATE_SIZE_PRESSURE_FACTOR_DEFAULT ;
+	g->fsync_period = LOG_FSYNC_PERIOD ;
+	g->fsync_elapse = g->fsync_period ;
 	
 	g->logbuf.buf_size = 0 ;
 	g->logbuf.bufbase = NULL ;
@@ -276,7 +278,7 @@ LOG *CreateLogHandle()
 	return g;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 LOG *CreateLogHandleG()
 {
 	tls_g = CreateLogHandle() ;
@@ -389,7 +391,7 @@ static long CloseLog_DeregisterEventSource( LOG *g , void **open_handle )
 	return 0;
 }
 
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 
 static int OpenLog_open( LOG *g , char *log_pathfilename , void **open_handle )
 {
@@ -410,8 +412,6 @@ static int CloseLog_close( LOG *g , void **open_handle )
 {
 	if( g->open_flag == 0 )
 		return 0;
-	
-	fsync( g->fd );
 	
 	close( g->fd );
 	
@@ -662,7 +662,7 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 			g->pfuncChangeTest = NULL ;
 			g->pfuncCloseLog = NULL ;
 			g->pfuncCloseLogFinally = & CloseLog_DeregisterEventSource ;
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 			g->pfuncOpenLogFirst = & OpenLog_openlog ;
 			g->pfuncOpenLog = NULL ;
 			g->pfuncWriteLog = & WriteLog_syslog ;
@@ -698,7 +698,7 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 				g->pfuncCloseLog = & CloseLog_CloseHandle ;
 				g->pfuncCloseLogFinally = NULL ;
 			}
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 			if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
 			{
 				g->pfuncOpenLogFirst = & OpenLog_open ;
@@ -753,7 +753,7 @@ int SetLogOutput2( LOG *g , int output , funcOpenLog *pfuncOpenLogFirst , funcOp
 	return SetLogOutput( g , output , log_pathfilename , pfuncOpenLogFirst , pfuncOpenLog , pfuncWriteLog , pfuncChangeTest , pfuncCloseLog , pfuncCloseLogFinally );
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogOutputG( int output , char *log_pathfilename , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally )
 {
 	return SetLogOutput( tls_g , output , log_pathfilename , pfuncOpenLogFirst , pfuncOpenLog , pfuncWriteLog , pfuncChangeTest , pfuncCloseLog , pfuncCloseLogFinally );
@@ -769,7 +769,7 @@ int SetLogLevel( LOG *g , int log_level )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogLevelG( int log_level )
 {
 	return SetLogLevel( tls_g , log_level );
@@ -835,7 +835,7 @@ static int LogStyle_DATETIMEMS( LOG *g , LOGBUF *logbuf , char *c_filename , lon
 	SYSTEMTIME	stNow ;
 	GetLocalTime( & stNow );
 	SYSTEMTIME2TIMEVAL_USEC( stNow , g->cache1_tv );
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 	gettimeofday( & (g->cache1_tv) , NULL );
 #endif	
 	LogStyle_DATETIME( g , logbuf , c_filename , c_fileline , log_level , format , valist );
@@ -882,7 +882,7 @@ static int LogStyle_PID( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fil
 	hd = GetForegroundWindow() ;
 	GetWindowThreadProcessId( hd , & dw );
 	pid = (long)dw ;
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 	pid = (long)getpid() ;
 #endif
 	if( pid != g->cache2_logstyle_pid )
@@ -905,7 +905,7 @@ static int LogStyle_TID( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fil
 	unsigned long	tid ;
 #if ( defined _WIN32 )
 	tid = (unsigned long)GetCurrentThreadId() ;
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 #if ( defined _PTHREAD_H )
 	tid = (unsigned long)pthread_self() ;
 #else
@@ -944,7 +944,7 @@ static int LogStyle_SOURCE( LOG *g , LOGBUF *logbuf , char *c_filename , long c_
 			pfilename = c_filename ;
 	}
 	FormatLogBuffer( g , logbuf , "%s:%ld" , pfilename , c_fileline ) ;
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 	FormatLogBuffer( g , logbuf , "%s:%ld" , c_filename , c_fileline ) ;
 #endif
 	return 0;
@@ -1068,7 +1068,7 @@ int SetLogStyles( LOG *g , long log_styles , funcLogStyle *pfuncLogStyle )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogStylesG( long log_styles , funcLogStyle *pfuncLogStyles )
 {
 	return SetLogStyles( tls_g , log_styles , pfuncLogStyles );
@@ -1078,7 +1078,6 @@ int SetLogStylesG( long log_styles , funcLogStyle *pfuncLogStyles )
 /* 转档日志文件 */ /* rotate log file */
 static int RotateLogFileSize( LOG *g , long step )
 {
-	long		l ;
 	char		rotate_log_pathfilename[ MAXLEN_FILENAME + 1 ] ;
 	char		rotate_log_pathfilename_access[ MAXLEN_FILENAME + 1 ] ;
 	int		nret ;
@@ -1110,10 +1109,8 @@ static int RotateLogFileSize( LOG *g , long step )
 	
 	if( g->file_change_stat.st_size >= g->log_rotate_size )
 	{
-		for( l = 0 ; l < g->rotate_file_count ; l++ , g->rotate_file_no++ )
+		for( g->rotate_file_no = 1 ; g->rotate_file_no <= g->rotate_file_count ; g->rotate_file_no++ )
 		{
-			if( g->rotate_file_no > g->rotate_file_count )
-				g->rotate_file_no = 1 ;
 			SNPRINTF( rotate_log_pathfilename , sizeof(rotate_log_pathfilename) , "%s.%ld" , g->log_pathfilename , g->rotate_file_no );
 			strcpy( rotate_log_pathfilename_access , rotate_log_pathfilename );
 			if( g->pfuncBeforeRotateFile )
@@ -1122,13 +1119,18 @@ static int RotateLogFileSize( LOG *g , long step )
 			if( nret == -1 )
 				break;
 		}
-		if( l >= g->rotate_file_count )
+		if( g->rotate_file_no > g->rotate_file_count )
 		{
 			g->rotate_file_no = g->rotate_file_count ;
 			SNPRINTF( rotate_log_pathfilename , sizeof(rotate_log_pathfilename) , "%s.%ld" , g->log_pathfilename , g->rotate_file_count );
 		}
 		
-		RENAME( g->log_pathfilename , rotate_log_pathfilename );
+		nret = RENAME( g->log_pathfilename , rotate_log_pathfilename ) ;
+		if( nret )
+		{
+			UNLINK( rotate_log_pathfilename );
+			RENAME( g->log_pathfilename , rotate_log_pathfilename ) ;
+		}
 		if( g->pfuncAfterRotateFile )
 			g->pfuncAfterRotateFile( g , rotate_log_pathfilename );
 		g->skip_count = 1 ;
@@ -1335,6 +1337,18 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 			return nret;
 	}
 	
+#if ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+	if( g->output == LOG_OUTPUT_FILE )
+	{
+		g->fsync_elapse--;
+		if( g->fsync_elapse < 1 )
+		{
+			fsync( g->fd );
+			g->fsync_elapse = g->fsync_period ;
+		}
+	}
+#endif
+	
 	/* 关闭日志 */ /* close log */
 	if( g->open_flag == 1 )
 	{
@@ -1418,7 +1432,7 @@ int WriteLog( LOG *g , char *c_filename , long c_fileline , int log_level , char
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int WriteLogG( char *c_filename , long c_fileline , int log_level , char *format , ... )
 {
 	WRITELOGBASE( tls_g , log_level )
@@ -1433,7 +1447,7 @@ int DebugLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int DebugLogG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( tls_g , LOG_LEVEL_DEBUG )
@@ -1448,7 +1462,7 @@ int InfoLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int InfoLogG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( tls_g , LOG_LEVEL_INFO )
@@ -1463,7 +1477,7 @@ int WarnLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int WarnLogG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( tls_g , LOG_LEVEL_WARN )
@@ -1478,7 +1492,7 @@ int ErrorLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int ErrorLogG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( tls_g , LOG_LEVEL_ERROR )
@@ -1493,7 +1507,7 @@ int FatalLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int FatalLogG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( tls_g , LOG_LEVEL_FATAL )
@@ -1626,6 +1640,18 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 			return nret;
 	}
 	
+#if ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+	if( g->output == LOG_OUTPUT_FILE )
+	{
+		g->fsync_elapse--;
+		if( g->fsync_elapse < 1 )
+		{
+			fsync( g->fd );
+			g->fsync_elapse = g->fsync_period ;
+		}
+	}
+#endif
+	
 	/* 关闭日志 */ /* close file */
 	if( g->open_flag == 1 )
 	{
@@ -1715,7 +1741,7 @@ int WriteHexLog( LOG *g , char *c_filename , long c_fileline , int log_level , c
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int WriteHexLogG( char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( tls_g , log_level )
@@ -1730,7 +1756,7 @@ int DebugHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , lo
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int DebugHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( tls_g , LOG_LEVEL_DEBUG )
@@ -1745,7 +1771,7 @@ int InfoHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , lon
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int InfoHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( tls_g , LOG_LEVEL_INFO )
@@ -1760,7 +1786,7 @@ int WarnHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , lon
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int WarnHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( tls_g , LOG_LEVEL_WARN )
@@ -1775,7 +1801,7 @@ int ErrorHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , lo
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int ErrorHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( tls_g , LOG_LEVEL_ERROR )
@@ -1790,7 +1816,7 @@ int FatalHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , lo
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int FatalHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( tls_g , LOG_LEVEL_FATAL )
@@ -1814,7 +1840,7 @@ int SetLogOptions( LOG *g , int log_options )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogOptionsG( int log_options )
 {
 	return SetLogOptions( tls_g , log_options );
@@ -1834,10 +1860,26 @@ int SetLogFileChangeTest( LOG *g , long interval )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogFileChangeTestG( long interval )
 {
 	return SetLogFileChangeTest( tls_g , interval );
+}
+#endif
+
+/* 刷存储IO周期 */
+int SetLogFsyncPeriod( LOG *g , long period )
+{
+	g->fsync_period = period ;
+	g->fsync_elapse = g->fsync_period ;
+	
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
+int SetLogFsyncPeriodG( long period )
+{
+	return SetLogFsyncPeriod( tls_g , period );
 }
 #endif
 
@@ -1859,7 +1901,7 @@ int SetLogCustLabel( LOG *g , int index , char *cust_label )
 	}
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogCustLabelG( int index , char *cust_label )
 {
 	return SetLogCustLabel( tls_g , index , cust_label );
@@ -1884,7 +1926,7 @@ int SetLogRotateMode( LOG *g , int rotate_mode )
 	}
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogRotateModeG( int rotate_mode )
 {
 	return SetLogRotateMode( tls_g , rotate_mode );
@@ -1902,7 +1944,7 @@ int SetLogRotateSize( LOG *g , long log_rotate_size )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogRotateSizeG( long log_rotate_size )
 {
 	return SetLogRotateSize( tls_g , log_rotate_size );
@@ -1920,10 +1962,28 @@ int SetLogRotatePressureFactor( LOG *g , long pressure_factor )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogRotatePressureFactorG( long pressure_factor )
 {
 	return SetLogRotatePressureFactor( tls_g , pressure_factor );
+}
+#endif
+
+/* 设置日志转档最大后缀序号 */
+int SetLogRotateFileCount( LOG *g , long rotate_file_count )
+{
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	if( rotate_file_count <= 0 )
+		return LOG_RETURN_ERROR_PARAMETER;
+	g->rotate_file_count = rotate_file_count ;
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
+int SetLogRotateFileCountG( long rotate_file_count )
+{
+	return SetLogRotateFileCount( tls_g , rotate_file_count );
 }
 #endif
 
@@ -1934,7 +1994,7 @@ int SetBeforeRotateFileFunc( LOG *g , funcBeforeRotateFile *pfuncBeforeRotateFil
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetBeforeRotateFileFuncG( funcBeforeRotateFile *pfuncBeforeRotateFile )
 {
 	return SetBeforeRotateFileFunc( tls_g , pfuncBeforeRotateFile );
@@ -1948,7 +2008,7 @@ int SetAfterRotateFileFunc( LOG *g , funcAfterRotateFile *pfuncAfterRotateFile )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetAfterRotateFileFuncG( funcAfterRotateFile *pfuncAfterRotateFile )
 {
 	return SetAfterRotateFileFunc( tls_g , pfuncAfterRotateFile );
@@ -1962,7 +2022,7 @@ int SetFilterLogFunc( LOG *g , funcFilterLog *pfuncFilterLog )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetFilterLogFuncG( funcFilterLog *pfuncFilterLog )
 {
 	return SetFilterLogFunc( tls_g , pfuncFilterLog );
@@ -1975,7 +2035,7 @@ int SetLogBufferSize( LOG *g , long log_bufsize , long max_log_bufsize )
 	return SetBufferSize( g , & (g->logbuf) , log_bufsize , max_log_bufsize );
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogBufferSizeG( long log_bufsize , long max_log_bufsize )
 {
 	return SetLogBufferSize( tls_g , log_bufsize , max_log_bufsize );
@@ -1988,7 +2048,7 @@ int SetHexLogBufferSize( LOG *g , long hexlog_bufsize , long max_hexlog_bufsize 
 	return SetBufferSize( g , & (g->hexlogbuf) , hexlog_bufsize , max_hexlog_bufsize );
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetHexLogBufferSizeG( long hexlog_bufsize , long max_hexlog_bufsize )
 {
 	return SetHexLogBufferSize( tls_g , hexlog_bufsize , max_hexlog_bufsize );
@@ -2007,7 +2067,7 @@ int SetLogOutputFuncDirectly( LOG *g , funcOpenLog *pfuncOpenLogFirst , funcOpen
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogOutputFuncDirectlyG( funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally )
 {
 	return SetLogOutputFuncDirectly( tls_g , pfuncOpenLogFirst , pfuncOpenLog , pfuncWriteLog , pfuncChangeTest , pfuncCloseLog , pfuncCloseLogFinally );
@@ -2022,14 +2082,14 @@ int SetLogStyleFuncDirectly( LOG *g , funcLogStyle *pfuncLogStyle )
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogStyleFuncDirectlyG( funcLogStyle *pfuncLogStyle )
 {
 	return SetLogStyleFuncDirectly( tls_g , pfuncLogStyle );
 }
 #endif
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 /* 得到基于线程本地存储的缺省日志句柄的函数版本 */
 LOG *GetGlobalLOG()
 {

@@ -17,7 +17,7 @@ extern "C" {
 #ifndef _WINDLL_FUNC
 #define _WINDLL_FUNC		_declspec(dllexport)
 #endif
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 #ifndef _WINDLL_FUNC
 #define _WINDLL_FUNC
 #endif
@@ -105,7 +105,7 @@ _WINDLL_FUNC int FatalHexLogs( LOGS *g , char *c_filename , long c_fileline , ch
 
 #define LOG_TRAVELLOG_INDEX_INIT	-1
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 
 _WINDLL_FUNC LOGS *CreateLogsHandleG();
 _WINDLL_FUNC void DestroyLogsHandleG();

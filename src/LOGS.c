@@ -10,7 +10,7 @@
 #ifndef _WINDLL_FUNC
 #define _WINDLL_FUNC		_declspec(dllexport)
 #endif
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 #ifndef _WINDLL_FUNC
 #define _WINDLL_FUNC
 #endif
@@ -55,7 +55,7 @@ void DestroyLogsHandle( LOGS *gs )
 	return;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 void DestroyLogsHandleG()
 {
 	DestroyLogsHandle( tls_gs );
@@ -75,7 +75,7 @@ LOGS *CreateLogsHandle()
 	return gs;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 LOGS *CreateLogsHandleG()
 {
 	tls_gs = CreateLogsHandle() ;
@@ -109,7 +109,7 @@ int AddLogToLogs( LOGS *gs , char *g_id , LOG *g )
 	return LOGS_RETURN_ERROR_TOOMANY_LOG;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int AddLogToLogsG( char *g_id , LOG *g )
 {
 	return AddLogToLogs( tls_gs , g_id , g );
@@ -141,7 +141,7 @@ LOG *RemoveOutLogFromLogs( LOGS *gs , char *g_id )
 	return NULL;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 LOG *RemoveOutLogFromLogsG( char *g_id )
 {
 	return RemoveOutLogFromLogs( tls_gs , g_id );
@@ -169,7 +169,7 @@ LOG *GetLogFromLogs( LOGS *gs , char *g_id )
 	return NULL;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 LOG *GetLogFromLogsG( char *g_id )
 {
 	return GetLogFromLogs( tls_gs , g_id );
@@ -193,14 +193,14 @@ int TravelLogFromLogs( LOGS *gs , long *p_index , char **pp_g_id , LOG **pp_g )
 	return LOGS_RETURN_INFO_NOTFOUND;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int TravelLogFromLogsG( long *p_index , char **pp_id , LOG **pp_g )
 {
 	return TravelLogFromLogs( tls_gs , p_index , pp_id , pp_g );
 }
 #endif
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 /* 得到基于线程本地存储的缺省日志句柄集合的函数版本 */
 LOGS *GetGlobalLOGS()
 {
@@ -245,7 +245,7 @@ int WriteLogs( LOGS *gs , char *c_filename , long c_fileline , int log_level , c
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int WriteLogsG( char *c_filename , long c_fileline , int log_level , char *format , ... )
 {
 	WRITELOGSBASE( tls_gs , log_level )
@@ -259,7 +259,7 @@ int DebugLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ..
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int DebugLogsG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( tls_gs , LOG_LEVEL_DEBUG )
@@ -274,7 +274,7 @@ int InfoLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ...
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int InfoLogsG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( tls_gs , LOG_LEVEL_INFO )
@@ -289,7 +289,7 @@ int WarnLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ...
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int WarnLogsG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( tls_gs , LOG_LEVEL_WARN )
@@ -304,7 +304,7 @@ int ErrorLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ..
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int ErrorLogsG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( tls_gs , LOG_LEVEL_ERROR )
@@ -319,7 +319,7 @@ int FatalLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ..
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int FatalLogsG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( tls_gs , LOG_LEVEL_FATAL )
@@ -359,7 +359,7 @@ int WriteHexLogs( LOGS *gs , char *c_filename , long c_fileline , int log_level 
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int WriteHexLogsG( char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( tls_gs , log_level )
@@ -374,7 +374,7 @@ int DebugHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer ,
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int DebugHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( tls_gs , LOG_LEVEL_DEBUG )
@@ -389,7 +389,7 @@ int InfoHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , 
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int InfoHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( tls_gs , LOG_LEVEL_INFO )
@@ -404,7 +404,7 @@ int WarnHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , 
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int WarnHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( tls_gs , LOG_LEVEL_WARN )
@@ -419,7 +419,7 @@ int ErrorHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer ,
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int ErrorHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( tls_gs , LOG_LEVEL_ERROR )
@@ -434,7 +434,7 @@ int FatalHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer ,
 	return 0;
 }
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int FatalHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( tls_gs , LOG_LEVEL_FATAL )

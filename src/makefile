@@ -17,7 +17,7 @@ c_FILE		=	\
 LIB		=	libiLOG3.so
 LIBINST		=	$(HOME)/exlib
 LIB2		=	libiLOG3.a
-LIBINST2	=	$(HOME)/exlib
+# LIBINST2	=	$(HOME)/exlib
 HDER		= \
 			LOG.h \
 			LOGS.h \

@@ -18,7 +18,7 @@ extern "C" {
 #ifndef _WINDLL_FUNC
 #define _WINDLL_FUNC		_declspec(dllexport)
 #endif
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 #ifndef _WINDLL_FUNC
 #define _WINDLL_FUNC
 #endif
@@ -39,7 +39,7 @@ extern "C" {
 #include <share.h>
 #include <io.h>
 #include <fcntl.h>
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -197,7 +197,7 @@ _WINDLL_FUNC int FatalHexLog( LOG *g , char *c_filename , long c_fileline , char
 #define error_hex_log		ErrorHexLog
 #define fatal_hex_log		FatalHexLog
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 
 _WINDLL_FUNC LOG *CreateLogHandleG();
 _WINDLL_FUNC void DestroyLogHandleG();
@@ -306,6 +306,7 @@ typedef int funcFilterLog( LOG *g , void **open_handle , int log_level , char *b
 /* 日志转档缺省值 */ /* log rotate default macros */
 #define LOG_ROTATE_SIZE_FILE_COUNT_DEFAULT		99999999
 #define LOG_ROTATE_SIZE_PRESSURE_FACTOR_DEFAULT		2
+#define LOG_FSYNC_PERIOD				100000
 
 /* 自定义日志转档前后回调函数类型 */ /* custom turn log file callback function */
 typedef int funcBeforeRotateFile( LOG *g , char *rotate_log_pathfilename );
@@ -323,10 +324,12 @@ typedef int funcAfterRotateFile( LOG *g , char *rotate_log_pathfilename );
 /* 高级句柄环境设置函数 */ /* senior handle environment setting function */
 _WINDLL_FUNC int SetLogOptions( LOG *g , int log_options );
 _WINDLL_FUNC int SetLogFileChangeTest( LOG *g , long interval );
+_WINDLL_FUNC int SetLogFsyncPeriod( LOG *g , long period );
 _WINDLL_FUNC int SetLogCustLabel( LOG *g , int index , char *cust_label );
 _WINDLL_FUNC int SetLogRotateMode( LOG *g , int rotate_mode );
 _WINDLL_FUNC int SetLogRotateSize( LOG *g , long log_rotate_size );
 _WINDLL_FUNC int SetLogRotatePressureFactor( LOG *g , long pressure_factor );
+_WINDLL_FUNC int SetLogRotateFileCount( LOG *g , long rotate_file_count );
 _WINDLL_FUNC int SetBeforeRotateFileFunc( LOG *g , funcAfterRotateFile *pfuncAfterRotateFile );
 _WINDLL_FUNC int SetAfterRotateFileFunc( LOG *g , funcAfterRotateFile *pfuncAfterRotateFile );
 _WINDLL_FUNC int SetFilterLogFunc( LOG *g , funcFilterLog *pfuncFilterLog );
@@ -338,10 +341,12 @@ _WINDLL_FUNC int SetLogStyleFuncDirectly( LOG *g , funcLogStyle *pfuncLogStyle )
 /* 风格替换宏 */
 #define set_log_options			SetLogOptions
 #define set_log_file_change_test	SetLogFileChangeTest
+#define set_log_fsync_period		SetLogFsyncPeriod
 #define set_log_cust_label		SetLogCustLabel
 #define set_log_rotate_mode		SetLogRotateMode
 #define set_log_rotate_size		SetLogRotateSize
 #define set_log_rotate_pressure_factor	SetLogRotatePressureFactor
+#define set_log_rotate_file_count	SetLogRotateFileCount
 #define set_before_rotate_file_func	SetBeforeRotateFileFunc
 #define set_after_rotate_file_func	SetAfterRotateFileFunc
 #define set_filter_log_func		SetFilterLogFunc
@@ -350,13 +355,15 @@ _WINDLL_FUNC int SetLogStyleFuncDirectly( LOG *g , funcLogStyle *pfuncLogStyle )
 #define set_log_output_func_directly	SetLogOutputFuncDirectly
 #define set_log_stlye_func_directly	SetLogStyleFuncDirectly
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 _WINDLL_FUNC int SetLogOptionsG( int log_options );
 _WINDLL_FUNC int SetLogFileChangeTestG( long interval );
+_WINDLL_FUNC int SetLogFsyncPeriodG( long period );
 _WINDLL_FUNC int SetLogCustLabelG( int index , char *cust_label );
 _WINDLL_FUNC int SetLogRotateModeG( int rotate_mode );
 _WINDLL_FUNC int SetLogRotateSizeG( long log_rotate_size );
 _WINDLL_FUNC int SetLogRotatePressureFactorG( long pressure_factor );
+_WINDLL_FUNC int SetLogRotateFileCountG( long rotate_file_count );
 _WINDLL_FUNC int SetBeforeRotateFileFuncG( funcAfterRotateFile *pfuncAfterRotateFile );
 _WINDLL_FUNC int SetAfterRotateFileFuncG( funcAfterRotateFile *pfuncAfterRotateFile );
 _WINDLL_FUNC int SetFilterLogFuncG( funcFilterLog *pfuncFilterLog );
@@ -369,10 +376,12 @@ _WINDLL_FUNC int SetLogStyleFuncDirectlyG( funcLogStyle *pfuncLogStyle );
 /* 风格替换宏 */
 #define set_log_options_g			SetLogOptionsG
 #define set_log_file_change_test_g		SetLogFileChangeTestG
+#define set_log_fsync_period_g			SetLogFsyncPeriodG
 #define set_log_cust_label_g			SetLogCustLabelG
 #define set_log_rotate_mode_g			SetLogRotateModeG
 #define set_log_rotate_size_g			SetLogRotateSizeG
 #define set_log_rotate_pressure_factor_g	SetLogRotatePressureFactorG
+#define set_log_rotate_file_count_g		SetLogRotateFileCountG
 #define set_before_rotate_file_func_g		SetBeforeRotateFileFuncG
 #define set_after_rotate_file_func_g		SetAfterRotateFileFuncG
 #define set_filter_log_func_g			SetFilterLogFuncG
@@ -387,7 +396,7 @@ _WINDLL_FUNC int SetLogStyleFuncDirectlyG( funcLogStyle *pfuncLogStyle );
 #define TEST_STDSTREAM(_fd_)				( (_fd_) != FD_NULL && ( (_fd_) == STDOUT_HANDLE || (_fd_) == STDERR_HANDLE ) )
 #define TEST_FILEFD(_fd_)				( (_fd_) != FD_NULL && (_fd_) != STDOUT_HANDLE && (_fd_) != STDERR_HANDLE )
 
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 /* 得到基于线程本地存储的缺省日志句柄的函数版本 */ /* log handle get/set function for TLS */
 _WINDLL_FUNC LOG *GetGlobalLOG();
 _WINDLL_FUNC void SetGlobalLOG( LOG *g );
@@ -413,7 +422,8 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 #define ACCESS			_access
 #define ACCESS_OK		00
 #define RENAME			rename
-#elif ( defined __unix ) || ( defined __linux__ )
+#define UNLINK			unlink
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 #define LOG_NEWLINE		"\n"
 #define LOG_NEWLINE_LEN		1
 #define SNPRINTF		snprintf
@@ -426,6 +436,7 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 #define ACCESS			access
 #define ACCESS_OK		F_OK
 #define RENAME			rename
+#define UNLINK			unlink
 #endif
 
 /* 代码宏 */ /* code macros */
@@ -445,7 +456,7 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 		GetLocalTime( & stNow ); \
 		SYSTEMTIME2TM( stNow , (_stime_) ); \
 	}
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 #define LOCALTIME(_tt_,_stime_) \
 	localtime_r(&(_tt_),&(_stime_));
 #endif
@@ -459,7 +470,7 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 #if ( defined _WIN32 )
 #define STRICMP(_a_,_C_,_b_) ( stricmp(_a_,_b_) _C_ 0 )
 #define STRNICMP(_a_,_C_,_b_,_n_) ( strnicmp(_a_,_b_,_n_) _C_ 0 )
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 #define STRICMP(_a_,_C_,_b_) ( strcasecmp(_a_,_b_) _C_ 0 )
 #define STRNICMP(_a_,_C_,_b_,_n_) ( strncasecmp(_a_,_b_,_n_) _C_ 0 )
 #endif
@@ -546,6 +557,8 @@ struct tagLOG
 	long			file_change_test_interval ;
 	long			file_change_test_no ;
 	struct STAT		file_change_stat ;
+	long			fsync_period ;
+	long			fsync_elapse ;
 	
 	/* 自定义标签 */ /* custom labels */
 	char			cust_label[LOG_MAXCNT_CUST_LABEL][ LOG_MAXLEN_CUST_LABEL + 1 ] ;
@@ -594,7 +607,7 @@ struct tagLOG
 	/* 转档文件锁 */ /* rotate file lock */
 #if ( defined _WIN32 )
 	HANDLE			rotate_lock ;
-#elif ( defined __unix ) || ( defined __linux__ )
+#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
 	int			rotate_lock ;
 	struct flock		lock ;
 #endif
