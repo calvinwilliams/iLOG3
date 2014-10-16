@@ -1091,7 +1091,6 @@ static int RotateLogFileSize( LOG *g , long step )
 				nret = g->pfuncCloseLogFinally( g , & (g->open_handle) ) ;
 				if( nret )
 					return nret;
-				g->open_flag = 0 ;
 			}
 		}
 	}
@@ -1131,6 +1130,7 @@ static int RotateLogFileSize( LOG *g , long step )
 			UNLINK( rotate_log_pathfilename );
 			RENAME( g->log_pathfilename , rotate_log_pathfilename ) ;
 		}
+		
 		if( g->pfuncAfterRotateFile )
 			g->pfuncAfterRotateFile( g , rotate_log_pathfilename );
 		g->skip_count = 1 ;
@@ -1139,7 +1139,10 @@ static int RotateLogFileSize( LOG *g , long step )
 	{
 		if( step == 0 )
 			step = 1 ;
-		g->skip_count = ( g->log_rotate_size - g->file_change_stat.st_size ) / step / g->pressure_factor + 1 ;
+		if( g->pressure_factor == 0 )
+			g->skip_count = 1 ;
+		else
+			g->skip_count = ( g->log_rotate_size - g->file_change_stat.st_size ) / step / g->pressure_factor + 1 ;
 	}
 	
 	LeaveMutexSection( g );
@@ -1956,7 +1959,7 @@ int SetLogRotatePressureFactor( LOG *g , long pressure_factor )
 {
 	if( g == NULL )
 		return LOG_RETURN_ERROR_PARAMETER;
-	if( pressure_factor <= 0 )
+	if( pressure_factor < 0 )
 		return LOG_RETURN_ERROR_PARAMETER;
 	g->pressure_factor = pressure_factor ;
 	return 0;

@@ -305,8 +305,8 @@ typedef int funcFilterLog( LOG *g , void **open_handle , int log_level , char *b
 
 /* 日志转档缺省值 */ /* log rotate default macros */
 #define LOG_ROTATE_SIZE_FILE_COUNT_DEFAULT		99999999
-#define LOG_ROTATE_SIZE_PRESSURE_FACTOR_DEFAULT		2
-#define LOG_FSYNC_PERIOD				100000
+#define LOG_ROTATE_SIZE_PRESSURE_FACTOR_DEFAULT		0
+#define LOG_FSYNC_PERIOD				10000
 
 /* 自定义日志转档前后回调函数类型 */ /* custom turn log file callback function */
 typedef int funcBeforeRotateFile( LOG *g , char *rotate_log_pathfilename );
