@@ -123,9 +123,6 @@ static int WriteLogBase( int log_level , char *c_filename , long c_fileline , ch
 		
 		WRITE( fd , log_buffer , log_buflen );
 		
-#if ( defined __linux__ ) || ( defined __unix ) || ( defined _AIX )
-		fsync( fd );
-#endif
 		CLOSE( fd );
 	}
 	
