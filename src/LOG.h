@@ -18,7 +18,7 @@ extern "C" {
 #ifndef _WINDLL_FUNC
 #define _WINDLL_FUNC		_declspec(dllexport)
 #endif
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 #ifndef _WINDLL_FUNC
 #define _WINDLL_FUNC
 #endif
@@ -39,7 +39,7 @@ extern "C" {
 #include <share.h>
 #include <io.h>
 #include <fcntl.h>
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -206,7 +206,7 @@ _WINDLL_FUNC int SetLogOutputG( int output , char *log_pathfilename , funcOpenLo
 _WINDLL_FUNC int SetLogLevelG( int log_level );
 _WINDLL_FUNC int SetLogStylesG( long log_styles , funcLogStyle *pfuncLogStyles );
 #if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
-#define SetLogOutput2G(_output_,_pfuncOpenLogFirst_,_pfuncOpenLog_,_pfuncWriteLog_,_pfuncChangeTest_,_pfuncCloseLog_,_pfuncCloseLogFinally_,_log_pathfilename_format_,...)
+#define SetLogOutput2G(_output_,_pfuncOpenLogFirst_,_pfuncOpenLog_,_pfuncWriteLog_,_pfuncChangeTest_,_pfuncCloseLog_,_pfuncCloseLogFinally_,_log_pathfilename_format_,...) \
 	SetLogOutput2(_output_,_pfuncOpenLogFirst_,_pfuncOpenLog_,_pfuncWriteLog_,_pfuncChangeTest_,_pfuncCloseLog_,_pfuncCloseLogFinally_,_log_pathfilename_format_,__VA_ARGS__)
 #endif
 
@@ -423,7 +423,7 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 #define ACCESS_OK		00
 #define RENAME			rename
 #define UNLINK			unlink
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 #define LOG_NEWLINE		"\n"
 #define LOG_NEWLINE_LEN		1
 #define SNPRINTF		snprintf
@@ -456,7 +456,7 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 		GetLocalTime( & stNow ); \
 		SYSTEMTIME2TM( stNow , (_stime_) ); \
 	}
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 #define LOCALTIME(_tt_,_stime_) \
 	localtime_r(&(_tt_),&(_stime_));
 #endif
@@ -470,7 +470,7 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 #if ( defined _WIN32 )
 #define STRICMP(_a_,_C_,_b_) ( stricmp(_a_,_b_) _C_ 0 )
 #define STRNICMP(_a_,_C_,_b_,_n_) ( strnicmp(_a_,_b_,_n_) _C_ 0 )
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 #define STRICMP(_a_,_C_,_b_) ( strcasecmp(_a_,_b_) _C_ 0 )
 #define STRNICMP(_a_,_C_,_b_,_n_) ( strncasecmp(_a_,_b_,_n_) _C_ 0 )
 #endif
@@ -607,7 +607,7 @@ struct tagLOG
 	/* ×ªµµÎÄ¼þËø */ /* rotate file lock */
 #if ( defined _WIN32 )
 	HANDLE			rotate_lock ;
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	int			rotate_lock ;
 	struct flock		lock ;
 #endif

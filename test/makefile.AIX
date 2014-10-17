@@ -14,7 +14,7 @@ SOFLAGS		=	-G -bnoentry
 ESOFLAGS	=	-bdynamic -brtl -qcpluscm
 
 # c源代码文件宏及推导规则
-CC		=	xlc -q64 -qtls
+CC		=	xlc -q64 -qtls -qlanglvl=stdc99
 
 c_FILE_o	=	$(c_FILE:.c=.o)
 c_FILE2_o	=	$(c_FILE2:.c=.o)

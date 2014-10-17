@@ -69,7 +69,7 @@ static int WriteLogBase( int log_level , char *c_filename , long c_fileline , ch
 		p_c_filename = c_filename_copy ;
 
 	/* ÃÓ≥‰––»’÷æ */
-#if ( defined __linux__ ) || ( defined __unix )
+#if ( defined __linux__ ) || ( defined __unix ) || ( defined _AIX )
 	gettimeofday( & tv , NULL );
 	localtime_r( &(tv.tv_sec) , & stime );
 #elif ( defined _WIN32 )
@@ -113,7 +113,7 @@ static int WriteLogBase( int log_level , char *c_filename , long c_fileline , ch
 	{
 		int		fd ;
 		
-#if ( defined __linux__ ) || ( defined __unix )
+#if ( defined __linux__ ) || ( defined __unix ) || ( defined _AIX )
 		fd = OPEN( g_log_pathfilename , O_CREAT | O_WRONLY | O_APPEND , S_IRWXU | S_IRWXG | S_IRWXO ) ;
 #elif ( defined _WIN32 )
 		fd = OPEN( g_log_pathfilename , _O_CREAT | _O_WRONLY | _O_APPEND | _O_BINARY , _S_IREAD | _S_IWRITE ) ;
@@ -123,7 +123,7 @@ static int WriteLogBase( int log_level , char *c_filename , long c_fileline , ch
 		
 		WRITE( fd , log_buffer , log_buflen );
 		
-#if ( defined __linux__ ) || ( defined __unix )
+#if ( defined __linux__ ) || ( defined __unix ) || ( defined _AIX )
 		fsync( fd );
 #endif
 		CLOSE( fd );
@@ -303,7 +303,7 @@ static int WriteHexLogBase( int log_level , char *c_filename , long c_fileline ,
 	{
 		int		fd ;
 		
-#if ( defined __linux__ ) || ( defined __unix )
+#if ( defined __linux__ ) || ( defined __unix ) || ( defined _AIX )
 		fd = OPEN( g_log_pathfilename , O_CREAT | O_WRONLY | O_APPEND , S_IRWXU | S_IRWXG | S_IRWXO ) ;
 #elif ( defined _WIN32 )
 		fd = OPEN( g_log_pathfilename , _O_CREAT | _O_WRONLY | _O_APPEND | _O_BINARY , _S_IREAD | _S_IWRITE ) ;

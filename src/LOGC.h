@@ -25,7 +25,7 @@
 #include <share.h>
 #include <io.h>
 #include <fcntl.h>
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -52,7 +52,7 @@ extern "C" {
 #endif
 
 /* ¿çÆ½Ì¨ºê */
-#if ( defined __linux__ ) || ( defined __unix )
+#if ( defined __linux__ ) || ( defined __unix ) || ( defined _AIX )
 #define TLS		__thread
 #define VSNPRINTF	vsnprintf
 #define SNPRINTF	snprintf

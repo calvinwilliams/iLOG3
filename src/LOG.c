@@ -11,7 +11,7 @@
 #ifndef _WINDLL_FUNC
 #define _WINDLL_FUNC		_declspec(dllexport)
 #endif
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 #ifndef _WINDLL_FUNC
 #define _WINDLL_FUNC
 #endif
@@ -33,7 +33,7 @@ __thread LOG			*tls_g = NULL ;
 #endif
 
 /* ÁÙ½çÇø */ /* critical region */
-#if ( defined __linux__ ) || ( defined __unix )
+#if ( defined __linux__ ) || ( defined __unix ) || ( defined _AIX )
 pthread_mutex_t		g_pthread_mutex = PTHREAD_MUTEX_INITIALIZER ;
 #endif
 
@@ -45,7 +45,7 @@ static int CreateMutexSection( LOG *g )
 	g->rotate_lock = CreateMutex( NULL , FALSE , lock_pathfilename ) ;
 	if( g->rotate_lock == NULL )
 		return LOG_RETURN_ERROR_INTERNAL;
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	char		lock_pathfilename[ MAXLEN_FILENAME + 1 ] ;
 	mode_t		m ;
 	SNPRINTF( lock_pathfilename , sizeof(lock_pathfilename) , "/tmp/iLOG3.lock" );
@@ -65,7 +65,7 @@ static int DestroyMutexSection( LOG *g )
 	{
 		CloseHandle( g->rotate_lock );
 	}
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	if( g->rotate_lock != -1 )
 	{
 		close( g->rotate_lock );
@@ -81,7 +81,7 @@ static int EnterMutexSection( LOG *g )
 	dw = WaitForSingleObject( g->rotate_lock , INFINITE ) ;
 	if( dw != WAIT_OBJECT_0 )
 		return LOG_RETURN_ERROR_INTERNAL;
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	int	nret ;
 	memset( & (g->lock) , 0x00 , sizeof(g->lock) );
 	g->lock.l_type = F_WRLCK ;
@@ -104,7 +104,7 @@ static int LeaveMutexSection( LOG *g )
 	bret = ReleaseMutex( g->rotate_lock ) ;
 	if( bret != TRUE )
 		return LOG_RETURN_ERROR_INTERNAL;
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	int	nret ;
 	
 	pthread_mutex_unlock( & g_pthread_mutex );
@@ -222,7 +222,7 @@ LOG *CreateLogHandle()
 	int		nret ;
 	
 #if ( defined _WIN32 )
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 #else
 	return LOG_RETURN_ERROR_NOTSUPPORT;
 #endif
@@ -391,7 +391,7 @@ static long CloseLog_DeregisterEventSource( LOG *g , void **open_handle )
 	return 0;
 }
 
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 
 static int OpenLog_open( LOG *g , char *log_pathfilename , void **open_handle )
 {
@@ -662,7 +662,7 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 			g->pfuncChangeTest = NULL ;
 			g->pfuncCloseLog = NULL ;
 			g->pfuncCloseLogFinally = & CloseLog_DeregisterEventSource ;
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 			g->pfuncOpenLogFirst = & OpenLog_openlog ;
 			g->pfuncOpenLog = NULL ;
 			g->pfuncWriteLog = & WriteLog_syslog ;
@@ -698,7 +698,7 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 				g->pfuncCloseLog = & CloseLog_CloseHandle ;
 				g->pfuncCloseLogFinally = NULL ;
 			}
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 			if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
 			{
 				g->pfuncOpenLogFirst = & OpenLog_open ;
@@ -835,7 +835,7 @@ static int LogStyle_DATETIMEMS( LOG *g , LOGBUF *logbuf , char *c_filename , lon
 	SYSTEMTIME	stNow ;
 	GetLocalTime( & stNow );
 	SYSTEMTIME2TIMEVAL_USEC( stNow , g->cache1_tv );
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	gettimeofday( & (g->cache1_tv) , NULL );
 #endif	
 	LogStyle_DATETIME( g , logbuf , c_filename , c_fileline , log_level , format , valist );
@@ -882,7 +882,7 @@ static int LogStyle_PID( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fil
 	hd = GetForegroundWindow() ;
 	GetWindowThreadProcessId( hd , & dw );
 	pid = (long)dw ;
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	pid = (long)getpid() ;
 #endif
 	if( pid != g->cache2_logstyle_pid )
@@ -905,7 +905,7 @@ static int LogStyle_TID( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fil
 	unsigned long	tid ;
 #if ( defined _WIN32 )
 	tid = (unsigned long)GetCurrentThreadId() ;
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 #if ( defined _PTHREAD_H )
 	tid = (unsigned long)pthread_self() ;
 #else
@@ -944,7 +944,7 @@ static int LogStyle_SOURCE( LOG *g , LOGBUF *logbuf , char *c_filename , long c_
 			pfilename = c_filename ;
 	}
 	FormatLogBuffer( g , logbuf , "%s:%ld" , pfilename , c_fileline ) ;
-#elif ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	FormatLogBuffer( g , logbuf , "%s:%ld" , c_filename , c_fileline ) ;
 #endif
 	return 0;
@@ -1340,7 +1340,7 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 			return nret;
 	}
 	
-#if ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#if ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	if( g->output == LOG_OUTPUT_FILE )
 	{
 		g->fsync_elapse--;
@@ -1643,7 +1643,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 			return nret;
 	}
 	
-#if ( defined __unix ) || ( defined __linux__ ) || ( defined __hpux )
+#if ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	if( g->output == LOG_OUTPUT_FILE )
 	{
 		g->fsync_elapse--;
