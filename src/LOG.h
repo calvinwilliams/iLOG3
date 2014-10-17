@@ -318,8 +318,8 @@ typedef int funcAfterRotateFile( LOG *g , char *rotate_log_pathfilename );
 /* 缓冲区大小缺省值 */ /* default buffer size */
 #define LOG_BUFSIZE_DEFAULT		(1024)		/* 缺省行日志缓冲区大小 */
 #define LOG_BUFSIZE_MAX			(16*1024)	/* 最大行日志缓冲区大小 */
-#define LOG_HEXLOG_BUFSIZE_DEFAULT	(1024*1024)	/* 缺省十六进制块日志缓冲区大小 */
-#define LOG_HEXLOG_BUFSIZE_MAX		(16*1024*1024)	/* 最大十六进制块日志缓冲区大小 */
+#define LOG_HEXLOG_BUFSIZE_DEFAULT	(4*1024)	/* 缺省十六进制块日志缓冲区大小 */
+#define LOG_HEXLOG_BUFSIZE_MAX		(100*1024)	/* 最大十六进制块日志缓冲区大小 */
 
 /* 高级句柄环境设置函数 */ /* senior handle environment setting function */
 _WINDLL_FUNC int SetLogOptions( LOG *g , int log_options );
