@@ -11,7 +11,7 @@
 
 /* ´úÂëºê */
 #define OFFSET_BUFPTR(_buffer_,_bufptr_,_len_,_buflen_,_remain_len_) \
-	if( _len_ >= 0 || _buflen_+_len_ <= sizeof(_buffer_)-1 ) \
+	if( _len_ >= 0 && _buflen_+_len_ <= sizeof(_buffer_)-1 ) \
 	{ \
 		_bufptr_ += _len_ ; \
 		_buflen_ += _len_ ; \

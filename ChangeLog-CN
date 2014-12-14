@@ -1,3 +1,6 @@
+ver 1.0.12	2014-12-14	calvin
+		*  修正了BUG : LOGC的一个逻辑错误
+
 ver 1.0.11	2014-10-14	calvin
 		* 解决了Swap:cached过高的BUG
 		* 增加hpux支持
