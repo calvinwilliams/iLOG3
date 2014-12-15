@@ -1,5 +1,6 @@
 ver 1.0.12	2014-12-14	calvin
 		* Fixed bug : logic wrong in LOGC
+		* Add function SetLogFileV
 
 ver 1.0.11	2014-10-14	calvin
 		* Fixed bug : Swap:cached too high

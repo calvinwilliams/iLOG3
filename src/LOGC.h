@@ -86,6 +86,7 @@ extern "C" {
 #endif
 
 void SetLogFile( char *format , ... );
+void SetLogFileV( char *format , va_list valist );
 void SetLogLevel( int log_level );
 
 int WriteLog( int log_level , char *c_filename , long c_fileline , char *format , ... );

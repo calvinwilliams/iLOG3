@@ -36,6 +36,13 @@ void SetLogFile( char *format , ... )
 	return;
 }
 
+void SetLogFileV( char *format , va_list valist )
+{
+	VSNPRINTF( g_log_pathfilename , sizeof(g_log_pathfilename)-1 , format , valist );
+	
+	return;
+}
+
 /* 设置日志等级 */
 void SetLogLevel( int log_level )
 {
