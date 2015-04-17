@@ -9,7 +9,7 @@ int test_hello()
 {
 	LOG		*g = NULL ;
 	
-	char		buffer[ 64 + 1 ] = "" ;
+	char		buffer[ 4096*10 + 1 ] = "" ;
 	long		buflen = sizeof(buffer) - 1 ;
 	
 	g = CreateLogHandle() ;
@@ -36,6 +36,8 @@ int test_hello()
 	WarnHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
 	ErrorHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
 	FatalHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	
+	InfoLog( g , __FILE__ , __LINE__ , "ok" );
 	
 	DestroyLogHandle( g );
 	printf( "销毁日志句柄\n" );

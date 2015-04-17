@@ -2,8 +2,9 @@
 
 int test_logc()
 {
-	char	buf[ 64 + 1 ] ;
+	char	buf[ 4096*10 + 1 + 1 ] ;
 	long	buflen ;
+	int	i ;
 	
 	SetLogFile( "%s/log/test_logc.log" , getenv("HOME") );
 	SetLogLevel( LOGLEVEL_INFO );
@@ -15,12 +16,25 @@ int test_logc()
 	FatalLog( __FILE__ , __LINE__ , "call FatalLog" );
 	
 	memset( buf , 0x00 , sizeof(buf) );
-	buflen = sizeof(buf) - 1 ;
+	DebugHexLog( __FILE__ , __LINE__ , buf , 64 , "call DebugHexLog" );
+	InfoHexLog( __FILE__ , __LINE__ , buf , 64 , "call InfoHexLog" );
+	WarnHexLog( __FILE__ , __LINE__ , buf , 64 , "call WarnHexLog" );
+	ErrorHexLog( __FILE__ , __LINE__ , buf , 64 , "call ErrorHexLog" );
+	FatalHexLog( __FILE__ , __LINE__ , buf , 64 , "call FatalHexLog" );
+	
+	SetLogLevel( LOGLEVEL_DEBUG );
+	
+	buflen = 4096*10 ;
 	DebugHexLog( __FILE__ , __LINE__ , buf , buflen , "call DebugHexLog" );
-	InfoHexLog( __FILE__ , __LINE__ , buf , buflen , "call InfoHexLog" );
-	WarnHexLog( __FILE__ , __LINE__ , buf , buflen , "call WarnHexLog" );
-	ErrorHexLog( __FILE__ , __LINE__ , buf , buflen , "call ErrorHexLog" );
-	FatalHexLog( __FILE__ , __LINE__ , buf , buflen , "call FatalHexLog" );
+	InfoLog( __FILE__ , __LINE__ , "call InfoHexLog ok" );
+	
+	for( i = 0 ; i <= 255 ; i++ )
+	{
+		buf[i] = i ;
+	}
+	
+	DebugHexLog( __FILE__ , __LINE__ , buf , 256 , "call DebugHexLog" );
+	InfoLog( __FILE__ , __LINE__ , "call InfoHexLog ok" );
 	
 	return 0;
 }

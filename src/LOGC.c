@@ -11,11 +11,23 @@
 
 /* 代码宏 */
 #define OFFSET_BUFPTR(_buffer_,_bufptr_,_len_,_buflen_,_remain_len_) \
-	if( _len_ >= 0 && _buflen_+_len_ <= sizeof(_buffer_)-1 ) \
+	if( _len_ > 0 && _buflen_+_len_ <= sizeof(_buffer_)-1 && _bufptr_[0] ) \
 	{ \
 		_bufptr_ += _len_ ; \
 		_buflen_ += _len_ ; \
 		_remain_len_ -= _len_ ; \
+	} \
+
+#define OFFSET_BUFPTR_IN_LOOP(_buffer_,_bufptr_,_len_,_buflen_,_remain_len_) \
+	if( _len_ > 0 && _buflen_+_len_ <= sizeof(_buffer_)-1 && _bufptr_[0] ) \
+	{ \
+		_bufptr_ += _len_ ; \
+		_buflen_ += _len_ ; \
+		_remain_len_ -= _len_ ; \
+	} \
+	else \
+	{ \
+		break; \
 	} \
 
 /* 日志文件名 */
@@ -251,25 +263,25 @@ static int WriteHexLogBase( int log_level , char *c_filename , long c_fileline ,
 	
 	row_offset = 0 ;
 	col_offset = 0 ;
-	while(1)
+	while( hexlog_buf_remain_len > 0 )
 	{
 		len = SNPRINTF( hexlog_bufptr , hexlog_buf_remain_len , "0x%08X   " , row_offset * 16 ) ;
-		OFFSET_BUFPTR( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
+		OFFSET_BUFPTR_IN_LOOP( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
 		for( col_offset = 0 ; col_offset < 16 ; col_offset++ )
 		{
 			if( row_offset * 16 + col_offset < buflen )
 			{
 				len = SNPRINTF( hexlog_bufptr , hexlog_buf_remain_len , "%02X " , *((unsigned char *)buf+row_offset*16+col_offset)) ;
-				OFFSET_BUFPTR( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
+				OFFSET_BUFPTR_IN_LOOP( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
 			}
 			else
 			{
 				len = SNPRINTF( hexlog_bufptr , hexlog_buf_remain_len , "   " ) ;
-				OFFSET_BUFPTR( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
+				OFFSET_BUFPTR_IN_LOOP( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
 			}
 		}
 		len = SNPRINTF( hexlog_bufptr , hexlog_buf_remain_len , "  " ) ;
-		OFFSET_BUFPTR( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
+		OFFSET_BUFPTR_IN_LOOP( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
 		for( col_offset = 0 ; col_offset < 16 ; col_offset++ )
 		{
 			if( row_offset * 16 + col_offset < buflen )
@@ -277,25 +289,30 @@ static int WriteHexLogBase( int log_level , char *c_filename , long c_fileline ,
 				if( isprint( (int)*(buf+row_offset*16+col_offset) ) )
 				{
 					len = SNPRINTF( hexlog_bufptr , hexlog_buf_remain_len , "%c" , *((unsigned char *)buf+row_offset*16+col_offset) ) ;
-					OFFSET_BUFPTR( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
+					OFFSET_BUFPTR_IN_LOOP( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
 				}
 				else
 				{
 					len = SNPRINTF( hexlog_bufptr , hexlog_buf_remain_len , "." ) ;
-					OFFSET_BUFPTR( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
+					OFFSET_BUFPTR_IN_LOOP( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
 				}
 			}
 			else
 			{
 				len = SNPRINTF( hexlog_bufptr , hexlog_buf_remain_len , " " ) ;
-				OFFSET_BUFPTR( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
+				OFFSET_BUFPTR_IN_LOOP( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
 			}
 		}
 		len = SNPRINTF( hexlog_bufptr , hexlog_buf_remain_len , NEWLINE ) ;
-		OFFSET_BUFPTR( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
+		OFFSET_BUFPTR_IN_LOOP( hexlog_buffer , hexlog_bufptr , len , hexlog_buflen , hexlog_buf_remain_len );
 		if( row_offset * 16 + col_offset >= buflen )
 			break;
 		row_offset++;
+	}
+	
+	if( STRNCMP( hexlog_bufptr-(sizeof(NEWLINE)-1) , != , NEWLINE , sizeof(NEWLINE)-1 ) )
+	{
+		memcpy( hexlog_bufptr-(sizeof(NEWLINE)-1) , NEWLINE , sizeof(NEWLINE)-1 );
 	}
 	
 	/* 输出十六进制块日志 */

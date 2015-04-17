@@ -23,7 +23,7 @@
 static char		sg_aszLogLevelDesc[][5+1] = { "DEBUG" , "INFO" , "WARN" , "ERROR" , "FATAL" , "NOLOG" } ;
 
 /* 版本标识 */ /* version */
-_WINDLL_FUNC int	_LOG_VERSION_1_0_11 = 0 ;
+_WINDLL_FUNC int	_LOG_VERSION_1_0_13 = 0 ;
 
 /* 线程本地存储全局对象 */ /* TLS */
 #if ( defined _WIN32 )
@@ -1554,22 +1554,22 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 		while(1)
 		{
 			len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "0x%08X   " , row_offset * 16 ) ;
-			OFFSET_BUFPTR( & (g->hexlogbuf) , len )
+			OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
 			for( col_offset = 0 ; col_offset < 16 ; col_offset++ )
 			{
 				if( row_offset * 16 + col_offset < buflen )
 				{
 					len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "%02X " , *((unsigned char *)buffer+row_offset*16+col_offset)) ;
-					OFFSET_BUFPTR( & (g->hexlogbuf) , len )
+					OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
 				}
 				else
 				{
 					len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "   " ) ;
-					OFFSET_BUFPTR( & (g->hexlogbuf) , len )
+					OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
 				}
 			}
 			len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "  " ) ;
-			OFFSET_BUFPTR( & (g->hexlogbuf) , len )
+			OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
 			for( col_offset = 0 ; col_offset < 16 ; col_offset++ )
 			{
 				if( row_offset * 16 + col_offset < buflen )
@@ -1577,22 +1577,22 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 					if( isprint( (int)*(buffer+row_offset*16+col_offset) ) )
 					{
 						len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "%c" , *((unsigned char *)buffer+row_offset*16+col_offset) ) ;
-						OFFSET_BUFPTR( & (g->hexlogbuf) , len )
+						OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
 					}
 					else
 					{
 						len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "." ) ;
-						OFFSET_BUFPTR( & (g->hexlogbuf) , len )
+						OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
 					}
 				}
 				else
 				{
 					len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , " " ) ;
-					OFFSET_BUFPTR( & (g->hexlogbuf) , len )
+					OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
 				}
 			}
 			len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , LOG_NEWLINE ) ;
-			OFFSET_BUFPTR( & (g->hexlogbuf) , len )
+			OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
 			if( row_offset * 16 + col_offset >= buflen )
 				break;
 			row_offset++;
@@ -1601,6 +1601,11 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 	
 	if( g->hexlogbuf.bufptr == g->hexlogbuf.bufbase )
 		return 0;
+	
+	if( STRNCMP( g->hexlogbuf.bufptr-(sizeof(LOG_NEWLINE)-1) , != , LOG_NEWLINE , sizeof(LOG_NEWLINE)-1 ) )
+	{
+		memcpy( g->hexlogbuf.bufptr-(sizeof(LOG_NEWLINE)-1) , LOG_NEWLINE , sizeof(LOG_NEWLINE)-1 );
+	}
 	
 	/* 自定义过滤日志 */ /* filter log */
 	if( g->pfuncFilterLog )

@@ -477,11 +477,22 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 #endif
 
 #define OFFSET_BUFPTR(_logbuf_,_offset_len_) \
-	if( _offset_len_ != -1 ) \
+	if( _offset_len_ > 0 && _offset_len_ <= (_logbuf_)->buf_remain_len && (_logbuf_)->bufptr[0] ) \
 	{ \
 		(_logbuf_)->bufptr += _offset_len_ ; \
 		(_logbuf_)->buf_remain_len -= _offset_len_ ; \
-	}
+	} \
+
+#define OFFSET_BUFPTR_IN_LOOP(_logbuf_,_offset_len_) \
+	if( _offset_len_ > 0 && _offset_len_ <= (_logbuf_)->buf_remain_len && (_logbuf_)->bufptr[0] ) \
+	{ \
+		(_logbuf_)->bufptr += _offset_len_ ; \
+		(_logbuf_)->buf_remain_len -= _offset_len_ ; \
+	} \
+	else \
+	{ \
+		break; \
+	} \
 
 _WINDLL_FUNC int SetOpenFlag( LOG *g , char open_flag );
 _WINDLL_FUNC char IsLogOpened( LOG *g );
