@@ -23,7 +23,7 @@
 static char		sg_aszLogLevelDesc[][5+1] = { "DEBUG" , "INFO" , "WARN" , "ERROR" , "FATAL" , "NOLOG" } ;
 
 /* 版本标识 */ /* version */
-_WINDLL_FUNC int	_LOG_VERSION_1_0_13 = 0 ;
+_WINDLL_FUNC int	_LOG_VERSION_1_0_14 = 0 ;
 
 /* 线程本地存储全局对象 */ /* TLS */
 #if ( defined _WIN32 )
@@ -1574,7 +1574,7 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 			{
 				if( row_offset * 16 + col_offset < buflen )
 				{
-					if( isprint( (int)*(buffer+row_offset*16+col_offset) ) )
+					if( isprint( (int)*((unsigned char*)buffer+row_offset*16+col_offset) ) )
 					{
 						len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "%c" , *((unsigned char *)buffer+row_offset*16+col_offset) ) ;
 						OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )

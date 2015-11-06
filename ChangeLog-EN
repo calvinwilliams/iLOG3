@@ -1,3 +1,6 @@
+ver 1.0.14	2015-11-06	calvin
+		* Fixed a warn in LOG.c . thanks to wildnature
+
 ver 1.0.13	2015-04-25	calvin
 		* Append NEWLINE after outputing hex log
 
