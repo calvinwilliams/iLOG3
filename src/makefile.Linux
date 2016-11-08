@@ -14,7 +14,7 @@ SOFLAGS		=	-shared
 ESOFLAGS	=	
 
 # c源代码文件宏及推导规则
-CC		=	gcc -std=c99 -O2 -Wall -Werror -g -fPIC
+CC		=	gcc -g -fPIC -O2 -Wall -Werror -fno-strict-aliasing
 
 c_FILE_o	=	$(c_FILE:.c=.o)
 c_FILE2_o	=	$(c_FILE2:.c=.o)
