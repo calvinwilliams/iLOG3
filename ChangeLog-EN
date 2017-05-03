@@ -1,3 +1,6 @@
+ver 1.0.15	2017-05-03	calvin
+		* Update LOGC
+
 ver 1.0.14	2015-11-06	calvin
 		* Fixed a warn in LOG.c . thanks to wildnature
 
