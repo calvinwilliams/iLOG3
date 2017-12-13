@@ -95,6 +95,8 @@ int test_press( long count )
 	double		dPerf ;
 	long		l ;
 	
+	dPerf = 0.00 ;
+	
 	press = CreateLogHandle() ;
 	if( press == NULL )
 	{
@@ -128,7 +130,7 @@ int test_press( long count )
 		llDiff.high--;
 	}
 	dPerf = (double)(count) / ( (double)(llDiff.high) + (double)(llDiff.low) / 1000000 ) ;
-	/* printf( "总耗时[%ld.%03ld] 平均每秒输出行日志[%.2lf]条\n" , llDiff.high , llDiff.low , dPerf ); */
+	printf( "总耗时[%ld.%03ld] 平均每秒输出行日志[%.2lf]条\n" , llDiff.high , llDiff.low , dPerf );
 	
 	DestroyLogHandle( press );
 	
