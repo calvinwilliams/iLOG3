@@ -133,6 +133,8 @@ _WINDLL_FUNC int SetLogOutput2( LOG *g , int output , funcOpenLog *pfuncOpenLogF
 _WINDLL_FUNC int SetLogLevel( LOG *g , int log_level );
 _WINDLL_FUNC int SetLogStyles( LOG *g , long log_styles , funcLogStyle *pfuncLogStyle );
 
+_WINDLL_FUNC int ReOpenLogOutput( LOG *g );
+
 /* 写日志函数 */ /* output log */
 _WINDLL_FUNC int WriteLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *format , ... );
 _WINDLL_FUNC int DebugLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
@@ -209,6 +211,8 @@ _WINDLL_FUNC int SetLogStylesG( long log_styles , funcLogStyle *pfuncLogStyles )
 #define SetLogOutput2G(_output_,_pfuncOpenLogFirst_,_pfuncOpenLog_,_pfuncWriteLog_,_pfuncChangeTest_,_pfuncCloseLog_,_pfuncCloseLogFinally_,_log_pathfilename_format_,...) \
 	SetLogOutput2(_output_,_pfuncOpenLogFirst_,_pfuncOpenLog_,_pfuncWriteLog_,_pfuncChangeTest_,_pfuncCloseLog_,_pfuncCloseLogFinally_,_log_pathfilename_format_,__VA_ARGS__)
 #endif
+
+_WINDLL_FUNC int ReOpenLogOutputG();
 
 /* 写日志函数（基于线程本地存储的缺省日志句柄的函数集合版本） */ /* output log for TLS */
 _WINDLL_FUNC int WriteLogG( char *c_filename , long c_fileline , int log_level , char *format , ... );

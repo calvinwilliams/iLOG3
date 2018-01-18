@@ -44,6 +44,8 @@ _WINDLL_FUNC LOG *RemoveOutLogFromLogs( LOGS *gs , char *g_id );
 _WINDLL_FUNC LOG *GetLogFromLogs( LOGS *gs , char *g_id );
 _WINDLL_FUNC int TravelLogFromLogs( LOGS *gs , long *p_index , char **pp_g_id , LOG **pp_g );
 
+_WINDLL_FUNC int ReOpenLogsOutput( LOGS *gs );
+
 /* 写日志集合函数 */ /* output logs */
 _WINDLL_FUNC int WriteLogs( LOGS *g , char *c_filename , long c_fileline , int log_level , char *format , ... );
 _WINDLL_FUNC int DebugLogs( LOGS *g , char *c_filename , long c_fileline , char *format , ... );
@@ -114,6 +116,8 @@ _WINDLL_FUNC int AddLogToLogsG( char *g_id , LOG *g );
 _WINDLL_FUNC LOG *RemoveOutLogFromLogsG( char *g_id );
 _WINDLL_FUNC LOG *GetLogFromLogsG( char *g_id );
 _WINDLL_FUNC int TravelLogFromLogsG( long *p_index , char **pp_g_id , LOG **pp_g );
+ 
+_WINDLL_FUNC int ReOpenLogsOutputG();
 
 /* 写日志集合函数（基于线程本地存储的缺省日志句柄的函数集合版本） */ /* output log collection functions for TLS */
 _WINDLL_FUNC int WriteLogsG( char *c_filename , long c_fileline , int log_level , char *format , ... );

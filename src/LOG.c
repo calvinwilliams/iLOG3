@@ -776,6 +776,43 @@ int SetLogLevelG( int log_level )
 }
 #endif
 
+int ReOpenLogOutput( LOG *g )
+{
+	int		nret = 0 ;
+	
+	if( g->open_flag == 1 )
+	{
+		if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
+		{
+			if( g->pfuncCloseLogFinally )
+			{
+				nret = g->pfuncCloseLogFinally( g , & (g->open_handle) ) ;
+			}
+		}
+		
+		g->open_flag = 0 ;
+	}
+	
+	if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
+	{
+		if( g->pfuncOpenLogFirst )
+		{
+			nret = g->pfuncOpenLogFirst( g , g->log_pathfilename , & (g->open_handle) ) ;
+			if( nret )
+				return nret;
+		}
+	}
+	
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
+int ReOpenLogOutputG()
+{
+	return ReOpenLogOutput( tls_g );
+}
+#endif
+
 /* 行格式函数集合 */ /* log style functions */
 static int LogStyle_SEPARATOR( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fileline , int log_level , char *format , va_list valist )
 {

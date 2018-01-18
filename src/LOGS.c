@@ -200,6 +200,31 @@ int TravelLogFromLogsG( long *p_index , char **pp_id , LOG **pp_g )
 }
 #endif
 
+int ReOpenLogsOutput( LOGS *gs )
+{
+	long		g_no ;
+	int		nret = 0 ;
+	
+	for( g_no = 0 ; g_no < LOGS_MAXCNT_LOG ; g_no++ )
+	{
+		if( gs->g_id[g_no] && gs->g[g_no] )
+		{
+			nret = ReOpenLogOutput( gs->g[g_no] ) ;
+			if( nret )
+				return nret;
+		}
+	}
+	
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
+int ReOpenLogsOutputG()
+{
+	return ReOpenLogsOutput( tls_gs );
+}
+#endif
+
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 /* 得到基于线程本地存储的缺省日志句柄集合的函数版本 */
 LOGS *GetGlobalLOGS()

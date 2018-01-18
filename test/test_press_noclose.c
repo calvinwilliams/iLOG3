@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <signal.h>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -85,16 +86,23 @@ LongToLong GetUnixSecondsExactly()
 
 #define LOG_STYLES_PRESS	( LOG_STYLE_DATETIME | LOG_STYLE_FORMAT | LOG_STYLE_NEWLINE )
 
+void sigproc( int signo )
+{
+	if( signo == SIGUSR1 )
+	{
+		ReOpenLogOutputG();
+	}
+	
+	return;
+}
+
 int test_press( long count )
 {
-	LOG		*press = NULL ;
-	
 	LongToLong	llBegin , llEnd , llDiff ;
 	double		dPerf ;
 	long		l ;
 	
-	press = CreateLogHandle() ;
-	if( press == NULL )
+	if( CreateLogHandleG() == NULL )
 	{
 		printf( "创建press日志句柄失败errno[%d]\n" , errno );
 		return -1;
@@ -104,15 +112,17 @@ int test_press( long count )
 		printf( "创建press日志句柄成功\n" );
 	}
 	
-	SetLogOptions( press , LOG_OPTION_OPEN_ONCE );
-	SetLogOutput( press , LOG_OUTPUT_FILE , "test_press_noclose.log" , LOG_NO_OUTPUTFUNC );
-	SetLogLevel( press , LOG_LEVEL_INFO );
-	SetLogStyles( press , LOG_STYLES_PRESS , LOG_NO_STYLEFUNC );
+	SetLogOptionsG( LOG_OPTION_OPEN_ONCE );
+	SetLogOutputG( LOG_OUTPUT_FILE , "test_press_noclose.log" , LOG_NO_OUTPUTFUNC );
+	SetLogLevelG( LOG_LEVEL_INFO );
+	SetLogStylesG( LOG_STYLES_PRESS , LOG_NO_STYLEFUNC );
+	
+	signal( SIGUSR1 , & sigproc );
 	
 	llBegin = GetUnixSecondsExactly() ;
 	for( l = 1 ; l <= count ; l++ )
 	{
-		InfoLog( press , __FILE__ , __LINE__ , "log" );
+		InfoLogG( __FILE__ , __LINE__ , "log" );
 	}
 	llEnd = GetUnixSecondsExactly() ;
 	llDiff.high = llEnd.high - llBegin.high ;
@@ -125,7 +135,7 @@ int test_press( long count )
 	dPerf = (double)(count) / ( (double)(llDiff.high) + (double)(llDiff.low) / 1000000 ) ;
 	printf( "总耗时[%ld.%03ld] 平均每秒输出行日志[%.2lf]条\n" , llDiff.high , llDiff.low , dPerf );
 	
-	DestroyLogHandle( press );
+	DestroyLogHandleG();
 	printf( "销毁press句柄环境\n" );
 	
 	return 0;
