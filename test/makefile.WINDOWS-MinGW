@@ -1,4 +1,5 @@
 # 此文件由makelocal.sh自动生成
+MAKEFILE_POSTFIX=.WINDOWS-MinGW
 # 此文件由makeobj.sh自动生成
 ############################################################
 # 项目名 : 
@@ -14,7 +15,8 @@ SOFLAGS		=	-shared -fPIC
 ESOFLAGS	=	
 
 # c源代码文件宏及推导规则
-CC		=	gcc -g
+CC		=	gcc -g -fPIC -Wall -Werror -O2
+CC_NOWARN	=	gcc -g -fPIC -O2
 
 c_FILE_o	=	$(c_FILE:.c=.o)
 c_FILE2_o	=	$(c_FILE2:.c=.o)
@@ -33,6 +35,7 @@ c_FILE		=	\
 			test_stylesfunc.c \
 			test_outputfunc.c \
 			test_press.c \
+			test_press_noclose.c \
 			test_press_mpt.c \
 			test_press_mpt_tls.c \
 			test_memoryleak.c \
@@ -61,7 +64,7 @@ CLEAN_ADDITION	=	LOGC.o
 
 ###### 加载mktpl模板库
 # 最终目标列表
-all	:	$(BIN) $(BIN2) $(LIB) $(LIB2) $(OBJ) $(OBJ2) $(NOCLEAN_OBJ) $(NOINST_OBJ)
+all	:	$(OBJ) $(OBJ2) $(LIB) $(LIB2) $(SQL) $(NOCLEAN_OBJ) $(NOINST_OBJ) $(BIN) $(BIN2)
 
 # 文件系统宏
 CD		=	cd
@@ -71,7 +74,7 @@ MV		=	move
 MKDIR		=	mkdir
 
 # 预定义源文件清理删除关联宏
-_FILE_CLEAN	=	$(c_FILE_CLEAN) $(cpp_FILE_CLEAN) $(SQC_FILE_CLEAN) $(csm_FILE_CLEAN) $(c_html_FILE_CLEAN) $(cui_FILE_CLEAN) $(dtd_FILE_CLEAN) $(prt_FILE_CLEAN) $(fmd_FILE_CLEAN) $(smd_FILE_CLEAN) $(def_FILE_CLEAN) $(act_FILE_CLEAN)
+_FILE_CLEAN	=	$(c_FILE_CLEAN) $(cpp_FILE_CLEAN) $(SQC_FILE_CLEAN) $(ec_FILE_CLEAN) $(ec_FILE2_CLEAN) $(csm_FILE_CLEAN) $(c_html_FILE_CLEAN) $(cui_FILE_CLEAN) $(dtd_FILE_CLEAN) $(prt_FILE_CLEAN) $(fmd_FILE_CLEAN) $(smd_FILE_CLEAN) $(def_FILE_CLEAN) $(act_FILE_CLEAN)
 
 # 清理删除规则
 clean		:
@@ -82,13 +85,18 @@ clean		:
 DFTHDER		=	$(csm_FILE_DFTHDER) $(cui_FILE_DFTHDER) $(dtd_FILE_DFTHDER) $(prt_FILE_DFTHDER) $(fmd_FILE_DFTHDER) $(smd_FILE_DFTHDER) $(def_FILE_DFTHDER) $(act_FILE_DFTHDER)
 
 # 提交安装规则
-install		:
-	@make -f makefile.WINDOWS-MinGW
+install		:	all
 
 ifneq ($(strip $(BIN)),)
 ifneq ($(strip $(BININST)),)
 	-$(MKDIR) "$(BININST)"
 	$(CP) $(BIN) "$(BININST)/"
+endif
+endif
+ifneq ($(strip $(BIN2)),)
+ifneq ($(strip $(BININST2)),)
+	-$(MKDIR) "$(BININST2)"
+	$(CP) $(BIN2) "$(BININST2)/"
 endif
 endif
 
@@ -102,37 +110,40 @@ endif
 
 
 ###### 目标文件依赖关系
-test_hello.exe		:	test_hello.o
+test_hello		:	test_hello.o
 	$(CC) -o $@ test_hello.o $(LFLAGS)
 
-test_demo.exe		:	test_demo.o
+test_demo		:	test_demo.o
 	$(CC) -o $@ test_demo.o $(LFLAGS)
 
-test_press.exe		:	test_press.o
+test_press		:	test_press.o
 	$(CC) -o $@ test_press.o $(LFLAGS)
 
-test_press_mpt.exe	:	test_press_mpt.o
+test_press_noclose	:	test_press_noclose.o
+	$(CC) -o $@ test_press_noclose.o $(LFLAGS)
+
+test_press_mpt		:	test_press_mpt.o
 	$(CC) -o $@ test_press_mpt.o $(LFLAGS)
 
-test_press_mpt_tls.exe	:	test_press_mpt_tls.o
+test_press_mpt_tls	:	test_press_mpt_tls.o
 	$(CC) -o $@ test_press_mpt_tls.o $(LFLAGS)
 
-test_stylesfunc.exe	:	test_stylesfunc.o
+test_stylesfunc		:	test_stylesfunc.o
 	$(CC) -o $@ test_stylesfunc.o $(LFLAGS)
 
-test_outputfunc.exe	:	test_outputfunc.o
+test_outputfunc		:	test_outputfunc.o
 	$(CC) -o $@ test_outputfunc.o $(LFLAGS)
 
-test_memoryleak.exe	:	test_memoryleak.o
+test_memoryleak		:	test_memoryleak.o
 	$(CC) -o $@ test_memoryleak.o $(LFLAGS)
 
-test_funny.exe		:	test_funny.o
+test_funny		:	test_funny.o
 	$(CC) -o $@ test_funny.o $(LFLAGS)
 
-test_logconf.exe	:	test_logconf.o
+test_logconf		:	test_logconf.o
 	$(CC) -o $@ test_logconf.o $(LFLAGS)
 
-test_logsconf.exe	:	test_logsconf.o
+test_logsconf		:	test_logsconf.o
 	$(CC) -o $@ test_logsconf.o $(LFLAGS)
 
 test_afterrotatefile	:	test_afterrotatefile.o
@@ -140,6 +151,9 @@ test_afterrotatefile	:	test_afterrotatefile.o
 
 test_filterlogfunc	:	test_filterlogfunc.o
 	$(CC) -o $@ test_filterlogfunc.o $(LFLAGS)
+
+bench_tiny		:	bench_tiny.o
+	$(CC) -o $@ bench_tiny.o $(LFLAGS)
 
 LOGC.o			:	../src/LOGC.c
 	$(CC) $(CFLAGS) -c ../src/LOGC.c

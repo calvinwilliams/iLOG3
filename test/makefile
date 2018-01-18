@@ -13,6 +13,7 @@ c_FILE		=	\
 			test_stylesfunc.c \
 			test_outputfunc.c \
 			test_press.c \
+			test_press_noclose.c \
 			test_press_mpt.c \
 			test_press_mpt_tls.c \
 			test_memoryleak.c \
@@ -57,6 +58,9 @@ test_demo		:	test_demo.o
 
 test_press		:	test_press.o
 	$(CC) -o $@ test_press.o $(LFLAGS)
+
+test_press_noclose	:	test_press_noclose.o
+	$(CC) -o $@ test_press_noclose.o $(LFLAGS)
 
 test_press_mpt		:	test_press_mpt.o
 	$(CC) -o $@ test_press_mpt.o $(LFLAGS)

@@ -1,4 +1,5 @@
 # 此文件由makelocal.sh自动生成
+MAKEFILE_POSTFIX=.AIX
 # 此文件由makeobj.sh自动生成
 ############################################################
 # 项目名 : 
@@ -14,7 +15,8 @@ SOFLAGS		=	-G -bnoentry
 ESOFLAGS	=	-bdynamic -brtl -qcpluscm
 
 # c源代码文件宏及推导规则
-CC		=	xlc -q64 -qtls -qlanglvl=stdc99
+CC		=	xlc -q64 -O2 -qlanglvl=ansi -qsrcmsg -qinfo=dcl:eff:ini:par:pro:rea:ret
+CC_NOWARN	=	xlc -q64 -O2
 
 c_FILE_o	=	$(c_FILE:.c=.o)
 c_FILE2_o	=	$(c_FILE2:.c=.o)
@@ -33,12 +35,13 @@ c_FILE		=	\
 			test_stylesfunc.c \
 			test_outputfunc.c \
 			test_press.c \
+			test_press_noclose.c \
 			test_press_mpt.c \
 			test_press_mpt_tls.c \
 			test_memoryleak.c \
 			test_funny.c \
 			test_logconf.c \
-			test_logconf.c \
+			test_logsconf.c \
 			test_afterrotatefile.c \
 			test_filterlogfunc.c \
 			test_logc.c \
@@ -61,7 +64,7 @@ CLEAN_ADDITION	=	LOGC.o
 
 ###### 加载mktpl模板库
 # 最终目标列表
-all	:	$(BIN) $(BIN2) $(LIB) $(LIB2) $(OBJ) $(OBJ2) $(NOCLEAN_OBJ) $(NOINST_OBJ)
+all	:	$(OBJ) $(OBJ2) $(LIB) $(LIB2) $(SQL) $(NOINST_OBJ) $(BIN) $(BIN2)
 
 # 文件系统宏
 CD		=	cd
@@ -71,7 +74,7 @@ MV		=	mv -f
 MKDIR		=	mkdir -p
 
 # 预定义源文件清理删除关联宏
-_FILE_CLEAN	=	$(c_FILE_CLEAN) $(cpp_FILE_CLEAN) $(SQC_FILE_CLEAN) $(csm_FILE_CLEAN) $(c_html_FILE_CLEAN) $(cui_FILE_CLEAN) $(dtd_FILE_CLEAN) $(prt_FILE_CLEAN) $(fmd_FILE_CLEAN) $(smd_FILE_CLEAN) $(def_FILE_CLEAN) $(act_FILE_CLEAN)
+_FILE_CLEAN	=	$(c_FILE_CLEAN) $(cpp_FILE_CLEAN) $(SQC_FILE_CLEAN) $(ec_FILE_CLEAN) $(ec_FILE2_CLEAN) $(csm_FILE_CLEAN) $(c_html_FILE_CLEAN) $(cui_FILE_CLEAN) $(dtd_FILE_CLEAN) $(prt_FILE_CLEAN) $(fmd_FILE_CLEAN) $(smd_FILE_CLEAN) $(def_FILE_CLEAN) $(act_FILE_CLEAN)
 
 # 清理删除规则
 clean		:
@@ -85,8 +88,7 @@ clean		:
 DFTHDER		=	$(csm_FILE_DFTHDER) $(cui_FILE_DFTHDER) $(dtd_FILE_DFTHDER) $(prt_FILE_DFTHDER) $(fmd_FILE_DFTHDER) $(smd_FILE_DFTHDER) $(def_FILE_DFTHDER) $(act_FILE_DFTHDER)
 
 # 提交安装规则
-install		:
-	@make -f makefile.AIX
+install		:	all
 
 	@if [ -n "$(BIN)" -a -n "$(BININST)" ] ; then \
 		if [ ! -d "$(BININST)" ] ; then \
@@ -94,9 +96,21 @@ install		:
 			$(MKDIR) $(BININST) ; \
 		fi ; \
 		for FILE in `echo $(BIN)` ; do \
-			echo $(CP) $$FILE $(BININST)/ ; \
+			echo $(RM) $(BININST)/$$FILE ; \
 			$(RM) $(BININST)/$$FILE ; \
+			echo $(CP) $$FILE $(BININST)/ ; \
 			$(CP) $$FILE $(BININST)/ ; \
+		done \
+	fi
+	@if [ -n "$(BIN2)" -a -n "$(BININST2)" ] ; then \
+		if [ ! -d "$(BININST2)" ] ; then \
+			echo $(MKDIR) $(BININST2) ; \
+			$(MKDIR) $(BININST2) ; \
+		fi ; \
+		for FILE in `echo $(BIN2)` ; do \
+			echo $(CP) $$FILE $(BININST2)/ ; \
+			$(RM) $(BININST2)/$$FILE ; \
+			$(CP) $$FILE $(BININST2)/ ; \
 		done \
 	fi
 
@@ -106,8 +120,9 @@ install		:
 			$(MKDIR) $(DFTHDERINST) ; \
 		fi ; \
 		for FILE in `echo $(DFTHDER)` ; do \
-			echo $(CP) $$FILE $(DFTHDERINST)/ ; \
+			echo $(RM) $(DFTHDERINST)/$$FILE ; \
 			$(RM) $(DFTHDERINST)/$$FILE ; \
+			echo $(CP) $$FILE $(DFTHDERINST)/ ; \
 			$(CP) $$FILE $(DFTHDERINST)/ ; \
 		done \
 	fi
@@ -123,6 +138,9 @@ test_demo		:	test_demo.o
 
 test_press		:	test_press.o
 	$(CC) -o $@ test_press.o $(LFLAGS)
+
+test_press_noclose	:	test_press_noclose.o
+	$(CC) -o $@ test_press_noclose.o $(LFLAGS)
 
 test_press_mpt		:	test_press_mpt.o
 	$(CC) -o $@ test_press_mpt.o $(LFLAGS)
@@ -153,6 +171,9 @@ test_afterrotatefile	:	test_afterrotatefile.o
 
 test_filterlogfunc	:	test_filterlogfunc.o
 	$(CC) -o $@ test_filterlogfunc.o $(LFLAGS)
+
+bench_tiny		:	bench_tiny.o
+	$(CC) -o $@ bench_tiny.o $(LFLAGS)
 
 LOGC.o			:	../src/LOGC.c
 	$(CC) $(CFLAGS) -c ../src/LOGC.c
