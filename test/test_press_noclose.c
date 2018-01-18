@@ -108,8 +108,6 @@ int test_press( long count )
 	SetLogOutput( press , LOG_OUTPUT_FILE , "test_press_noclose.log" , LOG_NO_OUTPUTFUNC );
 	SetLogLevel( press , LOG_LEVEL_INFO );
 	SetLogStyles( press , LOG_STYLES_PRESS , LOG_NO_STYLEFUNC );
-	SetLogRotateMode( press , LOG_ROTATEMODE_SIZE );
-	SetLogRotateSize( press , 10*1024*1024 );
 	
 	llBegin = GetUnixSecondsExactly() ;
 	for( l = 1 ; l <= count ; l++ )
