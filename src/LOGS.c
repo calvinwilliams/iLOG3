@@ -83,13 +83,25 @@ LOGS *CreateLogsHandleG()
 }
 #endif
 
-#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 ) /* 为了下面函数的strdup能编译不报警告 */
-char *strdup(const char *s);
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
+LOGS *GetLogsHandleG()
+{
+	return tls_gs;
+}
+
+void SetLogsHandleG( LOGS *gs )
+{
+	tls_gs = gs ;
+	return;
+}
 #endif
 
 int AddLogToLogs( LOGS *gs , char *g_id , LOG *g )
 {
 	long		g_no ;
+	
+	if( gs == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
 	
 	if( g == NULL )
 		return LOG_RETURN_ERROR_PARAMETER;
@@ -120,6 +132,9 @@ LOG *RemoveOutLogFromLogs( LOGS *gs , char *g_id )
 {
 	long		g_no ;
 	LOG		*g = NULL ;
+	
+	if( gs == NULL )
+		return NULL;
 	
 	if( g_id == NULL )
 		return NULL;
@@ -152,6 +167,9 @@ LOG *GetLogFromLogs( LOGS *gs , char *g_id )
 {
 	long		g_no ;
 	
+	if( gs == NULL )
+		return NULL;
+	
 	if( g_id == NULL )
 		return NULL;
 	
@@ -178,7 +196,10 @@ LOG *GetLogFromLogsG( char *g_id )
 
 int TravelLogFromLogs( LOGS *gs , long *p_index , char **pp_g_id , LOG **pp_g )
 {
-	for( ++(*p_index) ; (*p_index) >= LOGS_MAXCNT_LOG ; (*p_index)++ )
+	if( gs == NULL )
+		return LOGS_RETURN_INFO_NOTFOUND;
+	
+	for( ++(*p_index) ; (*p_index) < LOGS_MAXCNT_LOG ; (*p_index)++ )
 	{
 		if( gs->g_id[(*p_index)] && gs->g[(*p_index)] )
 		{
@@ -197,31 +218,6 @@ int TravelLogFromLogs( LOGS *gs , long *p_index , char **pp_g_id , LOG **pp_g )
 int TravelLogFromLogsG( long *p_index , char **pp_id , LOG **pp_g )
 {
 	return TravelLogFromLogs( tls_gs , p_index , pp_id , pp_g );
-}
-#endif
-
-int ReOpenLogsOutput( LOGS *gs )
-{
-	long		g_no ;
-	int		nret = 0 ;
-	
-	for( g_no = 0 ; g_no < LOGS_MAXCNT_LOG ; g_no++ )
-	{
-		if( gs->g_id[g_no] && gs->g[g_no] )
-		{
-			nret = ReOpenLogOutput( gs->g[g_no] ) ;
-			if( nret )
-				return nret;
-		}
-	}
-	
-	return 0;
-}
-
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int ReOpenLogsOutputG()
-{
-	return ReOpenLogsOutput( tls_gs );
 }
 #endif
 
@@ -264,28 +260,28 @@ extern int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_l
 	}
 
 /* 带日志等级的写日志 */ /* write log handle collection */
-int WriteLogs( LOGS *gs , char *c_filename , long c_fileline , int log_level , char *format , ... )
+int WriteLevelLogs( LOGS *gs , char *c_filename , long c_fileline , int log_level , char *format , ... )
 {
 	WRITELOGSBASE( gs , log_level )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int WriteLogsG( char *c_filename , long c_fileline , int log_level , char *format , ... )
+int WriteLevelLogsG( char *c_filename , long c_fileline , int log_level , char *format , ... )
 {
 	WRITELOGSBASE( tls_gs , log_level )
 	return 0;
 }
 
 /* 写调试日志 */ /* write debug log handle collection */
-int DebugLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
+int WriteDebugLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( gs , LOG_LEVEL_DEBUG )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int DebugLogsG( char *c_filename , long c_fileline , char *format , ... )
+int WriteDebugLogsG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( tls_gs , LOG_LEVEL_DEBUG )
 	return 0;
@@ -293,29 +289,44 @@ int DebugLogsG( char *c_filename , long c_fileline , char *format , ... )
 #endif
 
 /* 写普通信息日志 */ /* write info log handle collection */
-int InfoLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
+int WriteInfoLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( gs , LOG_LEVEL_INFO )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int InfoLogsG( char *c_filename , long c_fileline , char *format , ... )
+int WriteInfoLogsG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( tls_gs , LOG_LEVEL_INFO )
 	return 0;
 }
 #endif
 
+/* 写通知信息日志 */ /* write notice log handle collection */
+int WriteNoticeLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
+{
+	WRITELOGSBASE( gs , LOG_LEVEL_NOTICE )
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
+int WriteNoticeLogsG( char *c_filename , long c_fileline , char *format , ... )
+{
+	WRITELOGSBASE( tls_gs , LOG_LEVEL_NOTICE )
+	return 0;
+}
+#endif
+
 /* 写警告日志 */ /* write warn log handle collection */
-int WarnLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
+int WriteWarnLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( gs , LOG_LEVEL_WARN )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int WarnLogsG( char *c_filename , long c_fileline , char *format , ... )
+int WriteWarnLogsG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( tls_gs , LOG_LEVEL_WARN )
 	return 0;
@@ -323,14 +334,14 @@ int WarnLogsG( char *c_filename , long c_fileline , char *format , ... )
 #endif
 
 /* 写错误日志 */ /* write error log handle collection */
-int ErrorLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
+int WriteErrorLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( gs , LOG_LEVEL_ERROR )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int ErrorLogsG( char *c_filename , long c_fileline , char *format , ... )
+int WriteErrorLogsG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( tls_gs , LOG_LEVEL_ERROR )
 	return 0;
@@ -338,14 +349,14 @@ int ErrorLogsG( char *c_filename , long c_fileline , char *format , ... )
 #endif
 
 /* 写致命错误日志 */ /* write fatal log handle collection */
-int FatalLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
+int WriteFatalLogs( LOGS *gs , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( gs , LOG_LEVEL_FATAL )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int FatalLogsG( char *c_filename , long c_fileline , char *format , ... )
+int WriteFatalLogsG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGSBASE( tls_gs , LOG_LEVEL_FATAL )
 	return 0;
@@ -378,14 +389,14 @@ extern int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int lo
 	}
 
 /* 带日志等级的写十六进制块日志 */ /* write hex log handle collection */
-int WriteHexLogs( LOGS *gs , char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... )
+int WriteLevelHexLogs( LOGS *gs , char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( gs , log_level )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int WriteHexLogsG( char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... )
+int WriteLevelHexLogsG( char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( tls_gs , log_level )
 	return 0;
@@ -393,14 +404,14 @@ int WriteHexLogsG( char *c_filename , long c_fileline , int log_level , char *bu
 #endif
 
 /* 写十六进制块调试日志 */ /* write debug hex log handle collection */
-int DebugHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteDebugHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( gs , LOG_LEVEL_DEBUG )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int DebugHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteDebugHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( tls_gs , LOG_LEVEL_DEBUG )
 	return 0;
@@ -408,29 +419,44 @@ int DebugHexLogsG( char *c_filename , long c_fileline , char *buffer , long bufl
 #endif
 
 /* 写十六进制块普通信息日志 */ /* write info hex log handle collection */
-int InfoHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteInfoHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( gs , LOG_LEVEL_INFO )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int InfoHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteInfoHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( tls_gs , LOG_LEVEL_INFO )
 	return 0;
 }
 #endif
 
+/* 写十六进制块通知信息日志 */ /* write notice hex log handle collection */
+int WriteNoticeHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+{
+	WRITEHEXLOGSBASE( gs , LOG_LEVEL_NOTICE )
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
+int WriteNoticeHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+{
+	WRITEHEXLOGSBASE( tls_gs , LOG_LEVEL_NOTICE )
+	return 0;
+}
+#endif
+
 /* 写十六进制块警告日志 */ /* write warn hex log handle collection */
-int WarnHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteWarnHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( gs , LOG_LEVEL_WARN )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int WarnHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteWarnHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( tls_gs , LOG_LEVEL_WARN )
 	return 0;
@@ -438,14 +464,14 @@ int WarnHexLogsG( char *c_filename , long c_fileline , char *buffer , long bufle
 #endif
 
 /* 写十六进制块错误日志 */ /* write error hex log handle collection */
-int ErrorHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteErrorHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( gs , LOG_LEVEL_ERROR )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int ErrorHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteErrorHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( tls_gs , LOG_LEVEL_ERROR )
 	return 0;
@@ -453,14 +479,14 @@ int ErrorHexLogsG( char *c_filename , long c_fileline , char *buffer , long bufl
 #endif
 
 /* 写十六进制块致命错误日志 */ /* write fatal hex log handle collection */
-int FatalHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteFatalHexLogs( LOGS *gs , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( gs , LOG_LEVEL_FATAL )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int FatalHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteFatalHexLogsG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGSBASE( tls_gs , LOG_LEVEL_FATAL )
 	return 0;
