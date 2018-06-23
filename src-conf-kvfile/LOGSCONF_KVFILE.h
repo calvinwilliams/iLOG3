@@ -1,5 +1,5 @@
-#ifndef _H_LOGCONF_
-#define _H_LOGCONF_
+#ifndef _H_LOGSCONF_KVFILE_
+#define _H_LOGSCONF_KVFILE_
 
 /*
  * iLOG3 - log function library written in c
@@ -13,25 +13,22 @@
 extern "C" {
 #endif
 
-#if ( defined _WIN32 )
-#ifndef _WINDLL_FUNC
-#define _WINDLL_FUNC		_declspec(dllexport)
-#endif
-#elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
-#ifndef _WINDLL_FUNC
-#define _WINDLL_FUNC
-#endif
-#endif
-
 #include "LOG.h"
 #include "LOGS.h"
-#include "LOGCONF.h"
+
+#include "LOGCONF_KVFILE.h"
 
 /* 读取配置文件，创建日志句柄集合 */ /* create log handles from config file */
-_WINDLL_FUNC LOGS *CreateLogsHandleFromConfig( char *config_filename , char *postfix );
+_WINDLL_FUNC LOGS *CreateLogsHandleFromKvFile( char *config_filename , char *file_ext_name );
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
+_WINDLL_FUNC LOGS *CreateLogsHandleFromKvFileG( char *config_filename , char *file_ext_name );
+#endif
 
 /* 风格替换宏 */
 #define create_logs_handle_from_config		CreateLogsHandleFromConfig
+
+#define create_logs_handle_from_kvfile_g	CreateLogsHandleFromKvFileG
 
 #ifdef __cplusplus
 }

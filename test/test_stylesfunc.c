@@ -39,11 +39,11 @@ int test_stylesfunc()
 	SetLogLevel( g , LOG_LEVEL_DEBUG );
 	SetLogStyles( g , LOG_STYLE_CALLBACK , & MyLogStyleFunc );
 	
-	DebugLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	InfoLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	WarnLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	ErrorLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	FatalLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteDebugLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteInfoLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteWarnLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteErrorLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteFatalLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
 	
 	DestroyLogHandle( g );
 	printf( "Ïú»ÙÈÕÖ¾¾ä±ú\n" );

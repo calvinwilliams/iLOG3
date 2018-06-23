@@ -30,25 +30,24 @@ c_FILE_CLEAN	=	$(c_FILE_o) $(c_FILE2_o) $(c_FILE3_o) $(c_FILE4_o) $(c_FILE5_o)
 	$(CC) $(CFLAGS) -c $<
 
 c_FILE		=	\
-			LOG.c \
-			LOGS.c \
+			test_logconf_kvfile.c \
+			test_logsconf_kvfile.c \
 
 ###### 目标文件、安装目录配置区
-LIB		=	libiLOG3.so
-LIBINST		=	$(HOME)/lib
-LIB2		=	libiLOG3.a
-# LIBINST2	=	$(HOME)/lib
-HDER		= \
-			LOG.h \
-			LOGS.h \
-
-HDERINST	=	$(HOME)/include/iLOG3
+BIN		=	$(c_FILE:.c=)
 
 ###### 编译选项
 CFLAGS		=	-I. \
+			-I../src \
+			-I../src-conf-kvfile \
+			-std=gnu99 \
 
 ###### 链接选项
 LFLAGS		=	-L. \
+			-L../src-conf-kvfile \
+			-liLOG3CONF_KVFILE \
+			-L../src \
+			-liLOG3 \
 			-lpthread \
 
 ###### 额外宏定义区
@@ -87,75 +86,38 @@ DFTHDER		=	$(csm_FILE_DFTHDER) $(cui_FILE_DFTHDER) $(dtd_FILE_DFTHDER) $(prt_FIL
 .PHONY:install
 install		:	all
 
-ifneq ($(strip $(LIBINST)),)
-	@if [ ! -d "$(LIBINST)" ] ; then \
-		echo $(MKDIR) $(LIBINST) ; \
-		$(MKDIR) $(LIBINST) ; \
+ifneq ($(strip $(BININST)),)
+	@if [ ! -d "$(BININST)" ] ; then \
+		echo $(MKDIR) $(BININST) ; \
+		$(MKDIR) $(BININST) ; \
 	fi
-ifneq ($(strip $(LIB)),)
-	@for FILE in `echo $(LIB)` ; do \
-		if [ -f $(LIBINST)/$$FILE ] ; then \
-			echo $(RM) $(LIBINST)/$$FILE ; \
-			$(RM) $(LIBINST)/$$FILE ; \
+ifneq ($(strip $(BIN)),)
+	@for FILE in `echo $(BIN)` ; do \
+		if [ -f $(BININST)/$$FILE ] ; then \
+			echo $(RM) $(BININST)/$$FILE ; \
+			$(RM) $(BININST)/$$FILE ; \
 		fi ; \
 		if [ -f $$FILE ] ; then \
-			echo $(CP) $$FILE $(LIBINST)/ ; \
-			$(CP) $$FILE $(LIBINST)/ ; \
+			echo $(CP) $$FILE $(BININST)/ ; \
+			$(CP) $$FILE $(BININST)/ ; \
 		fi ; \
 	done
 endif
 endif
-ifneq ($(strip $(LIBINST2)),)
-	@if [ ! -d "$(LIBINST2)" ] ; then \
-		echo $(MKDIR) $(LIBINST2) ; \
-		$(MKDIR) $(LIBINST2) ; \
+ifneq ($(strip $(BININST2)),)
+	@if [ ! -d "$(BININST2)" ] ; then \
+		echo $(MKDIR) $(BININST2) ; \
+		$(MKDIR) $(BININST2) ; \
 	fi
-ifneq ($(strip $(LIB2)),)
-	@for FILE in `echo $(LIB2)` ; do \
-		if [ -f $(LIBINST2)/$$FILE ] ; then \
-			echo $(RM) $(LIBINST2)/$$FILE ; \
-			$(RM) $(LIBINST2)/$$FILE ; \
+ifneq ($(strip $(BIN2)),)
+	@for FILE in `echo $(BIN2)` ; do \
+		if [ -f $(BININST2)/$$FILE ] ; then \
+			echo $(RM) $(BININST2)/$$FILE ; \
+			$(RM) $(BININST2)/$$FILE ; \
 		fi ; \
 		if [ -f $$FILE ] ; then \
-			echo $(CP) $$FILE $(LIBINST2)/ ; \
-			$(CP) $$FILE $(LIBINST2)/ ; \
-		fi ; \
-	done
-endif
-endif
-
-ifneq ($(strip $(HDERINST)),)
-	@if [ ! -d "$(HDERINST)" ] ; then \
-		echo $(MKDIR) $(HDERINST) ; \
-		$(MKDIR) $(HDERINST) ; \
-	fi
-ifneq ($(strip $(HDER)),)
-	@for FILE in `echo $(HDER)` ; do \
-		if [ -f $(HDERINST)/$$FILE ] ; then \
-			echo $(RM) $(HDERINST)/$$FILE ; \
-			$(RM) $(HDERINST)/$$FILE ; \
-		fi ; \
-		if [ -f $$FILE ] ; then \
-			echo $(CP) $$FILE $(HDERINST)/ ; \
-			$(CP) $$FILE $(HDERINST)/ ; \
-		fi ; \
-	done
-endif
-endif
-ifneq ($(strip $(HDERINST2)),)
-	@if [ ! -d "$(HDERINST2)" ] ; then \
-		echo $(MKDIR) $(HDERINST2) ; \
-		$(MKDIR) $(HDERINST2) ; \
-	fi
-ifneq ($(strip $(HDER2)),)
-	@for FILE in `echo $(HDER2)` ; do \
-		if [ -f $(HDERINST2)/$$FILE ] ; then \
-			echo $(RM) $(HDERINST2)/$$FILE ; \
-			$(RM) $(HDERINST2)/$$FILE ; \
-		fi ; \
-		if [ -f $$FILE ] ; then \
-			echo $(CP) $$FILE $(HDERINST2)/ ; \
-			$(CP) $$FILE $(HDERINST2)/ ; \
+			echo $(CP) $$FILE $(BININST2)/ ; \
+			$(CP) $$FILE $(BININST2)/ ; \
 		fi ; \
 	done
 endif
@@ -183,9 +145,9 @@ endif
 
 
 ###### 目标文件依赖关系
-libiLOG3.so		:	$(c_FILE_o)
-	$(CC) -o $@ $(c_FILE_o) $(SOFLAGS) $(LFLAGS)
+test_logconf_kvfile		:	test_logconf_kvfile.o
+	$(CC) -o $@ test_logconf_kvfile.o $(LFLAGS)
 
-libiLOG3.a		:	$(c_FILE_o)
-	$(AR) $(ARFLAGS) $@ $(c_FILE_o)
+test_logsconf_kvfile		:	test_logsconf_kvfile.o
+	$(CC) -o $@ test_logsconf_kvfile.o $(LFLAGS)
 

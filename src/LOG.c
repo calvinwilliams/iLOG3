@@ -2,7 +2,6 @@
  * iLOG3 - log function library written in c
  * author	: calvin
  * email	: calvinwilliams.c@gmail.com
- * LastVersion	: v1.0.11
  *
  * Licensed under the LGPL v2.1, see the file LICENSE in base directory.
  */
@@ -20,10 +19,10 @@
 #include "LOG.h"
 
 /* 日志等级描述对照表 */ /* log level describe */
-static char		sg_aszLogLevelDesc[][5+1] = { "DEBUG" , "INFO" , "WARN" , "ERROR" , "FATAL" , "NOLOG" } ;
+static char		sg_aszLogLevelDesc[][6+1] = { "DEBUG " , "INFO  " , "NOTICE" , "WARN  " , "ERROR " , "FATAL " , "NOLOG " } ;
 
 /* 版本标识 */ /* version */
-_WINDLL_FUNC int	_LOG_VERSION_1_0_14 = 0 ;
+_WINDLL_FUNC int	_LOG_VERSION_1_2_0 = 0 ;
 
 /* 线程本地存储全局对象 */ /* TLS */
 #if ( defined _WIN32 )
@@ -41,6 +40,8 @@ static int CreateMutexSection( LOG *g )
 {
 #if ( defined _WIN32 )
 	char		lock_pathfilename[ MAXLEN_FILENAME + 1 ] ;
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
 	strcpy( lock_pathfilename , "Global\\iLOG3_ROTATELOCK" );
 	g->rotate_lock = CreateMutex( NULL , FALSE , lock_pathfilename ) ;
 	if( g->rotate_lock == NULL )
@@ -48,6 +49,8 @@ static int CreateMutexSection( LOG *g )
 #elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	char		lock_pathfilename[ MAXLEN_FILENAME + 1 ] ;
 	mode_t		m ;
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
 	SNPRINTF( lock_pathfilename , sizeof(lock_pathfilename) , "/tmp/iLOG3.lock" );
 	m=umask(0);
 	g->rotate_lock = open( lock_pathfilename , O_CREAT|O_APPEND|O_WRONLY , S_IRWXU|S_IRWXG|S_IRWXO ) ;
@@ -61,11 +64,15 @@ static int CreateMutexSection( LOG *g )
 static int DestroyMutexSection( LOG *g )
 {
 #if ( defined _WIN32 )
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
 	if( g->rotate_lock )
 	{
 		CloseHandle( g->rotate_lock );
 	}
 #elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
 	if( g->rotate_lock != -1 )
 	{
 		close( g->rotate_lock );
@@ -78,11 +85,15 @@ static int EnterMutexSection( LOG *g )
 {
 #if ( defined _WIN32 )
 	DWORD	dw ;
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
 	dw = WaitForSingleObject( g->rotate_lock , INFINITE ) ;
 	if( dw != WAIT_OBJECT_0 )
 		return LOG_RETURN_ERROR_INTERNAL;
 #elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	int	nret ;
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
 	memset( & (g->lock) , 0x00 , sizeof(g->lock) );
 	g->lock.l_type = F_WRLCK ;
 	g->lock.l_whence = SEEK_SET ;
@@ -101,14 +112,16 @@ static int LeaveMutexSection( LOG *g )
 {
 #if ( defined _WIN32 )
 	BOOL	bret ;
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
 	bret = ReleaseMutex( g->rotate_lock ) ;
 	if( bret != TRUE )
 		return LOG_RETURN_ERROR_INTERNAL;
 #elif ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
 	int	nret ;
-	
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
 	pthread_mutex_unlock( & g_pthread_mutex );
-	
 	memset( & (g->lock) , 0x00 , sizeof(g->lock) );
 	g->lock.l_type = F_UNLCK ;
 	g->lock.l_whence = SEEK_SET ;
@@ -148,11 +161,14 @@ static int SetBufferSize( LOG *g , LOGBUF *logbuf , long buf_size , long max_buf
 			if( logbuf->bufbase == NULL )
 				return LOG_RETURN_ERROR_ALLOC;
 			
+			logbuf->buf_remain_len = buf_size-1 ;
+			logbuf->bufptr = logbuf->bufbase ;
 			logbuf->buf_size = buf_size ;
 			memset( logbuf->bufbase , 0x00 , logbuf->buf_size );
 		}
 		else
 		{
+			int	bufptr_offset = logbuf->bufptr - logbuf->bufbase ;
 			char	*tmp = NULL ;
 			
 			nret = EnterMutexSection( g ) ;
@@ -164,9 +180,10 @@ static int SetBufferSize( LOG *g , LOGBUF *logbuf , long buf_size , long max_buf
 				return LOG_RETURN_ERROR_ALLOC;
 			
 			logbuf->buf_remain_len = logbuf->buf_remain_len + ( buf_size - logbuf->buf_size ) ;
-			logbuf->bufptr = logbuf->bufptr - logbuf->bufbase + tmp ;
+			logbuf->bufptr = tmp + bufptr_offset ;
 			logbuf->bufbase = tmp ;
 			logbuf->buf_size = buf_size ;
+			memset( logbuf->bufptr , 0x00 , logbuf->buf_remain_len+1 );
 		}
 	}
 	
@@ -211,7 +228,7 @@ void DestroyLogHandle( LOG *g )
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 void DestroyLogHandleG()
 {
-	DestroyLogHandle( tls_g );
+	DestroyLogHandle( tls_g ); tls_g = NULL ;
 }
 #endif
 
@@ -286,6 +303,25 @@ LOG *CreateLogHandleG()
 }
 #endif
 
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
+LOG *GetLogHandleG()
+{
+	return tls_g;
+}
+
+void GetLogHandlePtrG( LOG **pp_g )
+{
+	pp_g = & tls_g ;
+	return;
+}
+
+void SetLogHandleG( LOG *g )
+{
+	tls_g = g ;
+	return;
+}
+#endif
+
 /* 打开、输出、关闭日志函数 */ /* open , write , close log functions */
 #if ( defined _WIN32 )
 
@@ -294,6 +330,9 @@ LOG *CreateLogHandleG()
 static int OpenLog_OpenFile( LOG *g , char *log_pathfilename , void **open_handle )
 {
 	long	l ;
+	
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
 	
 	if( log_pathfilename[0] == '\0' )
 		return 0;
@@ -317,6 +356,9 @@ static int WriteLog_WriteFile( LOG *g , void **open_handle , int log_level , cha
 {
 	BOOL	bret ;
 	
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( g->open_flag == 0 )
 		return -1;
 	
@@ -330,6 +372,9 @@ static int WriteLog_WriteFile( LOG *g , void **open_handle , int log_level , cha
 
 static int CloseLog_CloseHandle( LOG *g , void **open_handle )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( g->open_flag == 0 )
 		return 0;
 	
@@ -341,6 +386,9 @@ static int CloseLog_CloseHandle( LOG *g , void **open_handle )
 
 static int OpenLog_RegisterEventSource( LOG *g , char *log_pathfilename , void **open_handle )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( log_pathfilename[0] == '\0' )
 		return 0;
 	if( g->open_flag == 1 )
@@ -359,12 +407,17 @@ static int WriteLog_ReportEvent( LOG *g , void **open_handle , int log_level , c
 	unsigned short	event_log_level ;
 	char		*ptr = NULL ;
 	
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( g->open_flag == 0 )
 		return -1;
 	
 	if( log_level == LOG_LEVEL_DEBUG )
 		event_log_level = EVENTLOG_INFORMATION_TYPE ;
 	else if( log_level == LOG_LEVEL_INFO )
+		event_log_level = EVENTLOG_INFORMATION_TYPE ;
+	else if( log_level == LOG_LEVEL_NOTICE )
 		event_log_level = EVENTLOG_INFORMATION_TYPE ;
 	else if( log_level == LOG_LEVEL_WARN )
 		event_log_level = EVENTLOG_WARNING_TYPE ;
@@ -382,6 +435,9 @@ static int WriteLog_ReportEvent( LOG *g , void **open_handle , int log_level , c
 
 static long CloseLog_DeregisterEventSource( LOG *g , void **open_handle )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( g->open_flag == 0 )
 		return 0;
 	
@@ -395,6 +451,9 @@ static long CloseLog_DeregisterEventSource( LOG *g , void **open_handle )
 
 static int OpenLog_open( LOG *g , char *log_pathfilename , void **open_handle )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( log_pathfilename[0] == '\0' )
 		return 0;
 	if( g->open_flag == 1 )
@@ -410,6 +469,9 @@ static int OpenLog_open( LOG *g , char *log_pathfilename , void **open_handle )
 
 static int CloseLog_close( LOG *g , void **open_handle )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( g->open_flag == 0 )
 		return 0;
 	
@@ -421,6 +483,9 @@ static int CloseLog_close( LOG *g , void **open_handle )
 
 static int OpenLog_openlog( LOG *g , char *log_pathfilename , void **open_handle )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( log_pathfilename[0] == '\0' )
 		return 0;
 	if( g->open_flag == 1 )
@@ -436,6 +501,9 @@ static int WriteLog_syslog( LOG *g , void **open_handle , int log_level , char *
 {
 	int	syslog_log_level ;
 	
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( g->open_flag == 0 )
 		return -1;
 	
@@ -443,6 +511,8 @@ static int WriteLog_syslog( LOG *g , void **open_handle , int log_level , char *
 		syslog_log_level = LOG_DEBUG ;
 	else if( log_level == LOG_LEVEL_INFO )
 		syslog_log_level = LOG_INFO ;
+	else if( log_level == LOG_LEVEL_NOTICE )
+		syslog_log_level = LOG_NOTICE ;
 	else if( log_level == LOG_LEVEL_WARN )
 		syslog_log_level = LOG_WARNING ;
 	else if( log_level == LOG_LEVEL_ERROR )
@@ -459,6 +529,9 @@ static int WriteLog_syslog( LOG *g , void **open_handle , int log_level , char *
 
 static int CloseLog_closelog( LOG *g , void **open_handle )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( g->open_flag == 0 )
 		return 0;
 	
@@ -472,6 +545,9 @@ static int CloseLog_closelog( LOG *g , void **open_handle )
 
 static int WriteLog_write( LOG *g , void **open_handle , int log_level , char *buf , long len , long *writelen )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( g->open_flag == 0 )
 		return -1;
 	
@@ -485,6 +561,9 @@ static int WriteLog_write( LOG *g , void **open_handle , int log_level , char *b
 static int ChangeTest_interval( LOG *g , void **test_handle )
 {
 	int		nret ;
+	
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
 	
 	g->file_change_test_no--;
 	if( g->file_change_test_no < 1 )
@@ -553,6 +632,7 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 	
 	if( g == NULL )
 		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( log_pathfilename == NULL || log_pathfilename[0] == '\0' )
 	{
 		memset( pathfilename , 0x00 , sizeof(pathfilename) );
@@ -608,9 +688,9 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 		}
 	}
 	
-	if( TEST_NOT_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE )
-		&& TEST_NOT_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST )
-		&& TEST_NOT_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) )
+	if( TEST_NO_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE )
+		&& TEST_NO_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST )
+		&& TEST_NO_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) )
 	{
 		g->log_options |= LOG_OPTION_OPEN_DEFAULT ;
 	}
@@ -618,7 +698,7 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 	memset( g->log_pathfilename , 0x00 , sizeof(g->log_pathfilename) );
 	strncpy( g->log_pathfilename , pathfilename , sizeof(g->log_pathfilename)-1 );
 	
-	if( output != LOG_OUTPUT_NOSET )
+	if( output != LOG_OUTPUT_INVALID )
 	{
 		g->output = output ;
 		if( g->output == LOG_OUTPUT_STDOUT )
@@ -740,17 +820,31 @@ int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pf
 	return 0;
 }
 
+int SetLogOutput2V( LOG *g , int output , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally , char *log_pathfilename_format , va_list valist )
+{
+	char		log_pathfilename[ MAXLEN_FILENAME + 1 ] ;
+	
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
+	memset( log_pathfilename , 0x00 , sizeof(log_pathfilename) );
+	VSNPRINTF( log_pathfilename , sizeof(log_pathfilename)-1 , log_pathfilename_format , valist );
+	
+	return SetLogOutput( g , output , log_pathfilename , pfuncOpenLogFirst , pfuncOpenLog , pfuncWriteLog , pfuncChangeTest , pfuncCloseLog , pfuncCloseLogFinally );
+}
+
 int SetLogOutput2( LOG *g , int output , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally , char *log_pathfilename_format , ... )
 {
 	va_list		valist ;
-	char		log_pathfilename[ MAXLEN_FILENAME + 1 ] ;
+	int		nret = 0 ;
 	
-	memset( log_pathfilename , 0x00 , sizeof(log_pathfilename) );
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	va_start( valist , log_pathfilename_format );
-	VSNPRINTF( log_pathfilename , sizeof(log_pathfilename)-1 , log_pathfilename_format , valist );
+	nret = SetLogOutput2V( g , output , pfuncOpenLogFirst , pfuncOpenLog , pfuncWriteLog , pfuncChangeTest , pfuncCloseLog , pfuncCloseLogFinally , log_pathfilename_format , valist ) ;
 	va_end( valist );
-	
-	return SetLogOutput( g , output , log_pathfilename , pfuncOpenLogFirst , pfuncOpenLog , pfuncWriteLog , pfuncChangeTest , pfuncCloseLog , pfuncCloseLogFinally );
+	return nret;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
@@ -758,21 +852,16 @@ int SetLogOutputG( int output , char *log_pathfilename , funcOpenLog *pfuncOpenL
 {
 	return SetLogOutput( tls_g , output , log_pathfilename , pfuncOpenLogFirst , pfuncOpenLog , pfuncWriteLog , pfuncChangeTest , pfuncCloseLog , pfuncCloseLogFinally );
 }
-#endif
 
-/* 设置日志等级 */ /* set log level */
-int SetLogLevel( LOG *g , int log_level )
+int SetLogOutput2G( int output , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally , char *log_pathfilename_format , ... )
 {
-	if( g == NULL )
-		return LOG_RETURN_ERROR_PARAMETER;
-	g->log_level = log_level ;
-	return 0;
-}
-
-#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int SetLogLevelG( int log_level )
-{
-	return SetLogLevel( tls_g , log_level );
+	va_list		valist ;
+	int		nret = 0 ;
+	
+	va_start( valist , log_pathfilename_format );
+	nret = SetLogOutput2V( tls_g , output , pfuncOpenLogFirst , pfuncOpenLog , pfuncWriteLog , pfuncChangeTest , pfuncCloseLog , pfuncCloseLogFinally , log_pathfilename_format , valist ) ;
+	va_end( valist );
+	return nret;
 }
 #endif
 
@@ -810,6 +899,24 @@ int ReOpenLogOutput( LOG *g )
 int ReOpenLogOutputG()
 {
 	return ReOpenLogOutput( tls_g );
+}
+#endif
+
+/* 设置日志等级 */ /* set log level */
+int SetLogLevel( LOG *g , int log_level )
+{
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
+	g->log_level = log_level ;
+	
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
+int SetLogLevelG( int log_level )
+{
+	return SetLogLevel( tls_g , log_level );
 }
 #endif
 
@@ -901,6 +1008,18 @@ static int LogStyle_CUSTLABEL2( LOG *g , LOGBUF *logbuf , char *c_filename , lon
 static int LogStyle_CUSTLABEL3( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fileline , int log_level , char *format , va_list valist )
 {
 	FormatLogBuffer( g , logbuf , "%s" , g->cust_label[3-1] );
+	return 0;
+}
+
+static int LogStyle_CUSTLABEL4( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fileline , int log_level , char *format , va_list valist )
+{
+	FormatLogBuffer( g , logbuf , "%s" , g->cust_label[4-1] );
+	return 0;
+}
+
+static int LogStyle_CUSTLABEL5( LOG *g , LOGBUF *logbuf , char *c_filename , long c_fileline , int log_level , char *format , va_list valist )
+{
+	FormatLogBuffer( g , logbuf , "%s" , g->cust_label[5-1] );
 	return 0;
 }
 
@@ -1005,6 +1124,7 @@ static int LogStyle_FuncArray( LOG *g , LOGBUF *logbuf , char *c_filename , long
 	int		format_func_index ;
 	funcLogStyle	**ppfuncLogStyle = NULL ;
 	int		nret ;
+	
 	/* 遍历格式函数数组 */ /* travel all log style functions */
 	for( format_func_index = 0 , ppfuncLogStyle = g->pfuncLogStyles ; format_func_index < g->style_func_count ; format_func_index++ , ppfuncLogStyle++ )
 	{
@@ -1017,7 +1137,7 @@ static int LogStyle_FuncArray( LOG *g , LOGBUF *logbuf , char *c_filename , long
 }
 
 /* 设置行日志风格 */ /* set log styles */
-int SetLogStyles( LOG *g , long log_styles , funcLogStyle *pfuncLogStyle )
+int SetLogStylesEx( LOG *g , long log_styles , funcLogStyle *pfuncLogStyle , funcLogStyle *pfuncLogStylePrefix )
 {
 	if( g == NULL )
 		return LOG_RETURN_ERROR_PARAMETER;
@@ -1032,45 +1152,102 @@ int SetLogStyles( LOG *g , long log_styles , funcLogStyle *pfuncLogStyle )
 	/* 构造行风格函数数组 */
 	g->style_func_count = 0 ;
 	
+	if( pfuncLogStylePrefix )
+	{
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
+		g->pfuncLogStyles[ g->style_func_count++ ] = pfuncLogStylePrefix ;
+	}
+	
 	if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_DATETIMEMS ) )
 	{
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 		g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_DATETIMEMS ;
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 		g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_SEPARATOR ;
 	}
 	else if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_DATETIME ) )
 	{
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 		g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_DATETIME ;
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 		g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_SEPARATOR ;
 	}
 	else if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_DATE ) )
 	{
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 		g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_DATE ;
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 		g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_SEPARATOR ;
 	}
+	
 	if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_LOGLEVEL ) )
 	{
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 		g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_LOGLEVEL ;
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 		g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_SEPARATOR ;
 	}
+	
 	if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_CUSTLABEL1 )
 		|| TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_CUSTLABEL2 )
 		|| TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_CUSTLABEL3 ) )
 	{
 		if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_CUSTLABEL1 ) )
 		{
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_CUSTLABEL1 ;
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_SPACE ;
 		}
 		if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_CUSTLABEL2 ) )
 		{
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_CUSTLABEL2 ;
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_SPACE ;
 		}
 		if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_CUSTLABEL3 ) )
 		{
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_CUSTLABEL3 ;
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_SPACE ;
 		}
+		if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_CUSTLABEL4 ) )
+		{
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
+			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_CUSTLABEL4 ;
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
+			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_SPACE ;
+		}
+		if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_CUSTLABEL5 ) )
+		{
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
+			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_CUSTLABEL5 ;
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
+			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_SPACE ;
+		}
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 		g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_SEPARATOR2 ;
 	}
 	if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_PID )
@@ -1079,24 +1256,36 @@ int SetLogStyles( LOG *g , long log_styles , funcLogStyle *pfuncLogStyle )
 	{
 		if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_PID ) )
 		{
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_PID ;
 		}
 		if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_TID ) )
 		{
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_TID ;
 		}
 		if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_SOURCE ) )
 		{
+			if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+				return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 			g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_SOURCE ;
 		}
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 		g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_SEPARATOR ;
 	}
 	if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_FORMAT ) )
 	{
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 		g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_FORMAT ;
 	}
 	if( TEST_ATTRIBUTE( g->log_styles , LOG_STYLE_NEWLINE ) )
 	{
+		if( g->style_func_count >= LOG_CUST_LABELS_COUNT )
+			return LOG_RETURN_ERROR_TOO_MANY_STYLES;
 		g->pfuncLogStyles[ g->style_func_count++ ] = LogStyle_NEWLINE ;
 	}
 	
@@ -1105,10 +1294,20 @@ int SetLogStyles( LOG *g , long log_styles , funcLogStyle *pfuncLogStyle )
 	return 0;
 }
 
+int SetLogStyles( LOG *g , long log_styles , funcLogStyle *pfuncLogStyle )
+{
+	return SetLogStylesEx( g , log_styles , pfuncLogStyle , NULL );
+}
+
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 int SetLogStylesG( long log_styles , funcLogStyle *pfuncLogStyles )
 {
 	return SetLogStyles( tls_g , log_styles , pfuncLogStyles );
+}
+
+int SetLogStylesExG( long log_styles , funcLogStyle *pfuncLogStyles , funcLogStyle *pfuncLogStylePrefix )
+{
+	return SetLogStylesEx( tls_g , log_styles , pfuncLogStyles , pfuncLogStylePrefix );
 }
 #endif
 
@@ -1321,12 +1520,14 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 	long		writelen ;
 	int		nret ;
 	
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( format == NULL )
 		return 0;
 	
 	/* 初始化行日志缓冲区 */ /* initialize log buffer  */
-	g->logbuf.buf_remain_len = g->logbuf.buf_size - 1 - 1 ;
-	g->logbuf.bufptr = g->logbuf.bufbase ;
+	CleanLogBuffer( g , GetLogBuffer(g) );
 	
 	/* 填充行日志缓冲区 */ /* fill log buffer */
 	if( g->pfuncLogStyle )
@@ -1466,14 +1667,14 @@ int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , 
 		return nret;
 
 /* 带日志等级的写日志 */ /* write log */
-int WriteLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *format , ... )
+int WriteLevelLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *format , ... )
 {
 	WRITELOGBASE( g , log_level )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int WriteLogG( char *c_filename , long c_fileline , int log_level , char *format , ... )
+int WriteLevelLogG( char *c_filename , long c_fileline , int log_level , char *format , ... )
 {
 	WRITELOGBASE( tls_g , log_level )
 	return 0;
@@ -1481,14 +1682,14 @@ int WriteLogG( char *c_filename , long c_fileline , int log_level , char *format
 #endif
 
 /* 写调试日志 */ /* write debug log */
-int DebugLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
+int WriteDebugLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( g , LOG_LEVEL_DEBUG )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int DebugLogG( char *c_filename , long c_fileline , char *format , ... )
+int WriteDebugLogG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( tls_g , LOG_LEVEL_DEBUG )
 	return 0;
@@ -1496,29 +1697,44 @@ int DebugLogG( char *c_filename , long c_fileline , char *format , ... )
 #endif
 
 /* 写普通信息日志 */ /* write info log */
-int InfoLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
+int WriteInfoLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( g , LOG_LEVEL_INFO )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int InfoLogG( char *c_filename , long c_fileline , char *format , ... )
+int WriteInfoLogG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( tls_g , LOG_LEVEL_INFO )
 	return 0;
 }
 #endif
 
+/* 写通知信息日志 */ /* write notice log */
+int WriteNoticeLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
+{
+	WRITELOGBASE( g , LOG_LEVEL_NOTICE )
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
+int WriteNoticeLogG( char *c_filename , long c_fileline , char *format , ... )
+{
+	WRITELOGBASE( tls_g , LOG_LEVEL_NOTICE )
+	return 0;
+}
+#endif
+
 /* 写警告日志 */ /* write warn log */
-int WarnLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
+int WriteWarnLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( g , LOG_LEVEL_WARN )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int WarnLogG( char *c_filename , long c_fileline , char *format , ... )
+int WriteWarnLogG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( tls_g , LOG_LEVEL_WARN )
 	return 0;
@@ -1526,14 +1742,14 @@ int WarnLogG( char *c_filename , long c_fileline , char *format , ... )
 #endif
 
 /* 写错误日志 */ /* write error log */
-int ErrorLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
+int WriteErrorLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( g , LOG_LEVEL_ERROR )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int ErrorLogG( char *c_filename , long c_fileline , char *format , ... )
+int WriteErrorLogG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( tls_g , LOG_LEVEL_ERROR )
 	return 0;
@@ -1541,14 +1757,14 @@ int ErrorLogG( char *c_filename , long c_fileline , char *format , ... )
 #endif
 
 /* 写致命错误日志 */ /* write fatal log */
-int FatalLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
+int WriteFatalLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( g , LOG_LEVEL_FATAL )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int FatalLogG( char *c_filename , long c_fileline , char *format , ... )
+int WriteFatalLogG( char *c_filename , long c_fileline , char *format , ... )
 {
 	WRITELOGBASE( tls_g , LOG_LEVEL_FATAL )
 	return 0;
@@ -1559,13 +1775,17 @@ int FatalLogG( char *c_filename , long c_fileline , char *format , ... )
 int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , va_list valist )
 {
 	int		row_offset , col_offset ;
+	/*
 	long		len ;
+	*/
 	long		writelen ;
 	int		nret ;
 	
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	/* 初始化十六进制块日志缓冲区 */ /* initialize log buffer  */
-	g->hexlogbuf.buf_remain_len = g->hexlogbuf.buf_size - 1 - 1 ;
-	g->hexlogbuf.bufptr = g->hexlogbuf.bufbase ;
+	CleanLogBuffer( g , GetHexLogBuffer(g) );
 	
 	/* 填充行日志缓冲区 */ /* fill log buffer */
 	if( format )
@@ -1581,55 +1801,82 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 	/* 填充十六进制块日志缓冲区 */ /* fill hex log buffer */
 	if( buffer && buflen > 0 )
 	{
+		/*
 		len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF" ) ;
 		OFFSET_BUFPTR( & (g->hexlogbuf) , len )
 		len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , LOG_NEWLINE ) ;
 		OFFSET_BUFPTR( & (g->hexlogbuf) , len )
+		*/
+		FormatLogBuffer( g , & (g->hexlogbuf) , "             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF" LOG_NEWLINE );
 		
 		row_offset = 0 ;
 		col_offset = 0 ;
 		while(1)
 		{
+			/*
 			len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "0x%08X   " , row_offset * 16 ) ;
 			OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
+			*/
+			FormatLogBuffer( g , & (g->hexlogbuf) , "0x%08X   " , row_offset * 16 );
 			for( col_offset = 0 ; col_offset < 16 ; col_offset++ )
 			{
 				if( row_offset * 16 + col_offset < buflen )
 				{
+					/*
 					len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "%02X " , *((unsigned char *)buffer+row_offset*16+col_offset)) ;
 					OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
+					*/
+					FormatLogBuffer( g , & (g->hexlogbuf) , "%02X " , *((unsigned char *)buffer+row_offset*16+col_offset) );
 				}
 				else
 				{
+					/*
 					len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "   " ) ;
 					OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
+					*/
+					FormatLogBuffer( g , & (g->hexlogbuf) , "   " );
 				}
 			}
+			/*
 			len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "  " ) ;
 			OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
+			*/
+			FormatLogBuffer( g , & (g->hexlogbuf) , "  " );
 			for( col_offset = 0 ; col_offset < 16 ; col_offset++ )
 			{
 				if( row_offset * 16 + col_offset < buflen )
 				{
 					if( isprint( (int)*((unsigned char*)buffer+row_offset*16+col_offset) ) )
 					{
+						/*
 						len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "%c" , *((unsigned char *)buffer+row_offset*16+col_offset) ) ;
 						OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
+						*/
+						FormatLogBuffer( g , & (g->hexlogbuf) , "%c" , *((unsigned char *)buffer+row_offset*16+col_offset) );
 					}
 					else
 					{
+						/*
 						len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , "." ) ;
 						OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
+						*/
+						FormatLogBuffer( g , & (g->hexlogbuf) , "." );
 					}
 				}
 				else
 				{
+					/*
 					len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , " " ) ;
 					OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
+					*/
+					FormatLogBuffer( g , & (g->hexlogbuf) , " " );
 				}
 			}
+			/*
 			len = SNPRINTF( g->hexlogbuf.bufptr , g->hexlogbuf.buf_remain_len , LOG_NEWLINE ) ;
 			OFFSET_BUFPTR_IN_LOOP( & (g->hexlogbuf) , len )
+			*/
+			FormatLogBuffer( g , & (g->hexlogbuf) , LOG_NEWLINE );
 			if( row_offset * 16 + col_offset >= buflen )
 				break;
 			row_offset++;
@@ -1641,7 +1888,10 @@ int WriteHexLogBase( LOG *g , char *c_filename , long c_fileline , int log_level
 	
 	if( STRNCMP( g->hexlogbuf.bufptr-(sizeof(LOG_NEWLINE)-1) , != , LOG_NEWLINE , sizeof(LOG_NEWLINE)-1 ) )
 	{
+		/*
 		memcpy( g->hexlogbuf.bufptr-(sizeof(LOG_NEWLINE)-1) , LOG_NEWLINE , sizeof(LOG_NEWLINE)-1 );
+		*/
+		FormatLogBuffer( g , & (g->hexlogbuf) , LOG_NEWLINE );
 	}
 	
 	/* 自定义过滤日志 */ /* filter log */
@@ -1795,14 +2045,14 @@ int WriteHexLogG( char *c_filename , long c_fileline , int log_level , char *buf
 #endif
 
 /* 写十六进制块调试日志 */ /* write debug hex log */
-int DebugHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteDebugHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( g , LOG_LEVEL_DEBUG )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int DebugHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteDebugHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( tls_g , LOG_LEVEL_DEBUG )
 	return 0;
@@ -1810,29 +2060,44 @@ int DebugHexLogG( char *c_filename , long c_fileline , char *buffer , long bufle
 #endif
 
 /* 写十六进制块普通信息日志 */ /* write info hex log */
-int InfoHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteInfoHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( g , LOG_LEVEL_INFO )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int InfoHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteInfoHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( tls_g , LOG_LEVEL_INFO )
 	return 0;
 }
 #endif
 
+/* 写十六进制块通知信息日志 */ /* write notice hex log */
+int WriteNoticeHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+{
+	WRITEHEXLOGBASE( g , LOG_LEVEL_NOTICE )
+	return 0;
+}
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
+int WriteNoticeHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+{
+	WRITEHEXLOGBASE( tls_g , LOG_LEVEL_NOTICE )
+	return 0;
+}
+#endif
+
 /* 写十六进制块警告日志 */ /* write warn hex log */
-int WarnHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteWarnHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( g , LOG_LEVEL_WARN )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int WarnHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteWarnHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( tls_g , LOG_LEVEL_WARN )
 	return 0;
@@ -1840,14 +2105,14 @@ int WarnHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen
 #endif
 
 /* 写十六进制块错误日志 */ /* write error hex log */
-int ErrorHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteErrorHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( g , LOG_LEVEL_ERROR )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int ErrorHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteErrorHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( tls_g , LOG_LEVEL_ERROR )
 	return 0;
@@ -1855,14 +2120,14 @@ int ErrorHexLogG( char *c_filename , long c_fileline , char *buffer , long bufle
 #endif
 
 /* 写十六进制块致命错误日志 */ /* write fatal hex log */
-int FatalHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteFatalHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( g , LOG_LEVEL_FATAL )
 	return 0;
 }
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
-int FatalHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteFatalHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( tls_g , LOG_LEVEL_FATAL )
 	return 0;
@@ -1915,6 +2180,9 @@ int SetLogFileChangeTestG( long interval )
 /* 刷存储IO周期 */
 int SetLogFsyncPeriod( LOG *g , long period )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	g->fsync_period = period ;
 	g->fsync_elapse = g->fsync_period ;
 	
@@ -1933,6 +2201,7 @@ int SetLogCustLabel( LOG *g , int index , char *cust_label )
 {
 	if( g == NULL )
 		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( 1 <= index && index <= LOG_MAXCNT_CUST_LABEL )
 	{
 		memset( g->cust_label[index-1] , 0x00 , sizeof(g->cust_label[index-1]) );
@@ -1958,6 +2227,7 @@ int SetLogRotateMode( LOG *g , int rotate_mode )
 {
 	if( g == NULL )
 		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( rotate_mode == LOG_ROTATEMODE_SIZE
 		|| rotate_mode == LOG_ROTATEMODE_PER_DAY
 		|| rotate_mode == LOG_ROTATEMODE_PER_HOUR )
@@ -1983,9 +2253,11 @@ int SetLogRotateSize( LOG *g , long log_rotate_size )
 {
 	if( g == NULL )
 		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( log_rotate_size <= 0 )
 		return LOG_RETURN_ERROR_PARAMETER;
 	g->log_rotate_size = log_rotate_size ;
+	
 	return 0;
 }
 
@@ -2001,9 +2273,11 @@ int SetLogRotatePressureFactor( LOG *g , long pressure_factor )
 {
 	if( g == NULL )
 		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( pressure_factor < 0 )
 		return LOG_RETURN_ERROR_PARAMETER;
 	g->pressure_factor = pressure_factor ;
+	
 	return 0;
 }
 
@@ -2019,9 +2293,11 @@ int SetLogRotateFileCount( LOG *g , long rotate_file_count )
 {
 	if( g == NULL )
 		return LOG_RETURN_ERROR_PARAMETER;
+	
 	if( rotate_file_count <= 0 )
 		return LOG_RETURN_ERROR_PARAMETER;
 	g->rotate_file_count = rotate_file_count ;
+	
 	return 0;
 }
 
@@ -2035,7 +2311,11 @@ int SetLogRotateFileCountG( long rotate_file_count )
 /* 设置自定义日志转档前回调函数 */ /* set custom callback function before rotate log */
 int SetBeforeRotateFileFunc( LOG *g , funcBeforeRotateFile *pfuncBeforeRotateFile )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	g->pfuncBeforeRotateFile = pfuncBeforeRotateFile ;
+	
 	return 0;
 }
 
@@ -2049,7 +2329,11 @@ int SetBeforeRotateFileFuncG( funcBeforeRotateFile *pfuncBeforeRotateFile )
 /* 设置自定义日志转档后回调函数 */ /* set custom callback function after rotate log */
 int SetAfterRotateFileFunc( LOG *g , funcAfterRotateFile *pfuncAfterRotateFile )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	g->pfuncAfterRotateFile = pfuncAfterRotateFile ;
+	
 	return 0;
 }
 
@@ -2063,7 +2347,11 @@ int SetAfterRotateFileFuncG( funcAfterRotateFile *pfuncAfterRotateFile )
 /* 设置自定义检查日志等级回调函数类型 */ /* set custom filter callback function */
 int SetFilterLogFunc( LOG *g , funcFilterLog *pfuncFilterLog )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	g->pfuncFilterLog = pfuncFilterLog ;
+	
 	return 0;
 }
 
@@ -2103,12 +2391,16 @@ int SetHexLogBufferSizeG( long hexlog_bufsize , long max_hexlog_bufsize )
 /* 直接设置日志输出回调函数 */
 int SetLogOutputFuncDirectly( LOG *g , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	g->pfuncOpenLogFirst = pfuncOpenLogFirst ;
 	g->pfuncOpenLog = pfuncOpenLog ;
 	g->pfuncWriteLog = pfuncWriteLog ;
 	g->pfuncChangeTest = pfuncChangeTest ;
 	g->pfuncCloseLog = pfuncCloseLog ;
 	g->pfuncCloseLogFinally = pfuncCloseLogFinally ;
+	
 	return 0;
 }
 
@@ -2122,6 +2414,9 @@ int SetLogOutputFuncDirectlyG( funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfu
 /* 直接设置行日志风格回调函数 */
 int SetLogStyleFuncDirectly( LOG *g , funcLogStyle *pfuncLogStyle )
 {
+	if( g == NULL )
+		return LOG_RETURN_ERROR_PARAMETER;
+	
 	g->pfuncLogStyle = pfuncLogStyle ;
 
 	return 0;
@@ -2147,6 +2442,11 @@ void SetGlobalLOG( LOG *g )
 }
 #endif
 
+char *GetLogPathfilename( LOG *g )
+{
+	return g->log_pathfilename;
+}
+
 int SetOpenFlag( LOG *g , char open_flag )
 {
 	g->open_flag = open_flag ;
@@ -2155,7 +2455,18 @@ int SetOpenFlag( LOG *g , char open_flag )
 
 char IsLogOpened( LOG *g )
 {
-	return g->open_flag ;
+	return g->open_flag;
+}
+
+void *GetLogOpenHandle( LOG *g )
+{
+	return g->open_handle;
+}
+
+void SetLogOpenHandle( LOG *g , void *open_handle )
+{
+	g->open_handle = open_handle ;
+	return;
 }
 
 int GetLogLevel( LOG *g )
@@ -2173,12 +2484,23 @@ LOGBUF *GetHexLogBuffer( LOG *g )
 	return & (g->hexlogbuf);
 }
 
+void CleanLogBuffer( LOG *g , LOGBUF *logbuf )
+{
+	logbuf->buf_remain_len = logbuf->buf_size - 1 - 1 ;
+	logbuf->bufptr = logbuf->bufbase ;
+	return;
+}
+
 long FormatLogBuffer( LOG *g , LOGBUF *logbuf , char *format , ... )
 {
 	va_list		valist ;
+	va_list		valist_copy ;
 	long		len ;
-_REDO :
+	
 	va_start( valist , format );
+	va_copy( valist_copy , valist );
+_REDO :
+	va_copy( valist , valist_copy );
 	len = VSNPRINTF( logbuf->bufptr , logbuf->buf_remain_len , format , valist ) ;
 	va_end( valist );
 #if ( defined _WIN32 )
@@ -2192,6 +2514,7 @@ _REDO :
 		if( logbuf->buf_size == logbuf->max_buf_size )
 		{
 			logbuf->bufptr[0] = '\0' ;
+			va_end( valist_copy );
 			return LOG_RETURN_ERROR_ALLOC_MAX;
 		}
 		new_buf_size = logbuf->buf_size * 2 ;
@@ -2199,17 +2522,24 @@ _REDO :
 			new_buf_size = logbuf->max_buf_size ;
 		nret = SetBufferSize( g , logbuf , new_buf_size , -1 );
 		if( nret )
+		{
+			va_end( valist_copy );
 			return nret;
+		}
 		goto _REDO;
 	}
 	OFFSET_BUFPTR( logbuf , len )
+	va_end( valist_copy );
 	return len;
 }
 
 long FormatLogBufferV( LOG *g , LOGBUF *logbuf , char *format , va_list valist )
 {
+	va_list		valist_copy ;
 	long		len ;
+	va_copy( valist_copy , valist );
 _REDO :
+	va_copy( valist , valist_copy );
 	len = VSNPRINTF( logbuf->bufptr , logbuf->buf_remain_len , format , valist ) ;
 #if ( defined _WIN32 )
 	if( len == -1 )
@@ -2222,6 +2552,7 @@ _REDO :
 		if( logbuf->buf_size == logbuf->max_buf_size )
 		{
 			logbuf->bufptr[0] = '\0' ;
+			va_end( valist_copy );
 			return LOG_RETURN_ERROR_ALLOC_MAX;
 		}
 		new_buf_size = logbuf->buf_size * 2 ;
@@ -2229,10 +2560,14 @@ _REDO :
 			new_buf_size = logbuf->max_buf_size ;
 		nret = SetBufferSize( g , logbuf , new_buf_size , -1 );
 		if( nret )
+		{
+			va_end( valist_copy );
 			return nret;
+		}
 		goto _REDO;
 	}
 	OFFSET_BUFPTR( logbuf , len )
+	va_end( valist_copy );
 	return len;
 }
 
@@ -2259,135 +2594,128 @@ _REDO :
 	return len;
 }
 
-int ConvertLogOutput_atoi( char *output_desc , int *p_log_output )
+int ConvertLogOutput_atoi( char *output_desc )
 {
 	if( strcmp( output_desc , "STDOUT" ) == 0 )
-		(*p_log_output) = LOG_OUTPUT_STDOUT ;
+		return LOG_OUTPUT_STDOUT;
 	else if( strcmp( output_desc , "STDERR" ) == 0 )
-		(*p_log_output) = LOG_OUTPUT_STDERR ;
+		return LOG_OUTPUT_STDERR;
 	else if( strcmp( output_desc , "SYSLOG" ) == 0 )
-		(*p_log_output) = LOG_OUTPUT_SYSLOG ;
+		return LOG_OUTPUT_SYSLOG;
 	else if( strcmp( output_desc , "FILE" ) == 0 )
-		(*p_log_output) = LOG_OUTPUT_FILE ;
+		return LOG_OUTPUT_FILE;
 	else if( strcmp( output_desc , "CALLBACK" ) == 0 )
-		(*p_log_output) = LOG_OUTPUT_CALLBACK ;
+		return LOG_OUTPUT_CALLBACK;
 	else
-		return LOG_RETURN_ERROR_PARAMETER;
-	
-	return 0;
+		return LOG_OUTPUT_INVALID;
 }
 
-int ConvertLogLevel_atoi( char *log_level_desc , int *p_log_level )
+int ConvertLogLevel_atoi( char *log_level_desc )
 {
 	if( strcmp( log_level_desc , "DEBUG" ) == 0 )
-		(*p_log_level) = LOG_LEVEL_DEBUG ;
+		return LOG_LEVEL_DEBUG;
 	else if( strcmp( log_level_desc , "INFO" ) == 0 )
-		(*p_log_level) = LOG_LEVEL_INFO ;
+		return LOG_LEVEL_INFO;
+	else if( strcmp( log_level_desc , "NOTICE" ) == 0 )
+		return LOG_LEVEL_NOTICE;
 	else if( strcmp( log_level_desc , "WARN" ) == 0 )
-		(*p_log_level) = LOG_LEVEL_WARN ;
+		return LOG_LEVEL_WARN;
 	else if( strcmp( log_level_desc , "ERROR" ) == 0 )
-		(*p_log_level) = LOG_LEVEL_ERROR ;
+		return LOG_LEVEL_ERROR;
 	else if( strcmp( log_level_desc , "FATAL" ) == 0 )
-		(*p_log_level) = LOG_LEVEL_FATAL ;
+		return LOG_LEVEL_FATAL;
 	else if( strcmp( log_level_desc , "NOLOG" ) == 0 )
-		(*p_log_level) = LOG_LEVEL_NOLOG ;
+		return LOG_LEVEL_NOLOG;
 	else
-		return LOG_RETURN_ERROR_PARAMETER;
-	
-	return 0;
+		return LOG_LEVEL_INVALID;
 }
 
-int ConvertLogLevel_itoa( int log_level , char **log_level_desc )
+char *ConvertLogLevel_itoa( int log_level )
 {
-	(*log_level_desc) = sg_aszLogLevelDesc[log_level] ;
-	return 0;
+	if( LOG_LEVEL_DEBUG <= log_level && log_level <= LOG_LEVEL_NOLOG )
+		return sg_aszLogLevelDesc[log_level] ;
+	else
+		return NULL;
 }
 
-int ConvertLogStyle_atol( char *line_style_desc , long *p_line_style )
+long ConvertLogStyle_atol( char *line_style_desc )
 {
 	if( strcmp( line_style_desc , "DATE" ) == 0 )
-		(*p_line_style) = LOG_STYLE_DATE ;
+		return LOG_STYLE_DATE;
 	else if( strcmp( line_style_desc , "DATETIME" ) == 0 )
-		(*p_line_style) = LOG_STYLE_DATETIME ;
+		return LOG_STYLE_DATETIME;
 	else if( strcmp( line_style_desc , "DATETIMEMS" ) == 0 )
-		(*p_line_style) = LOG_STYLE_DATETIMEMS ;
+		return LOG_STYLE_DATETIMEMS;
 	else if( strcmp( line_style_desc , "LOGLEVEL" ) == 0 )
-		(*p_line_style) = LOG_STYLE_LOGLEVEL ;
+		return LOG_STYLE_LOGLEVEL;
 	else if( strcmp( line_style_desc , "PID" ) == 0 )
-		(*p_line_style) = LOG_STYLE_PID ;
+		return LOG_STYLE_PID;
 	else if( strcmp( line_style_desc , "TID" ) == 0 )
-		(*p_line_style) = LOG_STYLE_TID ;
+		return LOG_STYLE_TID;
 	else if( strcmp( line_style_desc , "SOURCE" ) == 0 )
-		(*p_line_style) = LOG_STYLE_SOURCE ;
+		return LOG_STYLE_SOURCE;
 	else if( strcmp( line_style_desc , "FORMAT" ) == 0 )
-		(*p_line_style) = LOG_STYLE_FORMAT ;
+		return LOG_STYLE_FORMAT;
 	else if( strcmp( line_style_desc , "NEWLINE" ) == 0 )
-		(*p_line_style) = LOG_STYLE_NEWLINE ;
+		return LOG_STYLE_NEWLINE;
 	else if( strcmp( line_style_desc , "CUSTLABEL1" ) == 0 )
-		(*p_line_style) = LOG_STYLE_CUSTLABEL1 ;
+		return LOG_STYLE_CUSTLABEL1;
 	else if( strcmp( line_style_desc , "CUSTLABEL2" ) == 0 )
-		(*p_line_style) = LOG_STYLE_CUSTLABEL2 ;
+		return LOG_STYLE_CUSTLABEL2;
 	else if( strcmp( line_style_desc , "CUSTLABEL3" ) == 0 )
-		(*p_line_style) = LOG_STYLE_CUSTLABEL3 ;
+		return LOG_STYLE_CUSTLABEL3;
+	else if( strcmp( line_style_desc , "CUSTLABEL4" ) == 0 )
+		return LOG_STYLE_CUSTLABEL4;
+	else if( strcmp( line_style_desc , "CUSTLABEL5" ) == 0 )
+		return LOG_STYLE_CUSTLABEL5;
 	else
-		return LOG_RETURN_ERROR_PARAMETER;
-	
-	return 0;
+		return LOG_STYLE_INVALID;
 }
 
-int ConvertLogOption_atol( char *log_option_desc , long *p_log_option )
+long ConvertLogOption_atol( char *log_option_desc )
 {
 	if( strcmp( log_option_desc , "OPEN_AND_CLOSE" ) == 0 )
-		(*p_log_option) = LOG_OPTION_OPEN_AND_CLOSE ;
+		return LOG_OPTION_OPEN_AND_CLOSE;
 	else if( strcmp( log_option_desc , "CHANGE_TEST" ) == 0 )
-		(*p_log_option) = LOG_OPTION_CHANGE_TEST ;
+		return LOG_OPTION_CHANGE_TEST;
 	else if( strcmp( log_option_desc , "OPEN_ONCE" ) == 0 )
-		(*p_log_option) = LOG_OPTION_OPEN_ONCE ;
+		return LOG_OPTION_OPEN_ONCE;
 	else if( strcmp( log_option_desc , "SET_OUTPUT_BY_FILENAME" ) == 0 )
-		(*p_log_option) = LOG_OPTION_SET_OUTPUT_BY_FILENAME ;
+		return LOG_OPTION_SET_OUTPUT_BY_FILENAME;
 	else if( strcmp( log_option_desc , "FILENAME_APPEND_DOT_LOG" ) == 0 )
-		(*p_log_option) = LOG_OPTION_FILENAME_APPEND_DOT_LOG ;
+		return LOG_OPTION_FILENAME_APPEND_DOT_LOG;
 	else
-		return LOG_RETURN_ERROR_PARAMETER;
-	
-	return 0;
+		return LOG_OPTION_INVALID;
 }
 
-int ConvertLogRotateMode_atoi( char *rotate_mode_desc , int *p_rotate_mode )
+int ConvertLogRotateMode_atoi( char *rotate_mode_desc )
 {
 	if( strcmp( rotate_mode_desc , "NONE" ) == 0 )
-		(*p_rotate_mode) = LOG_ROTATEMODE_NONE ;
+		return LOG_ROTATEMODE_NONE ;
 	else if( strcmp( rotate_mode_desc , "SIZE" ) == 0 )
-		(*p_rotate_mode) = LOG_ROTATEMODE_SIZE ;
+		return LOG_ROTATEMODE_SIZE ;
 	else if( strcmp( rotate_mode_desc , "PER_DAY" ) == 0 )
-		(*p_rotate_mode) = LOG_ROTATEMODE_PER_DAY ;
+		return LOG_ROTATEMODE_PER_DAY ;
 	else if( strcmp( rotate_mode_desc , "PER_HOUR" ) == 0 )
-		(*p_rotate_mode) = LOG_ROTATEMODE_PER_HOUR ;
+		return LOG_ROTATEMODE_PER_HOUR ;
 	else
-		return LOG_RETURN_ERROR_PARAMETER;
-	
-	return 0;
+		return LOG_ROTATEMODE_INVALID;
 }
 
-int ConvertBufferSize_atol( char *bufsize_desc , long *p_bufsize )
+long ConvertBufferSize_atol( char *bufsize_desc )
 {
 	long	bufsize_desc_len ;
 	
 	bufsize_desc_len = strlen(bufsize_desc) ;
 	
 	if( bufsize_desc_len > 2 && strcmp( bufsize_desc + bufsize_desc_len - 2 , "GB" ) == 0 )
-		(*p_bufsize) = atol(bufsize_desc) * 1024 * 1024 * 1024 ;
+		return atol(bufsize_desc) * 1024 * 1024 * 1024 ;
 	else if( bufsize_desc_len > 2 && strcmp( bufsize_desc + bufsize_desc_len - 2 , "MB" ) == 0 )
-		(*p_bufsize) = atol(bufsize_desc) * 1024 * 1024 ;
+		return atol(bufsize_desc) * 1024 * 1024 ;
 	else if( bufsize_desc_len > 2 && strcmp( bufsize_desc + bufsize_desc_len - 2 , "KB" ) == 0 )
-		(*p_bufsize) = atol(bufsize_desc) * 1024 ;
+		return atol(bufsize_desc) * 1024 ;
 	else if( bufsize_desc_len > 1 && strcmp( bufsize_desc + bufsize_desc_len - 1 , "B" ) == 0 )
-		(*p_bufsize) = atol(bufsize_desc) ;
+		return atol(bufsize_desc) ;
 	else
-		(*p_bufsize) = atol(bufsize_desc) ;
-	
-	if( (*p_bufsize) == 0 )
-		return LOG_RETURN_ERROR_PARAMETER;
-	
-	return 0;
+		return atol(bufsize_desc) ;
 }

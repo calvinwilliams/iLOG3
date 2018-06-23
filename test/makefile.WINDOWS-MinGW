@@ -40,8 +40,6 @@ c_FILE		=	\
 			test_press_mpt_tls.c \
 			test_memoryleak.c \
 			test_funny.c \
-			test_logconf.c \
-			test_logsconf.c \
 			test_afterrotatefile.c \
 			test_filterlogfunc.c \
 			test_logc.c \
@@ -65,6 +63,9 @@ CLEAN_ADDITION	=	LOGC.o
 ###### 加载mktpl模板库
 # 最终目标列表
 all	:	$(OBJ) $(OBJ2) $(LIB) $(LIB2) $(SQL) $(NOCLEAN_OBJ) $(NOINST_OBJ) $(BIN) $(BIN2)
+
+prepro_all	:	$(PREPRO)
+
 
 # 文件系统宏
 CD		=	cd
@@ -139,12 +140,6 @@ test_memoryleak		:	test_memoryleak.o
 
 test_funny		:	test_funny.o
 	$(CC) -o $@ test_funny.o $(LFLAGS)
-
-test_logconf		:	test_logconf.o
-	$(CC) -o $@ test_logconf.o $(LFLAGS)
-
-test_logsconf		:	test_logsconf.o
-	$(CC) -o $@ test_logsconf.o $(LFLAGS)
 
 test_afterrotatefile	:	test_afterrotatefile.o
 	$(CC) -o $@ test_afterrotatefile.o $(LFLAGS)

@@ -70,17 +70,17 @@ int test_demo()
 	
 	printf( "创建日志句柄成功\n" );
 	
-	DebugLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	InfoLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	WarnLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	ErrorLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	FatalLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteDebugLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteInfoLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteWarnLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteErrorLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteFatalLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
 	
-	DebugHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
-	InfoHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
-	WarnHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
-	ErrorHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
-	FatalHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteDebugHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteInfoHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteWarnHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteErrorHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteFatalHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
 	
 #if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
 	DEBUGLOG( g2 , "hello iLOG3" );
@@ -97,11 +97,11 @@ int test_demo()
 #endif
 	
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
-	DebugLogG( __FILE__ , __LINE__ , "hello iLOG3" );
-	InfoLogG( __FILE__ , __LINE__ , "hello iLOG3" );
-	WarnLogG( __FILE__ , __LINE__ , "hello iLOG3" );
-	ErrorLogG( __FILE__ , __LINE__ , "hello iLOG3" );
-	FatalLogG( __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteDebugLogG( __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteInfoLogG( __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteWarnLogG( __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteErrorLogG( __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteFatalLogG( __FILE__ , __LINE__ , "hello iLOG3" );
 #if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
 	DEBUGHEXLOGG( buffer , buflen , "缓冲区[%ld]" , buflen );
 	INFOHEXLOGG( buffer , buflen , "缓冲区[%ld]" , buflen );
@@ -111,10 +111,10 @@ int test_demo()
 #endif
 #endif
 	
-	DebugLog( g4 , __FILE__ , __LINE__ , "hello iLOG3" );
-	InfoLog( g4 , __FILE__ , __LINE__ , "hello iLOG3" );
-	WarnLog( g4 , __FILE__ , __LINE__ , "hello iLOG3" );
-	ErrorLog( g4 , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteDebugLog( g4 , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteInfoLog( g4 , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteWarnLog( g4 , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteErrorLog( g4 , __FILE__ , __LINE__ , "hello iLOG3" );
 	
 	DestroyLogHandle( g );
 #if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )

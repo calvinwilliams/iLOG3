@@ -1,3 +1,19 @@
+ver 1.2.0	2018-06-23	calvin
+		* src/LOGCONF.?移到到src-conf-kvfile/LOGCONF_KVFILE.?
+		* src/LOGSCONF.?移到到src-conf-kvfile/LOGSCONF_KVFILE.?
+		* 新增目录test-conf-kvfile
+
+ver 1.1.1	2018-06-23	calvin
+		* 新增日志输出类型、等级宏、风格组合宏的无效值宏
+		* 新增函数SetLogStylesEx和SetLogStylesExG用于设置风格宏前置函数钩子，也配套全局日志句柄版本
+		* 新增函数GetLogHandle和SetLogHandle用于得到和设置全局日志句柄，也配套全局日志句柄版本
+		* 自定义标签CustLabel值长度从32字节扩长到64字节，数量扩大到5个
+		* 扩大了行日志和十六进制日志缓冲区
+		* 新增属性操作宏*_ATTRIBUTE
+		* 调整函数原型ConvertLogOutput_atoi、ConvertLogLevel_atoi、ConvertLogLevel_itoa、ConvertLogStyle_atol、ConvertLogOption_atol、ConvertLogRotateMode_atoi、ConvertBufferSize_atol
+		* 新增函数ExpandPathFilename
+		* 瑾烨公司使用时发现日志函数重名，日志函数库iLOG3的函数*Log都改名为Write*Log，LOGS也一样
+
 ver 1.1.0	2018-01-18	calvin
 		* 新增函数族ReOpenFileOutput
 

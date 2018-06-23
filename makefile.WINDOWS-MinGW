@@ -1,4 +1,5 @@
 # 此文件由makelocal.sh自动生成
+MAKEFILE_POSTFIX=.WINDOWS-MinGW
 # 此文件由makedir.sh自动生成
 ############################################################
 # 项目名 :
@@ -28,19 +29,10 @@ make	:
 	@for %%i in ($(DIROBJS)) do ( \
 		if exist %%i \
 		( \
-			if exist "%%i/makefile" \
+			if exist "%%i/makefile$(MAKEFILE_POSTFIX)" \
 			( \
 				$(CD) %%i && \
-				make && \
-				$(CD) .. \
-			) \
-		) \
-		else \
-		( \
-			if exist "%%i/makefile.WINDOW_MinGW" \
-			( \
-				$(CD) %%i && \
-				make -f makefile.WINDOW_MinGW && \
+				$(MAKE) -f makefile$(MAKEFILE_POSTFIX) && \
 				$(CD) .. \
 			) \
 		) && \
@@ -56,19 +48,10 @@ clean	:
 	@for %%i in ($(DIROBJS)) do ( \
 		if exist %%i \
 		( \
-			if exist "%%i/makefile" \
+			if exist "%%i/makefile$(MAKEFILE_POSTFIX)" \
 			( \
 				$(CD) %%i && \
-				make clean && \
-				$(CD) .. \
-			) \
-		) \
-		else \
-		( \
-			if exist "%%i/makefile.WINDOW_MinGW" \
-			( \
-				$(CD) %%i && \
-				make -f makefile.WINDOW_MinGW clean && \
+				$(MAKE) -f makefile$(MAKEFILE_POSTFIX) clean && \
 				$(CD) .. \
 			) \
 		) && \
@@ -84,21 +67,10 @@ install	:
 	@for %%i in ($(DIROBJS)) do ( \
 		if exist %%i \
 		( \
-			if exist "%%i/makefile" \
+			if exist "%%i/makefile$(MAKEFILE_POSTFIX)" \
 			( \
 				$(CD) %%i && \
-				make && \
-				make install && \
-				$(CD) .. \
-			) \
-		) \
-		else \
-		( \
-			if exist "%%i/makefile.WINDOW_MinGW" \
-			( \
-				$(CD) %%i && \
-				make -f makefile.WINDOW_MinGW && \
-				make -f makefile.WINDOW_MinGW install && \
+				$(MAKE) -f makefile$(MAKEFILE_POSTFIX) install && \
 				$(CD) .. \
 			) \
 		) && \

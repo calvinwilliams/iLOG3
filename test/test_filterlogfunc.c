@@ -50,11 +50,11 @@ int test_filterlog()
 	SetLogStylesG( LOG_STYLES_FILTERLOG , LOG_NO_STYLEFUNC );
 	SetFilterLogFuncG( & FilterLog );
 	
-	DebugLogG( __FILE__ , __LINE__ , "hello DEBUG" );
-	InfoLogG( __FILE__ , __LINE__ , "hello INFO" );
-	WarnLogG( __FILE__ , __LINE__ , "hello WARN" );
-	ErrorLogG( __FILE__ , __LINE__ , "hello ERROR" );
-	FatalLogG( __FILE__ , __LINE__ , "hello FATAL" );
+	WriteDebugLogG( __FILE__ , __LINE__ , "hello DEBUG" );
+	WriteInfoLogG( __FILE__ , __LINE__ , "hello INFO" );
+	WriteWarnLogG( __FILE__ , __LINE__ , "hello WARN" );
+	WriteErrorLogG( __FILE__ , __LINE__ , "hello ERROR" );
+	WriteFatalLogG( __FILE__ , __LINE__ , "hello FATAL" );
 	
 	DestroyLogHandleG();
 	printf( "Ïú»Ù¾ä±ú»·¾³\n" );

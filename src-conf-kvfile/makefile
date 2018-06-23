@@ -8,26 +8,29 @@
 ###### 源文件配置区
 #@ c_FILE
 c_FILE		=	\
-			LOG.c \
-			LOGS.c \
+			LOGCONF_KVFILE.c \
+			LOGSCONF_KVFILE.c \
 
 ###### 目标文件、安装目录配置区
-LIB		=	libiLOG3.so
+LIB		=	libiLOG3CONF_KVFILE.so
 LIBINST		=	$(HOME)/lib
-LIB2		=	libiLOG3.a
+LIB2		=	libiLOG3CONF_KVFILE.a
 # LIBINST2	=	$(HOME)/lib
 HDER		= \
-			LOG.h \
-			LOGS.h \
+			LOGCONF_KVFILE.h \
+			LOGSCONF_KVFILE.h \
 
-HDERINST	=	$(HOME)/include/iLOG3
+HDERINST	=	$(HOME)/include/iLOG3CONF_KVFILE
 
 ###### 编译选项
 CFLAGS		=	-I. \
+			-I$(HOME)/include/iLOG3
 
 ###### 链接选项
 LFLAGS		=	-L. \
 			-lpthread \
+			-L$(HOME)/lib \
+			-liLOG3 \
 
 ###### 额外宏定义区
 CLEAN_ADDITION	=
@@ -43,9 +46,9 @@ CLEAN_ADDITION	=
 include $(MKTPL2_HOME)/makeobj_$(MKTPL2_OS).inc
 
 ###### 目标文件依赖关系
-libiLOG3.so		:	$(c_FILE_o)
+libiLOG3CONF_KVFILE.so		:	$(c_FILE_o)
 	$(CC) -o $@ $(c_FILE_o) $(SOFLAGS) $(LFLAGS)
 
-libiLOG3.a		:	$(c_FILE_o)
+libiLOG3CONF_KVFILE.a		:	$(c_FILE_o)
 	$(AR) $(ARFLAGS) $@ $(c_FILE_o)
 

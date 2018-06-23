@@ -119,7 +119,7 @@ int test_press( long count )
 	llBegin = GetUnixSecondsExactly() ;
 	for( l = 1 ; l <= count ; l++ )
 	{
-		InfoLog( press , __FILE__ , __LINE__ , "log" );
+		WriteInfoLog( press , __FILE__ , __LINE__ , "log" );
 	}
 	llEnd = GetUnixSecondsExactly() ;
 	llDiff.high = llEnd.high - llBegin.high ;
