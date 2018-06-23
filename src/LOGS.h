@@ -33,6 +33,8 @@ extern "C" {
 /* 其它宏 */ /* other macros */
 #define LOGS_MAXCNT_LOG			10	/* 日志句柄集合中最大日志句柄数量 */ /* maximum amount of log handle in one log handle collection */
 
+#define LOGS_MAXLEN_ID			64	/* 日志句柄集合中最长ID */
+
 typedef struct tagLOGS LOGS ;
 
 /* 管理日志句柄集合函数 */ /* log handle collection functions */
@@ -116,6 +118,7 @@ _WINDLL_FUNC int WriteFatalHexLogs( LOGS *g , char *c_filename , long c_fileline
 _WINDLL_FUNC LOGS *CreateLogsHandleG();
 _WINDLL_FUNC void DestroyLogsHandleG();
 _WINDLL_FUNC LOGS *GetLogsHandleG();
+_WINDLL_FUNC void GetLogsHandlePtrG( LOGS **pp_gs );
 _WINDLL_FUNC void SetLogsHandleG( LOGS *gs );
 
 _WINDLL_FUNC int AddLogToLogsG( char *g_id , LOG *g );

@@ -18,8 +18,6 @@ c_FILE		=	\
 			test_press_mpt_tls.c \
 			test_memoryleak.c \
 			test_funny.c \
-			test_logconf.c \
-			test_logsconf.c \
 			test_afterrotatefile.c \
 			test_filterlogfunc.c \
 			test_logc.c \
@@ -47,7 +45,7 @@ CLEAN_ADDITION	=	LOGC.o
 #@ make_install_BININST
 #@ make_install_DFTHDERINST
 
-include $(MKTPLDIR)/makeobj_$(MKTPLOS).inc
+include $(MKTPL2_HOME)/makeobj_$(MKTPL2_OS).inc
 
 ###### 目标文件依赖关系
 test_hello		:	test_hello.o
@@ -79,12 +77,6 @@ test_memoryleak		:	test_memoryleak.o
 
 test_funny		:	test_funny.o
 	$(CC) -o $@ test_funny.o $(LFLAGS)
-
-test_logconf		:	test_logconf.o
-	$(CC) -o $@ test_logconf.o $(LFLAGS)
-
-test_logsconf		:	test_logsconf.o
-	$(CC) -o $@ test_logsconf.o $(LFLAGS)
 
 test_afterrotatefile	:	test_afterrotatefile.o
 	$(CC) -o $@ test_afterrotatefile.o $(LFLAGS)

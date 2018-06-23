@@ -60,6 +60,8 @@ struct tm *localtime_r(const time_t *timep, struct tm *result);
 #define LOG_RETURN_ERROR_OPENFILE		-22	/* 打开文件失败 */ /* failed to open file  */
 #define LOG_RETURN_ERROR_WRITEFILE		-23	/* 写文件失败 */ /* failed to write file */
 #define LOG_RETURN_ERROR_TOO_MANY_STYLES	-31	/* 风格列太多了 */
+#define LOG_RETURN_ERROR_CONFIGFILE_NOTFOUND	-51	/* 找不到配置文件 */
+#define LOG_RETURN_ERROR_CONFIGFILE_INVALID	-52	/* 配置文件无效 */
 
 /********************************************************/
 /*   以下为基本特性 The basic features are as follows   */
@@ -215,6 +217,7 @@ _WINDLL_FUNC int WriteFatalHexLog( LOG *g , char *c_filename , long c_fileline ,
 _WINDLL_FUNC LOG *CreateLogHandleG();
 _WINDLL_FUNC void DestroyLogHandleG();
 _WINDLL_FUNC LOG *GetLogHandleG();
+_WINDLL_FUNC void GetLogHandlePtrG( LOG **pp_g );
 _WINDLL_FUNC void SetLogHandleG( LOG *g );
 
 _WINDLL_FUNC int SetLogOutputG( int output , char *log_pathfilename , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally );

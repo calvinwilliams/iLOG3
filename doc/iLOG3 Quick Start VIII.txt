@@ -29,19 +29,19 @@ int test_logc()
 	SetLogFile( "%s/log/test_logc.log" , getenv("HOME") );
 	SetLogLevel( LOGLEVEL_INFO );
 	
-	DebugLog( __FILE__ , __LINE__ , "call DebugLog" );
-	InfoLog( __FILE__ , __LINE__ , "call InfoLog" );
-	WarnLog( __FILE__ , __LINE__ , "call WarnLog" );
-	ErrorLog( __FILE__ , __LINE__ , "call ErrorLog" );
-	FatalLog( __FILE__ , __LINE__ , "call FatalLog" );
+	WriteDebugLog( __FILE__ , __LINE__ , "call DebugLog" );
+	WriteInfoLog( __FILE__ , __LINE__ , "call InfoLog" );
+	WriteWarnLog( __FILE__ , __LINE__ , "call WarnLog" );
+	WriteErrorLog( __FILE__ , __LINE__ , "call ErrorLog" );
+	WriteFatalLog( __FILE__ , __LINE__ , "call FatalLog" );
 	
 	memset( buf , 0x00 , sizeof(buf) );
 	buflen = sizeof(buf) - 1 ;
-	DebugHexLog( __FILE__ , __LINE__ , buf , buflen , "call DebugHexLog" );
-	InfoHexLog( __FILE__ , __LINE__ , buf , buflen , "call InfoHexLog" );
-	WarnHexLog( __FILE__ , __LINE__ , buf , buflen , "call WarnHexLog" );
-	ErrorHexLog( __FILE__ , __LINE__ , buf , buflen , "call ErrorHexLog" );
-	FatalHexLog( __FILE__ , __LINE__ , buf , buflen , "call FatalHexLog" );
+	WriteDebugHexLog( __FILE__ , __LINE__ , buf , buflen , "call DebugHexLog" );
+	WriteInfoHexLog( __FILE__ , __LINE__ , buf , buflen , "call InfoHexLog" );
+	WriteWarnHexLog( __FILE__ , __LINE__ , buf , buflen , "call WarnHexLog" );
+	WriteErrorHexLog( __FILE__ , __LINE__ , buf , buflen , "call ErrorHexLog" );
+	WriteFatalHexLog( __FILE__ , __LINE__ , buf , buflen , "call FatalHexLog" );
 	
 	return 0;
 }

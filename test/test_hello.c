@@ -25,19 +25,19 @@ int test_hello()
 	SetLogLevel( g , LOG_LEVEL_INFO );
 	SetLogStyles( g , LOG_STYLES_HELLO , LOG_NO_STYLEFUNC );
 	
-	DebugLog( g , __FILE__ , __LINE__ , "hello DEBUG" );
-	InfoLog( g , __FILE__ , __LINE__ , "hello INFO" );
-	WarnLog( g , __FILE__ , __LINE__ , "hello WARN" );
-	ErrorLog( g , __FILE__ , __LINE__ , "hello ERROR" );
-	FatalLog( g , __FILE__ , __LINE__ , "hello FATAL" );
+	WriteDebugLog( g , __FILE__ , __LINE__ , "hello DEBUG" );
+	WriteInfoLog( g , __FILE__ , __LINE__ , "hello INFO" );
+	WriteWarnLog( g , __FILE__ , __LINE__ , "hello WARN" );
+	WriteErrorLog( g , __FILE__ , __LINE__ , "hello ERROR" );
+	WriteFatalLog( g , __FILE__ , __LINE__ , "hello FATAL" );
 	
-	DebugHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
-	InfoHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
-	WarnHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
-	ErrorHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
-	FatalHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteDebugHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteInfoHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteWarnHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteErrorHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteFatalHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
 	
-	InfoLog( g , __FILE__ , __LINE__ , "ok" );
+	WriteInfoLog( g , __FILE__ , __LINE__ , "ok" );
 	
 	DestroyLogHandle( g );
 	printf( "销毁日志句柄\n" );
