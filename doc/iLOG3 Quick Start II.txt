@@ -1,0 +1,630 @@
+开源纯C日志函数库iLOG3快速入门（二、定制远程日志服务）
+
+前面一篇讲了如何使用iLOG3写日志，从日志句柄LOG到日志句柄集合LOGS实现单一输出介质到多输出介质。
+iLOG3输出介质很多，除了文件外还有标准输出、标准错误输出、syslog或WINDOWS EVENT等，这篇介绍如何利用输出介质回调函数实现日志远程落地，在某些场合下很需要这样的功能。
+首先设计通讯过程，一个日志句柄扮演一个日志输出客户端角色，在输出日志前先连接上日志服务器，发送文件名，服务器打开本地日志文件，客户端不停的发送格式化好的日志数据，服务器接收并落地，最后客户端关闭日志句柄前断开与日志服务器连接，服务器关闭本地日志文件。
+
+看设置输出类型函数原型
+
+[code]
+/* 自定义打开、输出、关闭日志函数类型 */
+typedef int funcOpenLog( LOG *g , char *log_pathfilename , void **open_handle );
+typedef int funcWriteLog( LOG *g , void **open_handle , int log_level , char *buf , long len , long *writelen );
+typedef int funcChangeTest( LOG *g , void **test_handle );
+typedef int funcCloseLog( LOG *g , void **open_handle );
+
+#define LOG_NO_OUTPUTFUNC	NULL , NULL , NULL , NULL , NULL , NULL
+
+/* 设置输出类型 */
+_WINDLL_FUNC int SetLogOutput( LOG *g , int output , char *log_pathfilename , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally );
+[/code]
+
+一般我们输出到文件，output设置为LOG_OUTPUT_FILE，这时最后六个回调函数钩子都设置为NULL，或者用宏LOG_NO_OUTPUTFUNC。这里我们想自定义打开日志、输出日志、关闭日志逻辑，编写三个函数挂上去，同时output设置为LOG_OUTPUT_CALLBACK，iLOG3将用用户自定义函数替代内部缺省的打开、输出、关闭日志函数。因为设计成长连接，自定义打开日志函数挂在pfuncOpenLogFirst上，自定义输出日志函数挂在pfuncWriteLog上，自定义关闭日志函数挂在pfuncCloseLogFinally上。如果你想改成短连接，打开和关闭函数改挂在pfuncOpenLog、pfuncCloseLog上即可。也就是说pfuncOpenLogFirst和pfuncCloseLogFinally只做一次，pfuncOpenLog和pfuncCloseLog在每次输出日志前后都做。
+
+三个回调函数代码如下：
+注意：代码中使用了大量封装网络通讯的函数库iSocket函数
+[code]
+funcOpenLog funcOpenLog_ConnectToLogServer ;
+int funcOpenLog_ConnectToLogServer( LOG *g , char *log_pathfilename , void **open_handle )
+{
+	char		*ptr = NULL ;
+	char		*ptr2 = NULL ;
+	long		log_pathfilename_len ;
+	char		ch_len ;
+	char		ip[ MAXLEN_IP + 1 ] ;
+	long		port ;
+	
+	long		timeout ;
+	
+	int		nret = 0 ;
+	
+	if( IsLogOpened(g) == 1 )
+		return 0;
+	
+	/* 申请日志打开环境句柄内存 */
+	(*open_handle) = (int*)malloc( sizeof(int) ) ;
+	if( (*open_handle) == NULL )
+	{
+		return -11;
+	}
+	
+	/* 分析文件名和网络地址 */
+	ptr = strchr( log_pathfilename , '@' ) ;
+	if( ptr == NULL )
+		return -21;
+	
+	log_pathfilename_len = ptr - log_pathfilename ;
+	ch_len = (char)log_pathfilename_len ;
+	
+	ptr++;
+	ptr2 = strchr( ptr , ':' ) ;
+	
+	memset( ip , 0x00 , sizeof(ip) );
+	strncpy( ip , ptr , ptr2 - ptr );
+	
+	ptr2++;
+	port = atol(ptr2) ;
+	
+	/* 创建客户端socket */
+	nret = TCPCreateClient( (int*)(*open_handle) ) ;
+	if( nret )
+		return -31;
+	
+	/* 连接服务端socket */
+	nret = TCPConnectToServer( (int*)(*open_handle) , ip , port ) ;
+	if( nret )
+	{
+		CloseSocket( (int*)(*open_handle) );
+		return -32;
+	}
+	
+	/* 发送文件名 */
+	timeout = 10 * 1000 ;
+	nret = TCPSendData( *(int*)(*open_handle) , & ch_len , 1 , & timeout ) ;
+	if( nret )
+	{
+		CloseSocket( (int*)(*open_handle) );
+		return -33;
+	}
+	
+	nret = TCPSendData( *(int*)(*open_handle) , log_pathfilename , log_pathfilename_len , & timeout ) ;
+	if( nret )
+	{
+		CloseSocket( (int*)(*open_handle) );
+		return -34;
+	}
+	
+	SetOpenFlag(g,1);
+	
+	return 0;
+}
+
+funcWriteLog funcWriteLog_SendToLogServer ;
+int funcWriteLog_SendToLogServer( LOG *g , void **open_handle , int log_level , char *buf , long len , long *writelen )
+{
+	long		timeout ;
+	
+	int		nret = 0 ;
+	
+	if( IsLogOpened(g) == 0 )
+		return 0;
+	
+	/* 发送日志数据 */
+	timeout = 10 * 1000 ;
+	(*writelen) = TCPSendData( *(int*)(*open_handle) , buf , len , & timeout ) ;
+	if( (*writelen) )
+	{
+		/* 如果发送失败，重连服务端，然后再发送，如果还失败，报错返回 */
+		funcCloseLog_DisconnectFromLogServer( g , open_handle );
+		
+		nret = funcOpenLog_ConnectToLogServer( g , g->log_pathfilename , & (g->open_handle) ) ;
+		if( nret )
+			return -41;
+		
+		timeout = 10 * 1000 ;
+		(*writelen) = TCPSendData( *(int*)(*open_handle) , buf , len , & timeout ) ;
+		if( (*writelen) <= 0 )
+			return -42;
+	}
+	
+	return 0;
+}
+
+funcCloseLog funcCloseLog_DisconnectFromLogServer ;
+int funcCloseLog_DisconnectFromLogServer( LOG *g , void **open_handle )
+{
+	if( IsLogOpened(g) == 0 )
+		return 0;
+	
+	/* 断开socket连接 */
+	CloseSocket( (int*)(*open_handle) );
+
+	/* 释放日志打开环境内存 */
+	free( (*open_handle) );
+	
+	SetOpenFlag(g,0);
+	
+	return 0;
+}
+[/code]
+函数funcOpenLog_ConnectToLogServer挂在只执行一次的打开日志回调函数钩子上，当设置输出类型时最后自动调用，首先申请日志打开环境所需内存，然后分析文件名和网络地址，然后创建客户端socket连接上服务端，发送文件名，连接协议为“(文件名长度)(1字节)|(文件名)(n字节，值为前一字节值)”。
+函数funcWriteLog_SendToLogServer挂在输出日志回调函数钩子上，每次日志输出都会调用，不停的发送格式化好的日志数据到远程服务器。
+函数funcCloseLog_DisconnectFromLogServer挂在只执行一次的关闭日志回调函数钩子上，当关闭日志句柄时自动调用，断开socket连接，释放日志打开环境所占内存。
+
+编写测试代码如下：
+[code]
+#include <stdio.h>
+
+#include "LOGSERVER.h"
+
+#define LOG_STYLES_TEST		( LOG_STYLE_DATETIME | LOG_STYLE_LOGLEVEL | LOG_STYLE_PID | LOG_STYLE_TID | LOG_STYLE_SOURCE | LOG_STYLE_FORMAT | LOG_STYLE_NEWLINE )
+
+int test_iLOG3SERVER()
+{
+	LOG		*g = NULL ;
+	char		buffer[ 64 + 1 ] = "" ;
+	long		buflen = sizeof(buffer) - 1 ;
+	
+	int		nret = 0 ;
+	
+	/* 创建日志句柄，带后缀'G'的函数还会自动设置到线程安全的全局缺省日志句柄 */
+	if( CreateLogHandleG() == NULL )
+	{
+		printf( "CreateLogHandleG failed\n" );
+		return -1;
+	}
+	else
+	{
+		printf( "CreateLogHandleG ok\n" );
+	}
+	
+	/* 设置日志属性 */
+	nret = SetLogOutputG( LOG_OUTPUT_CALLBACK , "$ProgramFiles$/test_iLOG3SERVER.log@127.0.0.1:7878" , & funcOpenLog_ConnectToLogServer , NULL , & funcWriteLog_SendToLogServer , NULL , NULL , & funcCloseLog_DisconnectFromLogServer ) ; /* 设置输出类型时挂上那三个回调函数，实现自定义的连接远程日志服务器、输出日志数据到远程日志服务器、关闭通讯连接功能 */
+	if( nret )
+	{
+		printf( "SetLogOutputG failed\n" );
+		return -1;
+	}
+	SetLogLevelG( LOG_LEVEL_INFO );
+	SetLogStylesG( LOG_STYLES_TEST , LOG_NO_STYLEFUNC );
+	
+	/* 输出日志 */
+	DebugLogG( __FILE__ , __LINE__ , "hello DEBUG" );
+	InfoLogG( __FILE__ , __LINE__ , "hello INFO" );
+	WarnLogG( __FILE__ , __LINE__ , "hello WARN" );
+	ErrorLogG( __FILE__ , __LINE__ , "hello ERROR" );
+	FatalLogG( __FILE__ , __LINE__ , "hello FATAL" );
+	
+	DebugHexLogG( __FILE__ , __LINE__ , buffer , buflen , "hello DEBUG" );
+	InfoHexLogG( __FILE__ , __LINE__ , buffer , buflen , "hello INFO" );
+	WarnHexLogG( __FILE__ , __LINE__ , buffer , buflen , "hello WARN" );
+	ErrorHexLogG( __FILE__ , __LINE__ , buffer , buflen , "hello ERROR" );
+	FatalHexLogG( __FILE__ , __LINE__ , buffer , buflen , "hello FATAL" );
+	
+	/* 释放日志句柄 */
+	DestroyLogHandleG();
+	
+	return 0;
+}
+
+int main()
+{
+	/* windows上需要做初始化 */
+	SocketSystemInitial();
+	
+	return -test_iLOG3SERVER();
+}
+[/code]
+请注意，函数SetLogOutput的日志文件名参数设置成"$ProgramFiles$/test_iLOG3SERVER.log@127.0.0.1:7878"，是传递给自定义打开日志回调函数解析用的，你也可以根据喜好设计其它格式。
+
+想运行？别急，还没有日志服务器呢，下面简单写一个吧，基于select事件模型，同样使用了大量封装过的iLibX、iSocket函数库函数，有注释呢，应该看得懂
+server.h
+[code]
+#ifndef _H_SERVER_
+#define _H_SERVER_
+
+/*
+ * iLOG3SERVER - iLOG3简单远程服务器
+ * author  : calvin
+ * email   : 
+ * history : 2014-02-11	v1.0.0		创建
+ */
+
+#include <stdio.h>
+
+#include "LibX.h"
+#include "StringX.h"
+
+#include "Socket.h"
+#include "SocketTCP.h"
+
+#include "LOGSERVER.h"
+
+#define IP_LOGSERVER			"0"
+#define PORT_LOGSERVER			7878
+
+#define MAXCNT_LOGCLIENT		100
+
+#define CLIENTSTATUS_UNUSED		0
+#define CLIENTSTATUS_LOGGING		2
+
+#define RECV_BUFFER_SIZE		1024
+
+#ifndef MAXLEN_FILENAME
+#define MAXLEN_FILENAME			256
+#endif
+
+struct SocketAddressExp
+{
+	char			ip [ MAXLEN_IP + 1 ] ;
+	long			port ;
+} ;
+
+struct LogClientAccept
+{
+	char			status ; /* 连接状态 */
+	
+	int			clisock ; /* 已接受socket描述字 */
+	SOCKADDR		cliaddr ; /* 已接受socket地址信息 */
+	struct SocketAddressExp	cliaddr_exp ; /* 已接受socket地址信息（转换为易读格式） */
+	
+	char			log_pathfilename[ MAXLEN_FILENAME + 1 ] ;
+	FILE			*fp ;
+} ;
+
+struct LogServerEnv
+{
+	int			lsnsock ; /* 侦听socket描述字 */
+	SOCKADDR		lsnaddr ; /* 侦听socket地址信息 */
+	struct LogClientAccept	client[ MAXCNT_LOGCLIENT ] ; /* 客户端socket环境单元集 */
+} ;
+
+int LogServer( char *server_ip , long server_port );
+
+int SendSocketData( struct LogServerEnv *penv , struct LogClientAccept *pselclient );
+int ProcessSocketData( struct LogServerEnv *penv , struct LogClientAccept *pselclient );
+int ReceiveSocketData( struct LogServerEnv *penv , struct LogClientAccept *pselclient );
+
+#endif
+[/code]
+
+server.c
+[code]
+static int AcceptClientSocket( struct LogServerEnv *penv )
+{
+	int			clisock ;
+	SOCKADDR		cliaddr ;
+	struct SocketAddressExp	cliaddr_exp ;
+	
+	long			timeout ;
+	char			ch ;
+	long			ch_len ;
+	char			log_pathfilename[ MAXLEN_FILENAME + 1 ] ;
+	long			log_pathfilename_len ;
+	
+	char			env_key[ MAXLEN_FILENAME + 1 ] ;
+	long			env_key_len ;
+	char			*env_val = NULL ;
+	long			env_val_len ;
+	char			*p1 = NULL , *p2 = NULL ;
+	
+	FILE			*fp = NULL ;
+	
+	int			i ;
+	struct LogClientAccept	*pclient = NULL ;
+	
+	int			nret ;
+	
+	/* 接受新socket连接 */
+	nret = TCPAcceptFromClient( & (penv->lsnsock) , & clisock , & cliaddr ) ;
+	if( nret )
+	{
+		printf( "TCPAcceptFromClient failed[%d]errno[%d]\n" , nret , errno );
+		return 0;
+	}
+	else
+	{
+		memset( & cliaddr_exp , 0x00 , sizeof(cliaddr_exp.ip) );
+		GetSocketAddressIP( & cliaddr , cliaddr_exp.ip );
+		GetSocketAddressPort( & cliaddr , & (cliaddr_exp.port) );
+		
+		printf( "TCPAcceptFromClient ok , ip[%s]port[%ld]\n" , cliaddr_exp.ip , cliaddr_exp.port );
+	}
+	
+	/* 接收文件名长度 */
+	timeout = 10 * 1000 ;
+	ch = 0 ;
+	ch_len = 1 ;
+	nret = TCPReceiveData( clisock , & ch , & ch_len , & timeout ) ;
+	if( nret )
+	{
+		printf( "TCPReceiveData failed[%d]errno[%d]\n" , nret , errno );
+		CloseSocket( & clisock );
+		return 0;
+	}
+	
+	memset( log_pathfilename , 0x00 , sizeof(log_pathfilename) );
+	log_pathfilename_len = (long)ch ;
+	nret = TCPReceiveData( clisock , log_pathfilename , & log_pathfilename_len , & timeout ) ;
+	if( nret )
+	{
+		printf( "TCPReceiveData failed[%d]errno[%d]\n" , nret , errno );
+		CloseSocket( & clisock );
+		return 0;
+	}
+	
+	p1 = strchr( log_pathfilename , '(美元符号)' );
+	while( p1 )
+	{
+		/* 展开环境变量 */
+		p2 = strchr( p1 + 1 , '(美元符号)' ) ;
+		if( p2 == NULL )
+			return LOG_RETURN_ERROR_PARAMETER;
+		
+		memset( env_key , 0x00 , sizeof(env_key) );
+		env_key_len = p2 - p1 + 1 ;
+		strncpy( env_key , p1 + 1 , env_key_len - 2 );
+		env_val = getenv( env_key ) ;
+		if( env_val == NULL )
+		{
+			printf( "environment [%s] not found\n" , env_key );
+			CloseSocket( & clisock );
+			return 0;
+		}
+		
+		env_val_len = strlen(env_val) ;
+		if( log_pathfilename_len + ( env_val_len - env_key_len ) > sizeof(log_pathfilename)-1 )
+		{
+			printf( "filename overflow\n" );
+			CloseSocket( & clisock );
+			return 0;
+		}
+		
+		memmove( p2+1 + ( env_val_len - env_key_len ) , p2+1 , strlen(p2+1) + 1 );
+		memcpy( p1 , env_val , env_val_len );
+		log_pathfilename_len += env_val_len - env_key_len ;
+		
+		p1 = strchr( p1 + ( env_val_len - env_key_len ) , '(美元符号)' );
+	}
+	
+	fp = fopen( log_pathfilename , "a" ) ;
+	if( fp == NULL )
+	{
+		printf( "fopen failed errno[%d]\n" , nret , errno );
+		CloseSocket( & clisock );
+		return 0;
+	}
+	
+	/* 查询未使用客户端socket环境单元 */
+	for( i = 0 , pclient = & (penv->client[0]) ; i < MAXCNT_LOGCLIENT ; i++ , pclient++ )
+	{
+		if( pclient->status == CLIENTSTATUS_UNUSED )
+		{
+			break;
+		}
+	}
+	if( i >= MAXCNT_LOGCLIENT )
+	{
+		printf( "太多的客户端\n" );
+		CloseSocket( & clisock );
+		return 0;
+	}
+	
+	/* 填充客户端socket环境单元 */
+	pclient->clisock = clisock ;
+	memcpy( & (pclient->cliaddr) , & cliaddr , sizeof(SOCKADDR) );
+	memcpy( & (pclient->cliaddr_exp) , & cliaddr_exp , sizeof(struct SocketAddressExp) );
+	
+	strcpy( pclient->log_pathfilename , log_pathfilename );
+	pclient->fp = fp ;
+	
+	pclient->status = CLIENTSTATUS_LOGGING ;
+	
+	return 0;
+}
+
+int ReceiveSocketData( struct LogServerEnv *penv , struct LogClientAccept *pselclient )
+{
+	char		recv_buffer[ RECV_BUFFER_SIZE + 1 ] ;
+	int		recv_len ;
+	
+	int		nret = 0 ;
+	
+	/* 接收通讯数据到临时接收缓冲区 */
+	memset( recv_buffer , 0x00 , sizeof(recv_buffer) );
+	recv_len = sizeof(recv_buffer)-1 ;
+	recv_len = recv( pselclient->clisock , recv_buffer , recv_len , 0 ) ;
+	if( recv_len == 0 )
+	{
+		printf( "socket closed by remote[%s:%ld]\n" , pselclient->cliaddr_exp.ip , pselclient->cliaddr_exp.port );
+		CloseSocket( & (pselclient->clisock) );
+		fclose( pselclient->fp );
+		pselclient->status = CLIENTSTATUS_UNUSED ;
+		return 0;
+	}
+	else if( recv_len < 0 )
+	{
+		printf( "read socket failed from remote[%s:%ld] , errno[%d]\n" , pselclient->cliaddr_exp.ip , pselclient->cliaddr_exp.port , errno );
+		CloseSocket( & (pselclient->clisock) );
+		fclose( pselclient->fp );
+		pselclient->status = CLIENTSTATUS_UNUSED ;
+		return 0;
+	}
+	
+	fprintf( pselclient->fp , "%s" , recv_buffer );
+	
+	return 0;
+}
+
+int LogServer( char *server_ip , long server_port )
+{
+	struct LogServerEnv	env , *penv = & env ;
+	
+	int			selsocks[ 1 + MAXCNT_LOGCLIENT ] ;
+	struct LogClientAccept	*pselclient[ 1 + MAXCNT_LOGCLIENT ] ;
+	
+	int			selsocks_count ;
+	struct LogClientAccept	*pclient = NULL ;
+	int			i ;
+	int			selsock_index ;
+	
+	int			nret = 0 ;
+	
+	/* 初始化聊天环境 */
+	memset( penv , 0x00 , sizeof(struct LogServerEnv) );
+	
+	/* 创建服务端侦听socket */
+	nret = TCPCreateServer( & (penv->lsnsock) , & (penv->lsnaddr) , server_ip , server_port ) ;
+	if( nret )
+	{
+		printf( "TCPCreateServer failed[%d]errno[%d]\n" , nret , errno );
+		return -1;
+	}
+	else
+	{
+		printf( "TCPCreateServer ok , ip[%s]port[%ld]\n" , server_ip , server_port );
+	}
+	
+	/* 主循环 */
+	while(1)
+	{
+		/* 准备socket描述字集合 */
+		selsocks[0] = penv->lsnsock ;
+		selsocks_count = 1 ;
+		for( i = 0 , pclient = & (penv->client[0]) ; i < MAXCNT_LOGCLIENT ; i++ , pclient++ )
+		{
+			if( pclient->status != CLIENTSTATUS_UNUSED )
+			{
+				selsocks[selsocks_count] = pclient->clisock ;
+				pselclient[selsocks_count] = pclient ;
+				selsocks_count++;
+			}
+		}
+		
+		/* 等待socket描述字事件 */
+		selsock_index = SelectSocket( selsocks , selsocks_count , SELECTSOCKET_READ , NULL ) ;
+		if( selsock_index < 0 )
+		{
+			printf( "SelectSocket failed[%d]errno[%d]\n" , selsock_index , errno );
+			return -1;
+		}
+		
+		/* 处理socket描述字事件 */
+		if( selsock_index == 0 )
+		{
+			/* 接受新socket连接 */
+			nret = AcceptClientSocket( penv ) ;
+			if( nret )
+			{
+				printf( "AcceptClientSocket failed[%d]errno[%d]\n" , nret , errno );
+				return -1;
+			}
+		}
+		else
+		{
+			/* 接收已连接socket数据 */
+			nret = ReceiveSocketData( penv , pselclient[selsock_index] ) ;
+			if( nret )
+			{
+				printf( "ReceiveSocketData failed[%d]errno[%d]\n" , nret , errno );
+				return -1;
+			}
+		}
+	}
+	
+	/* 关闭所有已连接socket */
+	for( i = 0 , pclient = & (penv->client[0]) ; i < MAXCNT_LOGCLIENT ; i++ , pclient++ )
+	{
+		if( pclient->status != CLIENTSTATUS_UNUSED )
+		{
+			CloseSocket( & (pclient->clisock) );
+			fclose( pclient->fp );
+		}
+	}
+	
+	/* 关闭服务端侦听socket */
+	CloseSocket( & (penv->lsnsock) );
+	
+	return 0;
+}
+
+static void usage( char *i )
+{
+	printf( "USAGE : %s server_ip server_port\n" , i );
+	
+	return;
+}
+
+int main( int argc , char *argv[] )
+{
+	int		nret = 0 ;
+	
+	if( argc != 1 + 2 )
+	{
+		usage( argv[0] );
+		exit(7);
+	}
+	
+	/* 初始化网络通讯环境（windows上需要） */
+	SocketSystemInitial();
+	
+	/* 启动聊天服务器 */
+	nret = -LogServer( argv[1] , atol(argv[2]) ) ;
+	
+	/* 销毁网络通讯环境 */
+	SocketSystemDestroy();
+	
+	return nret;
+}
+[/code]
+
+编译链接通过，运行
+
+客户端显示
+CreateLogHandleG ok
+DestroyLogHandleG ok
+
+服务端显示
+TCPCreateServer ok , ip[127.0.0.1]port[7878]
+TCPAcceptFromClient ok , ip[127.0.0.1]port[1823]
+socket closed by remote[127.0.0.1:1823]
+...（服务端是并发迭代服务器）
+
+打开"$ProgramFiles$/test_iLOG3SERVER.log"，看到日志成功远程落地了
+2014-02-13 20:53:38 | INFO  | 776:2740:test_iLOG3SERVER.c:38 | hello INFO
+2014-02-13 20:53:38 | WARN  | 776:2740:test_iLOG3SERVER.c:39 | hello WARN
+2014-02-13 20:53:38 | ERROR | 776:2740:test_iLOG3SERVER.c:40 | hello ERROR
+2014-02-13 20:53:38 | FATAL | 776:2740:test_iLOG3SERVER.c:41 | hello FATAL
+2014-02-13 20:53:38 | INFO  | 776:2740:test_iLOG3SERVER.c:44 | hello INFO
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-13 20:53:38 | WARN  | 776:2740:test_iLOG3SERVER.c:45 | hello WARN
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-13 20:53:38 | ERROR | 776:2740:test_iLOG3SERVER.c:46 | hello ERROR
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-13 20:53:38 | FATAL | 776:2740:test_iLOG3SERVER.c:47 | hello FATAL
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+
+设置日志输出类型函数SetLogOutput的回调机制，可以帮助我们扩展实现很多有意思的自定义功能，这里只是演示了日志远程落地，还能把日志输出到IBMMQ、本地数据库等，开源日志函数库iLOG3其实是实现了一个日志控制框架，通过大量回调函数钩子，你完全可以编写自己的函数来替代和扩展内部默认实现的功能。
+还有很多其它回调函数钩子能实现更有趣的功能，你慢慢探索吧 ^_^
+是不是越看越心动了？那就赶紧下载来玩玩吧
+
+首页传送门 : [url]http://git.oschina.net/calvinwilliams/iLOG3[/url]
+源代码包doc目录中包含了用户指南和参考手册，里面有更详尽的说明
+
+（本文中的源代码取自iLOG3姐妹库iLOG3SERVER，后续即将放出）

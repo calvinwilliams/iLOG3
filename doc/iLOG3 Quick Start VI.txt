@@ -1,0 +1,185 @@
+开源纯C日志函数库iLOG3快速入门（六、日志配置文件）
+
+不知不觉写了五篇，iLOG3的功能还是挺丰富的，这也是我有时受不了的原因，因为当初开发她的时候是定位为简单实现，邮箱里网友们的需求很旺盛，有一种我不实现就不用的气势。
+
+今天大致讲一下iLOG3日志函数库如何用外部配置文件配置日志句柄。一个日志函数库没有用外部配置文件来配置的话那就不算是一个完整的日志函数库，当初这个功能并非最重要。我开发iLOG3是分层分阶段进行，先开发日志句柄层，一个日志句柄对应输出一个介质（如文件），当有多个输出介质需求时，再开发日志句柄集合层，创建一个日志句柄集合就能同时输出多个介质，由代码来创建日志句柄及集合不够灵活，所以就又开发了配置文件接口层，顺手设计了第一种配置文件格式，与接口层对接，实现用配置文件来配置日志句柄及集合。哪层对你方便你就用哪层，因地制宜。
+
+一个配置日志句柄的配置文件内容如下：
+test_logconf.conf
+[code]
+output		FILE     test_logconf.log
+level		INFO
+styles		DATETIME|LOGLEVEL|PID|TID|SOURCE|FORMAT|NEWLINE
+options		CHANGE_TEST
+rotate_mode	SIZE
+rotate_size	10MB
+log_bufsize	1MB 5MB
+[/code]
+在代码里这样写就实现了装载配置文件来配置日志句柄
+[code]
+#include "LOGCONF.h"
+LOG	*g = NULL ;
+g = CreateLogHandleFromConfig( "test_logconf.conf" , NULL ) ;
+...
+[/code]
+函数CreateLogHandleFromConfig内部逻辑是读取简单日志配置文件，依次调用创建、设置函数构建日志句柄，也就是等价于：
+[code]
+SetLogOutput( g , LOG_OUTPUT_FILE , "test_logconf.log" , LOG_NO_OUTPUTFUNC );
+SetLogLevel( g , LOG_LEVEL_INFO );
+SetLogStyles( g , LOG_STYLE_DATETIME|LOG_STYLE_LOGLEVEL|LOG_STYLE_PID|LOG_STYLE_TID|LOG_STYLE_SOURCE|LOG_STYLE_FORMAT|LOG_STYLE_NEWLINE , LOG_NO_STYLEFUNC );
+SetLogOptions( g , LOG_OPTION_CHANGE_TEST );
+SetLogRotateMode( g , LOG_ROTATEMODE_SIZE );
+SetLogRotateSize( g , 10*1024*1024 );
+SetLogBufferSize( g , 1*1024*1024 , -1 );
+[/code]
+应用输出日志和关闭日志句柄照常。
+当然，你的配置文件可能需要从用户主目录开始定位，那么把上述设置的文件名改为"$HOME/test_logconf.conf"即可。
+
+如果需要挂接钩子回调函数，设置
+output       CALLBACK
+然后在代码中用函数SetLogOutputFuncDirectly、SetLogStyleFuncDirectly等设置回调函数，这个是省不掉的。
+
+一个有趣的技巧
+my_program.c -> my_program
+[code]
+#include "LOGCONF.h"
+int main( int argc , char *argv[] )
+{
+	LOG	*g = NULL ;
+	g = CreateLogHandleFromConfig( argv[0] , ".conf" ) ;
+	...
+}
+[/code]
+这样就能实现可执行程序my_program和所在目录下有一个主文件名一样的对应日志配置文件my_program.conf协同工作。
+
+日志句柄集合的配置也一样简单
+[code]
+id		hello
+output		FILE	test_logconf.log
+level		INFO
+styles		DATETIME|LOGLEVEL|PID|TID|SOURCE|FORMAT|NEWLINE
+options		CHANGE_TEST
+rotate_mode	SIZE
+rotate_size	10MB
+log_bufsize	1MB	 5MB
+
+id		stdout
+output		STDOUT
+level		INFO
+styles		DATETIME|LOGLEVEL|PID|TID|SOURCE|FORMAT|NEWLINE
+[/code]
+代码中这样调用
+[code]
+#include "LOGSCONF.h"
+LOGS	*gs = NULL ;
+gs = CreateLogsHandleFromConfig( "test_logsconf.conf" , NULL ) ;
+...
+[/code]
+Log变成Logs即可，很好记，不是吗？ ^_^
+
+你是不是觉得这样的配置文件很简陋，这也是我设计配置文件接口层的目的，你可以利用该层函数与你特有的配置格式对接，实现各种各样的配置格式来配置iLOG3的日志句柄。比如XML标记语言
+[code]
+<log id="access">
+	<output>FILE</output>
+	<filename>$HOME$/log/access.log"</filename>
+	<level>DEBUG</level>
+	<styles>DATETIME|LOGLEVEL|PID|TID|FORMAT|NEWLINE</styles>
+	<rotate_mode>SIZE</rotate_mode> ;
+	<rotate_size>10MB</rotate_size>
+</log>
+[/code]
+或者是我原创的SML标记语言
+[code]
+log ( id = access )
+{
+	output = FILE ;
+	filename = "$HOME$/log/access.log" ;
+	level = DEBUG ;
+	styles = "DATETIME|LOGLEVEL|PID|TID|FORMAT|NEWLINE" ;
+	rotate_mode = SIZE ;
+	rotate_size = 10MB ;
+}
+[/code]
+或者是某种极简格式
+[code]
+access.DEBUG	"$HOME$/log/access.log",10MB,"DATETIME|LOGLEVEL|PID|TID|FORMAT|NEWLINE"
+[/code]
+再或者是你所在项目要求的特定的统一格式。
+你要开发的只是解析你喜欢的配置格式，然后用iLOG3配置文件接口层函数转换配置文本为内部类型
+[code]
+_WINDLL_FUNC int ConvertLogOutput_atoi( char *output_desc , int *p_log_output );
+_WINDLL_FUNC int ConvertLogLevel_atoi( char *log_level_desc , int *p_log_level );
+_WINDLL_FUNC int ConvertLogStyle_atol( char *line_style_desc , long *p_line_style );
+_WINDLL_FUNC int ConvertLogOption_atol( char *log_option_desc , long *p_log_option );
+_WINDLL_FUNC int ConvertLogRotateMode_atoi( char *rotate_mode_desc , int *p_rotate_mode );
+_WINDLL_FUNC int ConvertBufferSize_atol( char *bufsize_desc , long *p_bufsize );
+[/code]
+最后调用日志句柄创建、设置函数构造日志句柄即可。
+
+我在最近开发的软件hetao中采用SML作为其配置格式，hetao主配置示例如下：
+[code]
+hetao
+{
+	logs
+	{
+		log ( id = access )
+		{
+			output = FILE ;
+			filename = "$HOME$/log/access.log" ;
+			level = DEBUG ;
+			styles = "DATETIME|LOGLEVEL|PID|TID|FORMAT|NEWLINE" ;
+			rotate_mode = SIZE ;
+			rotate_size = 10MB ;
+		}
+		
+		log ( id = error )
+		{
+			output = FILE ;
+			filename = "$HOME$/log/error.log" ;
+			level = ERROR ;
+			styles = "DATETIME|LOGLEVEL|SOURCE|FORMAT|NEWLINE" ;
+			rotate_mode = SIZE ;
+			rotate_size = 10MB ;
+		}
+	}
+	
+	module
+	{
+		connection ( filename = "$HOME$/so/hetao_module_connection_epoll.so" )
+		{
+		}
+		
+		protocol ( filename = "$HOME$/so/hetao_module_protocol_http.so" )
+		{
+			max_header_size = 10KB ;
+			
+			root = "$HOME$/www" ;
+			index_page = "index.html" ;
+			error_pages
+			{
+				error_page { error = 403 ; page = "$HOME$/www/403.html" } ;
+				error_page { error = 404 ; page = "$HOME$/www/404.html" } ;
+				error_page { error = 500 ; page = "$HOME$/www/500.html" } ;
+				error_page { error = 505 ; page = "$HOME$/www/505.html" } ;
+			}
+		}
+	}
+	
+	server
+	{
+		listen_ip = "127.0.0.1" ;
+		listen_port = 8080 ;
+		max_connections = 1024 ;
+	}
+}
+[/code]
+在代码中这样写即可迅速自动构建出日志句柄集合
+[code]
+gs = CreateLogsHandleFromConfig_SML( "hetao.conf" , "/hetao/logs" , NULL ) ;
+[/code]
+CreateLogsHandleFromConfig_SML是我另外编写的iLOG3配置SML格式函数库iLOG3CONF_SML函数
+期待您的iLOG3CONF_*
+
+是不是越看越心动了？那就赶紧下载来玩玩吧
+首页传送门 : [url]http://git.oschina.net/calvinwilliams/iLOG3[/url]
+源代码包doc目录中包含了用户指南和参考手册，里面有更详尽的说明

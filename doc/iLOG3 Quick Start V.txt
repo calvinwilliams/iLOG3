@@ -1,0 +1,278 @@
+开源纯C日志函数库iLOG3快速入门（五、与随手写的简单写日志函数的比较）
+
+前几天看到一个网友的评论：“这种一般自己实现个用用就行了 没必要整第三方库”。
+的确，很多个人或公司都自己实现了简单写日志函数在产品中使用即可，一般不喜欢第三方库，一来认为第三方库代码多，势必影响性能，二来带来的不可预见的代码黑盒子，影响软件整体可靠。
+这是一个广泛的论点，我并不否认它的存在合理性，但还是想对传统的简单写日志函数和iLOG3函数库做个比较，分两部分：性能和代码复杂度，看完后你会发现你会对日志函数库iLOG3感兴趣的。
+
+一、性能
+
+一般来讲，简单写日志函数肯定要比日志函数库要快，但是我分别做了压力测试，结果发现iLOG3竟然比简单写日志函数要快近一倍！下面是测试案例
+
+随手写的最简单的写日志函数代码（源码包test目录下的bench_tiny.c）
+[code]
+static int _WriteLogBase( char *c_filename , long c_fileline , int log_level , char *format , va_list valist )
+{
+	int		fd ;
+	
+	char		buf[ 1024 + 1 ] ;
+	long		len ;
+	time_t		tt ;
+	struct tm	stime ;
+	pid_t		pid ;
+	unsigned long	tid ;		
+	
+	int		n ;
+	
+	/* 打开日志文件 */
+	fd = open( "bench_tiny.log" , O_CREAT|O_APPEND|O_WRONLY , S_IRWXU|S_IRWXG|S_IRWXO ) ;
+	if( fd == -1 )
+		return -1;
+	
+	/* 组织日志内容 */
+	time( & tt );
+	localtime_r( & tt , & stime );
+	pid = getpid() ;
+	tid = (unsigned long)pthread_self() ;
+	memset( buf , 0x00 , sizeof(buf) );
+	len = snprintf( buf , sizeof(buf) , "%04d-%02d-%02d %02d:%02d:%02d | INFO  | %d:%lu:%s:%ld | %s\n" , stime.tm_year+1900 , stime.tm_mon+1 , stime.tm_mday , stime.tm_hour , stime.tm_min , stime.tm_sec , pid , tid , c_filename , c_fileline , "log" ) ;
+	
+	/* 输出日志 */
+	n = write( fd , buf , len ) ;
+	if( n == -1 )
+		return -1;
+	
+	/* 关闭日志文件 */ /* 关键场合必须及时关闭文件，否则日志有丢失可能 */
+	close( fd );
+	
+	return 0;
+}
+
+#define LOG_LEVEL_DEBUG		0
+#define LOG_LEVEL_INFO		1
+#define LOG_LEVEL_WARN		2
+#define LOG_LEVEL_ERROR		3
+#define LOG_LEVEL_FATAL		4
+
+/* 以不同日志等级写行日志 */
+int DebugLog( char *c_filename , long c_fileline , char *format , ... )
+{
+	...
+}
+
+int InfoLog( char *c_filename , long c_fileline , char *format , ... )
+{
+	va_list		valist ;
+	
+	/* 暂不写日志等级过滤逻辑 */
+	/* ... */
+	
+	/* 调用通用底层函数输出日志 */
+	va_start( valist , format );
+	_WriteLogBase( c_filename , c_fileline , LOG_LEVEL_INFO , format , valist );
+	va_end( valist );
+	
+	return 0;
+}
+
+int ErrorLog( char *c_filename , long c_fileline , char *format , ... )
+{
+	...
+}
+
+...
+[/code]
+在我的环境里跑出这样的成绩
+[code]
+$ rm -f *.log* ; sleep 1 ; time ./bench_tiny 10 10 10000 ; head -1 bench_tiny.log ; wc *.log* ; rm -f *.log*
+
+real    0m21.863s
+user    0m1.688s
+sys     0m19.924s
+2014-02-22 12:58:25 | INFO  | 2457:3086568336:bench_tiny.c:144 | log
+1000000  8000000 69000000 bench_tiny.log
+[/code]
+嗯，10个进程，每个进程开10个线程，每个线程循环调用函数InfoLog()一万次，花费21秒左右，共写出100万行日志，约6900万字节
+
+现在轮到iLOG3出场，用源代码包中test目录下的压测示例test_press_mpt.c。
+公平起见，把按文件大小转档关掉。
+// SetLogRotateMode( press , LOG_ROTATEMODE_SIZE );
+开跑
+[code]
+$ rm -f *.log* ; sleep 1 ; time ./test_press_mpt 10 10 10000 ; head -1 test_press_mpt.log ; wc *.log* ; rm -f *.log
+
+real    0m13.745s
+user    0m1.136s
+sys     0m12.444s
+2014-02-22 13:02:33 | INFO  | 2893:3086392208:test_press_mpt.c:120 | log
+1000000  8000000 73000000 test_press_mpt.log
+[/code]
+同样开10个进程，每个进程开10个线程，每个线程循环调用函数iLOG3里的InfoLog()一万次，花费13秒左右，共写出100万行日志，约7300万字节，你没看错，iLOG3日志函数库的日志输出性能比随手写的简单写日志函数快了近一倍。
+为什么会这样呢？等我再对比完代码复杂度后一起总结 ^_^
+
+二、代码复杂度
+
+我们从iLOG3里的InfoLog作为入口一层层剥离下去，看一下写一次日志需要跑哪些路径，和随手写的简单写日志函数代码有哪些区别。
+[code]
+/* 写普通信息日志 */
+int InfoLog( LOG *g , char *c_filename , long c_fileline , char *format , ... )
+{
+	WRITELOGBASE( g , LOG_LEVEL_INFO )
+	return 0;
+}
+
+/* 代码宏 */
+#define WRITELOGBASE(_g_,_log_level_) \
+	va_list		valist; \
+	int		nret ; \
+	if( (_g_) == NULL ) \
+		return LOG_RETURN_ERROR_PARAMETER; \
+	if( (_g_)->output == LOG_OUTPUT_FILE && (_g_)->log_pathfilename[0] == '\0' ) \
+		return 0; \
+	if( TEST_LOGLEVEL_NOTENOUGH( _log_level_ , (_g_) ) ) \
+		return 0; \
+	va_start( valist , format ); \
+	nret = WriteLogBase( (_g_) , c_filename , c_fileline , _log_level_ , format , valist ) ; \
+	va_end( valist ); \
+	if( nret < 0 ) \
+		return nret;
+
+/* 写日志基函数 */
+int WriteLogBase( LOG *g , char *c_filename , long c_fileline , int log_level , char *format , va_list valist )
+{
+	long		writelen ;
+	int		nret ;
+	
+	if( format == NULL )
+		return 0;
+	
+	/* 初始化行日志缓冲区 */
+	g->logbuf.buf_remain_len = g->logbuf.buf_size - 1 - 1 ;
+	g->logbuf.bufptr = g->logbuf.bufbase ;
+	
+	/* 填充行日志缓冲区 */
+	if( g->pfuncLogStyle )
+	{
+		nret = g->pfuncLogStyle( g , & (g->logbuf) , c_filename , c_fileline , log_level , format , valist ) ;
+		if( nret )
+			return nret;
+	}
+	
+	/* 自定义过滤日志 */
+	if( g->pfuncFilterLog )
+	{
+		nret = g->pfuncFilterLog( g , & (g->open_handle) , log_level , g->logbuf.bufbase , g->logbuf.buf_size-1-1 - g->logbuf.buf_remain_len ) ;
+		if( nret )
+			return nret;
+	}
+	
+	/* 打开文件 */
+	if( g->open_flag == 0 )
+	{
+		if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) || TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_ONCE ) )
+		{
+			if( g->pfuncOpenLogFirst )
+			{
+				nret = g->pfuncOpenLogFirst( g , g->log_pathfilename , & (g->open_handle) ) ;
+				if( nret )
+					return nret;
+				g->open_flag = 1 ;
+			}
+		}
+		else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE ) )
+		{
+			/* 打开日志文件 */
+			if( g->pfuncOpenLog )
+			{
+				nret = g->pfuncOpenLog( g , g->log_pathfilename , & (g->open_handle) ) ;
+				if( nret )
+					return nret;
+				g->open_flag = 1 ;
+			}
+		}
+	}
+	
+	/* 导出日志缓冲区 */
+	if( g->pfuncWriteLog )
+	{
+		nret = g->pfuncWriteLog( g , & (g->open_handle) , log_level , g->logbuf.bufbase , g->logbuf.buf_size-1-1 - g->logbuf.buf_remain_len , & writelen ) ;
+		if( nret )
+			return nret;
+	}
+	
+	/* 关闭日志 */
+	if( g->open_flag == 1 )
+	{
+		if( g->output == LOG_OUTPUT_FILE || g->output == LOG_OUTPUT_CALLBACK )
+		{
+			if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_CHANGE_TEST ) )
+			{
+				if( g->pfuncChangeTest )
+				{
+					nret = g->pfuncChangeTest( g , & (g->test_handle) ) ;
+					if( nret )
+						return nret;
+				}
+			}
+			else if( TEST_ATTRIBUTE( g->log_options , LOG_OPTION_OPEN_AND_CLOSE ) )
+			{
+				/* 关闭日志文件 */
+				if( g->pfuncCloseLog )
+				{
+					nret = g->pfuncCloseLog( g , & (g->open_handle) ) ;
+					if( nret )
+						return nret;
+					g->open_flag = 0 ;
+				}
+			}
+		}
+	}
+	
+	/* 如果输出到文件 */
+	if( g->output == LOG_OUTPUT_FILE )
+	{
+		/* 日志转档侦测 */
+		if( g->rotate_mode == LOG_ROTATEMODE_NONE )
+		{
+		}
+		else if( g->rotate_mode == LOG_ROTATEMODE_SIZE && g->log_rotate_size > 0 )
+		{
+			g->skip_count--;
+			if( g->skip_count < 1 )
+			{
+				RotateLogFileSize( g , writelen );
+			}
+		}
+		else if( g->rotate_mode == LOG_ROTATEMODE_PER_DAY )
+		{
+			RotateLogFilePerDate( g );
+		}
+		else if( g->rotate_mode == LOG_ROTATEMODE_PER_HOUR )
+		{
+			RotateLogFilePerHour( g );
+		}
+	}
+	
+	/* 清空一级缓存 */
+	g->cache1_tv.tv_sec = 0 ;
+	g->cache1_stime.tm_mday = 0 ;
+	
+	return 0;
+}
+[/code]
+以上可以看出两者路径基本一致，iLOG3的WriteLogBase也是格式化行日志缓冲区、打开日志文件、输出日志、关闭日志文件、日志转档处理，无非都是抽象成日志控制框架，即通过回调函数来挂接实现而没有直接调用具体功能函数，这样设计的好处是用户可以编写自己的打开输出关闭日志文件等函数来替代iLOG3默认挂接的来实现更灵活的日志控制。
+
+好，现在我来解释一下为什么第三方的日志函数库iLOG3比自己随手写的简单写日志函数速度快近一倍的原因。
+
+首先，日志函数库iLOG3的原型就是简单写日志函数扩充而来，所以它们的处理路径和基本逻辑差不多，但是iLOG3把作为函数库的很多耗时的配置解析等工作尽量都放在写日志前就预先处理好，真正写日志时跑的函数调用关系、运行逻辑路径等和简单写日志函数跑过的基本一致，可以理解成iLOG3写日志时调用的其实就是简单写日志函数，到此它们的性能就差不多了，然后，iLOG3拥有日志句柄这个数据结构，为缓存层等设计提供了方便，iLOG3内部做了大量严谨、精巧的性能优化，其中就包括时间缓存(保证缓存不会串日志)、字符串转换缓存、文件大小转档步进算法等，恰当受控的优化的效果是显而易见的，最终性能就比随手写的简单写日志函数要快了。
+
+最后，再次展现一下我开发iLOG3的设计准则：
+·作为软件的重要基础模块，日志函数库应尽量实现的轻便、简易和稳定，在保证高可靠性的前提下，高性能低影响是首要设计目标。提供多层API以及可选的外部配置文件方式使用。
+·基本功能必不可少，如日志等级、行日志和十六进制块日志等，对性能和易用性影响较大的高级功能可不加尽量不加。（要不要实现日志转档是一个很纠结的问题，我一直坚持认为用运维shell来实现会更好，但迫于同类日志库的压力，我还是实现了）
+·日志模块至少应分为两部分：核心和外部配置，中间用API胶合起来，便于扩展和灵活替换
+·线程安全
+
+是不是越看越心动了？那就赶紧下载来玩玩吧
+首页传送门 : [url]http://git.oschina.net/calvinwilliams/iLOG3[/url]
+源代码包doc目录中包含了用户指南和参考手册，里面有更详尽的说明
+
+声明：文本的写作目的并不是想说服大家改用第三方日志函数库来替代自己写的简单写日志函数，而是想带领大家深入探讨诸如写日志这类在某些场景中软件必备模块的一些思考，至于用不用iLOG3则需要你更多更全面甚至是非技术层面的考量。

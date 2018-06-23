@@ -1,0 +1,93 @@
+开源纯C日志函数库iLOG3快速入门（八、如果你喜欢简单日志函数甚于日志函数库）
+
+很多网友来信坚持表达了在项目中应使用简单日志函数，而不喜欢日志函数库，我与之反复争论无果，不过话说回来，我也喜欢短小轻快的日志函数库，而不是融入太多功能的臃肿库，比如日志转档我还是坚持用外部shell来实现会更好，这样的日志函数库既可以小很多，也可以更轻快稳定，我只是迫于另外一批功能控网友的“威胁”而加入了太多的功能，他们喜欢极端的一揽子解决方案，并且展示其它诸如log4c也实现了这些功能为由证明他们是正确的，如果我不实现就免谈。
+
+最近在研发一个小型的应用服务器平台tcpdaemon，里面需要日志功能，但整个tcpdaemon代码很少，比iLOG3小的多，于是让我想到最上面的那些网友的话，经过反复考量，我决定给我的iLOG3补充一点小鬼灵精怪——附带一个单独的迷你型的简单日志函数，这样大家终于都满足了吧。
+
+src/新增LOGC.h,LOGC.c，这两个源文件不编译进libiLOG3.so，而是独立出来提供喜欢简单日志函数而反感日志函数库的朋友单独复制到他的项目中去直接源码包含使用。比如tcpdaemon项目
+[code]
+tcpdaemon-1.1.0/
+	src/
+		tcpdaemon.h
+		main.c
+		tcpdaemon.c
+		worker.c
+		LOGC.h
+		LOGC.c
+		...
+[/code]
+
+在iLOG3的test目录中有测试案例test_logc.c
+[code]
+#include "../src/LOGC.h"
+
+int test_logc()
+{
+	char	buf[ 64 + 1 ] ;
+	long	buflen ;
+	
+	SetLogFile( "%s/log/test_logc.log" , getenv("HOME") );
+	SetLogLevel( LOGLEVEL_INFO );
+	
+	DebugLog( __FILE__ , __LINE__ , "call DebugLog" );
+	InfoLog( __FILE__ , __LINE__ , "call InfoLog" );
+	WarnLog( __FILE__ , __LINE__ , "call WarnLog" );
+	ErrorLog( __FILE__ , __LINE__ , "call ErrorLog" );
+	FatalLog( __FILE__ , __LINE__ , "call FatalLog" );
+	
+	memset( buf , 0x00 , sizeof(buf) );
+	buflen = sizeof(buf) - 1 ;
+	DebugHexLog( __FILE__ , __LINE__ , buf , buflen , "call DebugHexLog" );
+	InfoHexLog( __FILE__ , __LINE__ , buf , buflen , "call InfoHexLog" );
+	WarnHexLog( __FILE__ , __LINE__ , buf , buflen , "call WarnHexLog" );
+	ErrorHexLog( __FILE__ , __LINE__ , buf , buflen , "call ErrorHexLog" );
+	FatalHexLog( __FILE__ , __LINE__ , buf , buflen , "call FatalHexLog" );
+	
+	return 0;
+}
+
+int main()
+{
+	return -test_logc();
+}
+[/code]
+编译时只需把LOGC.c一起编译链接即可
+[code]
+$ gcc -g -fPIC -O2 -Wall -Werror -fno-strict-aliasing -I. -c test_logc.c
+$ gcc -g -fPIC -O2 -Wall -Werror -fno-strict-aliasing -I. -c ../src/LOGC.c
+$ gcc -g -fPIC -O2 -Wall -Werror -fno-strict-aliasing -o test_logc test_logc.o LOGC.o -lpthread
+$ ./test_logc
+$ cat $HOME/log/test_logc.log
+2014-07-20 22:35:12.890000 | INFO  | 1556:3284:test_logc.c:12 | call InfoLog
+2014-07-20 22:35:12.906000 | WARN  | 1556:3284:test_logc.c:13 | call WarnLog
+2014-07-20 22:35:12.906000 | ERROR | 1556:3284:test_logc.c:14 | call ErrorLog
+2014-07-20 22:35:12.906000 | FATAL | 1556:3284:test_logc.c:15 | call FatalLog
+2014-07-20 22:35:12.906000 | INFO  | 1556:3284:test_logc.c:20 | call InfoHexLog
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-07-20 22:35:12.906000 | WARN  | 1556:3284:test_logc.c:21 | call WarnHexLog
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-07-20 22:35:12.906000 | ERROR | 1556:3284:test_logc.c:22 | call ErrorHexLog
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-07-20 22:35:12.906000 | FATAL | 1556:3284:test_logc.c:23 | call FatalHexLog
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+[/code]
+
+很简单吧？那就赶紧下载来玩玩吧
+首页传送门 : [url]http://git.oschina.net/calvinwilliams/iLOG3[/url]
+源代码包doc目录中包含了用户指南和参考手册，里面有更详尽的说明

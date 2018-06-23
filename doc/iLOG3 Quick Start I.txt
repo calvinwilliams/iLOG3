@@ -1,0 +1,368 @@
+开源纯C日志函数库iLOG3快速入门（一、基本使用速览）
+
+关键软件都要有日志，有的用自己写的简单写日志函数，但缺乏一些必要的功能如日志等级、日志分类和转档，有的用诸如log4c这样的巨无霸，功能很丰富，但太臃肿了，执行效率也大打折扣。今天我向大家推荐一款轻巧易用的日志函数库iLOG3，希望大家能喜欢 ^_^
+
+iLOG3是一个轻便易用、概念简单，高性能、多层接口、原生跨平台、（规范使用时）线程安全的遵循LGPL开源协议的标准c日志函数库。
+
+基本特性如下：
+·原生跨平台，这意味着你的软件在日志层面上是可轻松移植的，目前支持WINDOWS & UNIX & Linux ，iLOG3会在不同的操作系统上做相应的实现和优化
+·五类日志等级
+·变参的日志函数和日志宏
+·行日志风格方案选配
+·输出介质有文件、标准输出、标准错误输出、syslogd或WINDOWS EVENT、自定义介质
+
+高级特性如下：
+·支持日志选项组合
+·支持按日志文件大小、每天、每小时转档
+·支持行日志风格自定义回调函数，很容易定制自己的行日志格式
+·支持日志文件的打开、输出、关闭自定义回调函数，很容易扩展成日志输出到远程日志服务器落地
+·线程安全、简易MDC、基于线程本地存储的缺省全局日志句柄
+
+分层实施“日志句柄层(LOG)->日志句柄集合层(LOGS)->配置文件接口层(LOGCONF、LOGSCONF)”。其实大部分用户的日志需求很简单，一个进程写一个日志文件（使用日志句柄层函数即可），但也考虑到另外一些用户有多个输出对象需求（使用日志句柄集合层函数即可），还有用户喜欢用外部配置文件来配置日志（使用配置文件接口层函数即可），不同用户在不同项目场景中使用iLOG3的不同层接口，不至于杀鸡用牛刀、小刀砍大树。
+
+此外，源代码结构也比较简单，只有三对源文件，便于搬运、嵌入和修改。
+
+不说废话，直接上使用代码
+[code]
+#include <stdio.h>
+
+#include "LOG.h"
+
+#define LOG_STYLES_HELLO        ( LOG_STYLE_DATETIMEMS | LOG_STYLE_LOGLEVEL | LOG_STYLE_PID | LOG_STYLE_TID | LOG_STYLE_SOURCE | LOG_STYLE_FORMAT | LOG_STYLE_NEWLINE )
+
+int test_hello()
+{
+        char                buffer[ 64 + 1 ] = "" ;
+        long                buflen = sizeof(buffer)-1 ;
+        
+        /* 创建日志句柄 */
+        if( CreateLogHandleG() == NULL )
+        {
+                printf( "创建日志句柄失败errno[%d]\n" , errno );
+                return -1;
+        }
+        else
+        {
+                printf( "创建日志句柄成功\n" );
+        }
+        
+        /* 设置日志输出文件名 */
+        SetLogOutputG( LOG_OUTPUT_FILE , "test_iLOG3.log" , LOG_NO_OUTPUTFUNC );
+        /* 设置当前日志过滤等级 */
+        SetLogLevelG( LOG_LEVEL_INFO );
+        /* 设置当前行日志风格方案 */
+        SetLogStylesG( LOG_STYLES_HELLO , LOG_NO_STYLEFUNC);
+        
+        /* 以不同日志等级写行日志 */
+        DEBUGLOGG( "hello DEBUG" ); /* 这行日志因等级不够，被华丽的过滤了 */
+        INFOLOGG( "hello INFO" );
+        WARNLOGG( "hello WARN" );
+        ERRORLOGG( "hello ERROR" );
+        FATALLOGG( "hello FATAL" );
+        
+        /* 以不同日志等级写十六进制块日志 */
+        DEBUGHEXLOGG( buffer , buflen , "hello DEBUG buffer[%ld]" , buflen ); /* 又一个被华丽的过滤 */
+        INFOHEXLOGG( buffer , buflen , "hello INFO buffer[%ld]" , buflen );
+        WARNHEXLOGG( buffer , buflen , "hello WARN buffer[%ld]" , buflen );
+        ERRORHEXLOGG( buffer , buflen , "hello ERROR buffer[%ld]" , buflen );
+        FATALHEXLOGG( buffer , buflen , "hello FATAL buffer[%ld]" , buflen );
+        
+        /* 销毁日志句柄 */
+        DestroyLogHandleG();
+        printf( "释放日志句柄\n" );
+        
+        return 0;
+}
+
+int main()
+{
+        return -test_hello();
+}
+[/code]
+说明一下，代码先创建了一个日志句柄，设置一些属性，然后刷刷刷的写日志，最后销毁日志句柄。
+编译、链接、执行
+[code]
+$ gcc -g -fPIC -Wall -Werror -O2 -I. -std=c99 -I/home/calvin/exinc/iLOG3  -c test_LOG.c
+$ gcc -g -fPIC -Wall -Werror -O2 -o test_LOG test_LOG.o -L. -std=c99 -L/home/calvin/exlib -liLOG3
+$ ./test_iLOG3
+创建日志句柄成功
+释放日志句柄
+$ cat test_iLOG3.log
+2014-02-10 00:26:07.418678 | INFO  | 2045:3086292688:test_iLOG3.c:32 | hello INFO
+2014-02-10 00:26:07.419236 | WARN  | 2045:3086292688:test_iLOG3.c:33 | hello WARN
+2014-02-10 00:26:07.419506 | ERROR | 2045:3086292688:test_iLOG3.c:34 | hello ERROR
+2014-02-10 00:26:07.419518 | FATAL | 2045:3086292688:test_iLOG3.c:35 | hello FATAL
+2014-02-10 00:26:07.419529 | INFO  | 2045:3086292688:test_iLOG3.c:39 | hello INFO buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-10 00:26:07.419586 | WARN  | 2045:3086292688:test_iLOG3.c:40 | hello WARN buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-10 00:26:07.419627 | ERROR | 2045:3086292688:test_iLOG3.c:41 | hello ERROR buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-10 00:26:07.419686 | FATAL | 2045:3086292688:test_iLOG3.c:42 | hello FATAL buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+[/code]
+你想一次日志输出到多个对象（文件、标准输出、标准错误输出、syslogd或WINDOWS EVENT、远程日志服务器等），没问题，我们用一个LOGS包两个LOG就可以了，看代码
+[code]
+#include <stdio.h>
+
+#include "LOGS.h"
+
+#define LOG_STYLES_DOG        ( LOG_STYLE_DATETIMEMS | LOG_STYLE_LOGLEVEL | LOG_STYLE_PID | LOG_STYLE_TID | LOG_STYLE_SOURCE | LOG_STYLE_FORMAT | LOG_STYLE_NEWLINE )
+#define LOG_STYLES_EVENT      ( LOG_STYLE_DATETIMEMS | LOG_STYLE_CUSTLABEL1 | LOG_STYLE_FORMAT | LOG_STYLE_NEWLINE )
+
+int test_LOGS()
+{
+	LOGS		*gs = NULL ;
+	LOG		*g = NULL ;
+        char		buffer[ 64 + 1 ] = "" ;
+        long		buflen = sizeof(buffer)-1 ;
+        
+        /* 创建日志句柄集合 */
+        gs = CreateLogsHandleG() ; /* 带后缀G的函数创建的日志句柄集合自动设置成线程安全的全局缺省日志句柄集合 */
+        if( gs == NULL )
+        {
+                printf( "创建日志句柄集合失败errno[%d]\n" , errno );
+                return -1;
+        }
+        else
+        {
+                printf( "创建日志句柄集合成功\n" );
+        }
+        
+        /* 创建日志句柄 */
+        g = CreateLogHandle() ;
+        if( g == NULL )
+        {
+                printf( "创建日志句柄失败errno[%d]\n" , errno );
+                return -1;
+        }
+        else
+        {
+                printf( "创建日志句柄成功\n" );
+        }
+        /* 设置日志输出文件名 */
+        SetLogOutput( g , LOG_OUTPUT_FILE , "test_LOGS.log" , LOG_NO_OUTPUTFUNC );
+        /* 设置当前日志过滤等级 */
+        SetLogLevel( g , LOG_LEVEL_INFO );
+        /* 设置当前行日志风格方案 */
+        SetLogStyles( g , LOG_STYLES_DOG , LOG_NO_STYLEFUNC);
+        /* 刚刚创建的日志句柄加到日志句柄集合中 */
+        AddLogToLogs( gs , "file" , g );
+        
+        /* 创建日志句柄 */
+        g = CreateLogHandle() ;
+        if( g == NULL )
+        {
+                printf( "创建日志句柄失败errno[%d]\n" , errno );
+                return -1;
+        }
+        else
+        {
+                printf( "创建日志句柄成功\n" );
+        }
+        /* 设置日志输出文件名 */
+        SetLogOutput( g , LOG_OUTPUT_STDOUT , NULL , LOG_NO_OUTPUTFUNC );
+        /* 设置当前日志过滤等级 */
+        SetLogLevel( g , LOG_LEVEL_ERROR );
+        /* 设置线程私有标签 */
+        SetLogCustLabel( g , 1 , "COREIB1" );
+        /* 设置当前行日志风格方案 */
+        SetLogStyles( g , LOG_STYLES_EVENT , LOG_NO_STYLEFUNC);
+        /* 刚刚创建的日志句柄加到日志句柄集合中 */
+        AddLogToLogs( gs , "stdout" , g );
+        
+        /* 以不同日志等级写行日志集合 */
+        DEBUGLOGSG( "hello DEBUG" ); /* 这行日志因等级不够，被华丽的过滤了 */
+        INFOLOGSG( "hello INFO" );
+        WARNLOGSG( "hello WARN" );
+        ERRORLOGSG( "hello ERROR" );
+        FATALLOGSG( "hello FATAL" );
+        
+        /* 以不同日志等级写十六进制块日志集合 */
+        DEBUGHEXLOGSG( buffer , buflen , "hello DEBUG buffer[%ld]" , buflen ); /* 又一个被华丽的过滤 */
+        INFOHEXLOGSG( buffer , buflen , "hello INFO buffer[%ld]" , buflen );
+        WARNHEXLOGSG( buffer , buflen , "hello WARN buffer[%ld]" , buflen );
+        ERRORHEXLOGSG( buffer , buflen , "hello ERROR buffer[%ld]" , buflen );
+        FATALHEXLOGSG( buffer , buflen , "hello FATAL buffer[%ld]" , buflen );
+        
+        /* 销毁日志句柄集合 */
+        DestroyLogsHandleG(); /* 日志句柄集合内包含的两个日志句柄连带销毁掉 */
+        printf( "释放日志句柄集合\n" );
+        
+        return 0;
+}
+
+int main()
+{
+        return -test_LOGS();
+}
+[/code]
+编译、链接、执行
+[code]
+$ gcc -g -fPIC -Wall -Werror -O2 -I. -std=c99 -I/home/calvin/exinc/iLOG3  -c test_LOGS.c
+$ gcc -g -fPIC -Wall -Werror -O2 -o test_LOGS test_LOGS.o -L. -std=c99 -L/home/calvin/exlib -liLOG3
+$ ./test_LOGS
+创建日志句柄集合成功
+创建日志句柄成功
+创建日志句柄成功
+2014-02-10 00:35:54.807915 | COREIB1 | hello ERROR
+2014-02-10 00:35:54.808017 | COREIB1 | hello FATAL
+2014-02-10 00:35:54.808750 | COREIB1 | hello ERROR buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-10 00:35:54.809138 | COREIB1 | hello FATAL buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+释放日志句柄集合
+$ cat test_LOGS.log
+2014-02-10 00:36:52.250602 | INFO  | 2300:3086878416:test_LOGS.c:71 | hello INFO
+2014-02-10 00:36:52.251233 | WARN  | 2300:3086878416:test_LOGS.c:72 | hello WARN
+2014-02-10 00:36:52.251246 | ERROR | 2300:3086878416:test_LOGS.c:73 | hello ERROR
+2014-02-10 00:36:52.251568 | FATAL | 2300:3086878416:test_LOGS.c:74 | hello FATAL
+2014-02-10 00:36:52.251646 | INFO  | 2300:3086878416:test_LOGS.c:78 | hello INFO buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-10 00:36:52.252086 | WARN  | 2300:3086878416:test_LOGS.c:79 | hello WARN buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-10 00:36:52.252129 | ERROR | 2300:3086878416:test_LOGS.c:80 | hello ERROR buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-10 00:36:52.252612 | FATAL | 2300:3086878416:test_LOGS.c:81 | hello FATAL buffer[64]
+            0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+[/code]
+你觉得用函数调用来构建日志句柄太烦了，希望用配置文件，没问题，iLOG3自带了一个简单配置文件格式，看
+hello_logsconf.conf
+[code]
+id		hello
+output		FILE	test_logconf.log
+level		INFO
+styles		DATETIME|LOGLEVEL|PID|TID|SOURCE|FORMAT|NEWLINE
+options		CHANGE_TEST
+rotate_mode	SIZE
+rotate_size	10MB
+log_bufsize	1MB	 5MB
+
+id		stdout
+output		STDOUT
+level		INFO
+custlabel1	COREIB1
+styles		DATETIME|CUSTLABEL1|FORMAT|NEWLINE
+[/code]
+下面不提供完整代码了，看
+[code]
+#include "LOGSCONF.h"
+
+int test_logsconf()
+{
+	LOGS		*gs = NULL ;
+	
+	gs = CreateLogsHandleFromConfig( "hello_logsconf.conf" , NULL ) ;
+	SetGlobalLOGS( gs );
+	
+	/* 这里就能刷刷刷的写日志了，其效果和上一个例子相同 */
+	...
+	
+	return 0;
+}
+[/code]
+什么，你嫌配置文件格式太难看了，我另外写了一个姐妹函数库iLOG3CONF_SML，用SML标记语言来配置LOGS，给个我的其它产品中用到的示例[code]
+hetao
+{
+	logs
+	{
+		log ( id = access )
+		{
+			output = FILE ;
+			filename = "$HOME$/log/access.log" ;
+			level = DEBUG ;
+			styles = "DATETIME|LOGLEVEL|PID|TID|FORMAT|NEWLINE" ;
+			rotate_mode = SIZE ;
+			rotate_size = 10MB ;
+		}
+		
+		log ( id = error )
+		{
+			output = FILE ;
+			filename = "$HOME$/log/error.log" ;
+			level = ERROR ;
+			styles = "DATETIME|LOGLEVEL|SOURCE|FORMAT|NEWLINE" ;
+			rotate_mode = SIZE ;
+			rotate_size = 10MB ;
+		}
+	}
+	
+	module
+	{
+		connection ( filename = "$HOME$/so/hetao_module_connection_epoll.so" )
+		{
+		}
+		
+		protocol ( filename = "$HOME$/so/hetao_module_protocol_http.so" )
+		{
+			max_header_size = 10KB ;
+			
+			root = "$HOME$/www" ;
+			index_page = "index.html" ;
+			error_pages
+			{
+				error_page { error = 403 ; page = "$HOME$/www/403.html" } ;
+				error_page { error = 404 ; page = "$HOME$/www/404.html" } ;
+				error_page { error = 500 ; page = "$HOME$/www/500.html" } ;
+				error_page { error = 505 ; page = "$HOME$/www/505.html" } ;
+			}
+		}
+	}
+	
+	server
+	{
+		listen_ip = "127.0.0.1" ;
+		listen_port = 8080 ;
+		max_connections = 1024 ;
+	}
+}
+[/code]
+代码中这样写就能解析配置构建LOGS[code]
+LOGS	*gs = NULL ;
+gs = CreateLogsHandleFromConfig_SML( "hetao.conf" , "/hetao/logs" , NULL ) ;
+[/code]
+你问性能咋样啊？我拿目前同类日志函数库做了性能测试，目前iLOG3是最快的。具体可参见源码包中的用户指南文档中的性能比较章节。
+是不是越看越心动了？那就赶紧下载来玩玩吧
+
+首页传送门 : [url]http://git.oschina.net/calvinwilliams/iLOG3[/url]
+源代码包doc目录中包含了用户指南和参考手册，里面有更详尽的说明

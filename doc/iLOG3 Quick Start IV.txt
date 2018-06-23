@@ -1,0 +1,276 @@
+开源纯C日志函数库iLOG3快速入门（四、使用合适的日志输出函数或宏）
+
+iLOG3提供了多套日志输出函数或宏供用户使用，根据自己的开发环境和软件场景挑选合适的日志输出函数或宏将使你的代码更简洁优美。
+
+先给个常用示例，使用最基础的写法
+[code]
+#include <stdio.h>
+#include <errno.h>
+
+#include "LOG.h"
+
+#define LOG_STYLES_HELLO	( LOG_STYLE_DATETIMEMS | LOG_STYLE_LOGLEVEL | LOG_STYLE_PID | LOG_STYLE_TID | LOG_STYLE_SOURCE | LOG_STYLE_FORMAT | LOG_STYLE_NEWLINE )
+
+int test_hello()
+{
+	LOG		*g = NULL ;
+	
+	char		buffer[ 64 + 1 ] = "" ;
+	long		buflen = sizeof(buffer) - 1 ;
+	
+	g = CreateLogHandle() ;
+	if( g == NULL )
+	{
+		printf( "创建日志句柄失败errno[%d]\n" , errno );
+		return -1;
+	}
+	
+	printf( "创建日志句柄成功\n" );
+	
+	SetLogOutput( g , LOG_OUTPUT_FILE , "test_hello.log" , LOG_NO_OUTPUTFUNC );
+	SetLogLevel( g , LOG_LEVEL_INFO );
+	SetLogStyles( g , LOG_STYLES_HELLO , LOG_NO_STYLEFUNC );
+	
+	DebugLog( g , __FILE__ , __LINE__ , "hello DEBUG" );
+	InfoLog( g , __FILE__ , __LINE__ , "hello INFO" );
+	WarnLog( g , __FILE__ , __LINE__ , "hello WARN" );
+	ErrorLog( g , __FILE__ , __LINE__ , "hello ERROR" );
+	FatalLog( g , __FILE__ , __LINE__ , "hello FATAL" );
+	
+	DebugHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	InfoHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WarnHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	ErrorHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	FatalHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	
+	DestroyLogHandle( g );
+	printf( "销毁日志句柄\n" );
+	
+	return 0;
+}
+
+int main()
+{
+	return -test_hello();
+}
+[/code]
+编译链接运行
+test_hello.log
+[code]
+2014-02-15 11:30:05.109000 | INFO  | 1200:3700:test_hello.c:29 | hello INFO
+2014-02-15 11:30:05.109000 | WARN  | 1200:3700:test_hello.c:30 | hello WARN
+2014-02-15 11:30:05.109000 | ERROR | 1200:3700:test_hello.c:31 | hello ERROR
+2014-02-15 11:30:05.109000 | FATAL | 1200:3700:test_hello.c:32 | hello FATAL
+2014-02-15 11:30:05.109000 | INFO  | 1200:3700:test_hello.c:35 | 缓冲区[64]
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-15 11:30:05.109000 | WARN  | 1200:3700:test_hello.c:36 | 缓冲区[64]
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-15 11:30:05.109000 | ERROR | 1200:3700:test_hello.c:37 | 缓冲区[64]
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+2014-02-15 11:30:05.109000 | FATAL | 1200:3700:test_hello.c:38 | 缓冲区[64]
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F    0123456789ABCDEF
+0x00000000   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0x00000030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+[/code]
+
+我们首先来看行日志输出函数
+[code]
+/* 写日志函数 */
+_WINDLL_FUNC int WriteLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *format , ... );
+_WINDLL_FUNC int DebugLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int InfoLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int WarnLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int ErrorLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int FatalLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
+/*
+使用示例
+InfoLog( g , __FILE__ , __LINE__ , "xxx处理完成，结果码[%d]" , nret );
+*/
+[/code]
+
+在支持c99的编译器上，建议用日志输出宏来代替日志输出函数，好处是少输入了两个参数__FILE__,__LINE__
+[code]
+/* 写日志函数的可变参数宏 */
+#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
+#define WRITELOG( _g_ , _log_level_ , ... )	WriteLog( _g_ , __FILE__ , __LINE__ , _log_level_ , __VA_ARGS__ );
+#define DEBUGLOG( _g_ , ... )			DebugLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#define INFOLOG( _g_ , ... )			InfoLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#define WARNLOG( _g_ , ... )			WarnLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#define ERRORLOG( _g_ , ... )			ErrorLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#define FATALLOG( _g_ , ... )			FatalLog( _g_ , __FILE__ , __LINE__ , __VA_ARGS__ );
+#endif
+/*
+使用示例
+INFOLOG( g , "xxx处理完成，结果码[%d]" , nret );
+*/
+[/code]
+
+以上写法有个不便之处，代码中到处传递日志句柄g。
+
+在支持线程本地存储(TLS)的环境中（据我所知Linux、AIX和WINDOWS都支持），可以使用函数名追加后缀'G'的函数集合，好处是省略了第一个参数，即不用把日志句柄在代码中到处传递
+[code]
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+/* 写日志函数（基于线程本地存储的缺省日志句柄的函数集合版本） */
+_WINDLL_FUNC int WriteLogG( char *c_filename , long c_fileline , int log_level , char *format , ... );
+_WINDLL_FUNC int DebugLogG( char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int InfoLogG( char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int WarnLogG( char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int ErrorLogG( char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int FatalLogG( char *c_filename , long c_fileline , char *format , ... );
+/*
+使用示例
+InfoLogG( __FILE__ , __LINE__ , "xxx处理完成，结果码[%d]" , nret );
+*/
+/* 写日志函数的可变参数宏（基于线程本地存储的缺省日志句柄的函数集合版本） */
+#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
+#define WRITELOGG( _log_level_ , ... )	WriteLogG( __FILE__ , __LINE__ , _log_level_ , __VA_ARGS__ );
+#define DEBUGLOGG( ... )		DebugLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define INFOLOGG( ... )			InfoLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define WARNLOGG( ... )			WarnLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define ERRORLOGG( ... )		ErrorLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#define FATALLOGG( ... )		FatalLogG( __FILE__ , __LINE__ , __VA_ARGS__ );
+#endif
+#endif
+/*
+使用示例
+INFOLOGG( "xxx处理完成，结果码[%d]" , nret );
+*/
+[/code]
+以上日志输出函数或宏对应日志句柄创建销毁、设置属性也是函数名追加后缀'G'的函数集合
+[code]
+_WINDLL_FUNC LOG *CreateLogHandleG();
+_WINDLL_FUNC void DestroyLogHandleG();
+
+_WINDLL_FUNC int SetLogOutputG( int output , char *log_pathfilename , funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally );
+_WINDLL_FUNC int SetLogLevelG( int log_level );
+_WINDLL_FUNC int SetLogStylesG( long log_styles , funcLogStyle *pfuncLogStyles );
+
+_WINDLL_FUNC int SetLogOptionsG( int log_options );
+_WINDLL_FUNC int SetLogFileChangeTestG( long interval );
+_WINDLL_FUNC int SetLogCustLabelG( int index , char *cust_label );
+_WINDLL_FUNC int SetLogRotateModeG( int rotate_mode );
+_WINDLL_FUNC int SetLogRotateSizeG( long log_rotate_size );
+_WINDLL_FUNC int SetLogRotatePressureFactorG( long pressure_factor );
+_WINDLL_FUNC int SetBeforeRotateFileFuncG( funcAfterRotateFile *pfuncAfterRotateFile );
+_WINDLL_FUNC int SetAfterRotateFileFuncG( funcAfterRotateFile *pfuncAfterRotateFile );
+_WINDLL_FUNC int SetFilterLogFuncG( funcFilterLog *pfuncFilterLog );
+_WINDLL_FUNC int SetLogBufferSizeG( long log_bufsize , long max_log_bufsize );
+_WINDLL_FUNC int SetHexLogBufferSizeG( long hexlog_bufsize , long max_log_hexbufsize );
+_WINDLL_FUNC int SetLogOutputFuncDirectlyG( funcOpenLog *pfuncOpenLogFirst , funcOpenLog *pfuncOpenLog , funcWriteLog *pfuncWriteLog , funcChangeTest *pfuncChangeTest , funcCloseLog *pfuncCloseLog , funcCloseLog *pfuncCloseLogFinally );
+_WINDLL_FUNC int SetLogStyleFuncDirectlyG( funcLogStyle *pfuncLogStyle );
+[/code]
+
+你可以把线程本地存储理解成，我声明了一个全局的日志句柄变量，由于用线程本地存储来修饰它，它会在不同线程间隔离使用，从而保证线程安全。
+
+输出块日志（十六进制）和行日志一样，以下是全部原型
+[code]
+/* 写十六进制块日志函数 */
+_WINDLL_FUNC int WriteHexLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int DebugHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int InfoHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WarnHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int ErrorHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int FatalHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+/* 写十六进制块日志的可变参数宏 */
+#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
+#define WRITEHEXLOG( _g_ , _log_level_ , _buf_ , _buf_size_ , ... )	WriteHexLog( _g_ , __FILE__ , __LINE__ , _log_level_ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define DEBUGHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			DebugHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define INFOHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			InfoHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define WARNHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			WarnHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define ERRORHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			ErrorHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define FATALHEXLOG( _g_ , _buf_ , _buf_size_ , ... )			FatalHexLog( _g_ , __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#endif
+
+#if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
+/* 写十六进制块日志函数（基于线程本地存储的缺省日志句柄的函数集合版本） */
+_WINDLL_FUNC int WriteHexLogG( char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int DebugHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int InfoHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WarnHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int ErrorHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int FatalHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+/* 写十六进制块日志的可变参数宏（基于线程本地存储的缺省日志句柄的函数集合版本） */
+#if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
+#define WRITEHEXLOGG( _log_level_ , _buf_ , _buf_size_ , ... )	WriteHexLogG( __FILE__ , __LINE__ , _log_level_ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define DEBUGHEXLOGG( _buf_ , _buf_size_ , ... )		DebugHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define INFOHEXLOGG( _buf_ , _buf_size_ , ... )			InfoHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define WARNHEXLOGG( _buf_ , _buf_size_ , ... )			WarnHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define ERRORHEXLOGG( _buf_ , _buf_size_ , ... )		ErrorHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#define FATALHEXLOGG( _buf_ , _buf_size_ , ... )		FatalHexLogG( __FILE__ , __LINE__ , _buf_ , _buf_size_ , __VA_ARGS__ );
+#endif
+#endif
+[/code]
+拿函数InfoHexLog来讲，当char *format有效(!=NULL)时先输出行日志，当char *buffer,long buflen有效(!=NULL,>0)时再输出块日志，输出函数内部有参数有效性检查。
+
+给个同时使用日志输出宏和线程本地存储的写法
+[code]
+#include <stdio.h>
+#include <errno.h>
+
+#include "LOG.h"
+
+#define LOG_STYLES_HELLO	( LOG_STYLE_DATETIMEMS | LOG_STYLE_LOGLEVEL | LOG_STYLE_PID | LOG_STYLE_TID | LOG_STYLE_SOURCE | LOG_STYLE_FORMAT | LOG_STYLE_NEWLINE )
+
+int test_hello()
+{
+	char		buffer[ 64 + 1 ] = "" ;
+	long		buflen = sizeof(buffer) - 1 ;
+	
+	if( CreateLogHandleG() == NULL )
+	{
+		printf( "创建日志句柄失败errno[%d]\n" , errno );
+		return -1;
+	}
+	
+	printf( "创建日志句柄成功\n" );
+	
+	SetLogOutputG( LOG_OUTPUT_FILE , "test_hello.log" , LOG_NO_OUTPUTFUNC );
+	SetLogLevelG( LOG_LEVEL_INFO );
+	SetLogStylesG( LOG_STYLES_HELLO , LOG_NO_STYLEFUNC );
+	
+	DEBUGLOGG( "hello DEBUG" );
+	INFOLOGG( "hello INFO" );
+	WARNLOGG( "hello WARN" );
+	ERRORLOGG( "hello ERROR" );
+	FATALLOGG( "hello FATAL" );
+	
+	DEBUGHEXLOGG( buffer , buflen , "缓冲区[%ld]" , buflen );
+	INFOHEXLOGG( buffer , buflen , "缓冲区[%ld]" , buflen );
+	WARNHEXLOGG( buffer , buflen , "缓冲区[%ld]" , buflen );
+	ERRORHEXLOGG( buffer , buflen , "缓冲区[%ld]" , buflen );
+	FATALHEXLOGG( buffer , buflen , "缓冲区[%ld]" , buflen );
+	
+	DestroyLogHandleG();
+	printf( "销毁日志句柄\n" );
+	
+	return 0;
+}
+
+int main()
+{
+	return -test_hello();
+}
+[/code]
+和第一个示例一样的输出效果，但比其简洁了不少，当然你的环境得支持c99和线程本地存储。
+以下是一些编译器的支持选项，仅供参考
+gcc ... -std=c99 ...
+xlc ... -qtls ...
+
+是不是越看越心动了？那就赶紧下载来玩玩吧
+
+首页传送门 : [url]http://git.oschina.net/calvinwilliams/iLOG3[/url]
+源代码包doc目录中包含了用户指南和参考手册，里面有更详尽的说明
