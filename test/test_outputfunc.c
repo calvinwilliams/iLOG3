@@ -24,7 +24,7 @@ int MyWriteLog( LOG *g , void **open_handle , int log_level , char *buf , long l
 	if( IsLogOpened( g ) == 0 )
 		return 0;
 	
-	ConvertLogLevel_itoa( log_level , & p_log_level_desc );
+	p_log_level_desc = ConvertLogLevel_itoa( log_level );
 	(*writelen) = printf( "MyWriteLog[%s][%ld][%s]\n" , p_log_level_desc , len , buf ) ;
 	
 	return 0;
@@ -60,11 +60,11 @@ int test_outputfunc()
 	SetLogLevel( g , LOG_LEVEL_INFO );
 	SetLogStyles( g , LOG_STYLES_LOG , LOG_NO_STYLEFUNC );
 	
-	DebugLog( g , __FILE__ , __LINE__ , "hello iLOG3\n" );
-	InfoLog( g , __FILE__ , __LINE__ , "hello iLOG3\n" );
-	WarnLog( g , __FILE__ , __LINE__ , "hello iLOG3\n" );
-	ErrorLog( g , __FILE__ , __LINE__ , "hello iLOG3\n" );
-	FatalLog( g , __FILE__ , __LINE__ , "hello iLOG3\n" );
+	WriteDebugLog( g , __FILE__ , __LINE__ , "hello iLOG3\n" );
+	WriteInfoLog( g , __FILE__ , __LINE__ , "hello iLOG3\n" );
+	WriteWarnLog( g , __FILE__ , __LINE__ , "hello iLOG3\n" );
+	WriteErrorLog( g , __FILE__ , __LINE__ , "hello iLOG3\n" );
+	WriteFatalLog( g , __FILE__ , __LINE__ , "hello iLOG3\n" );
 	
 	DestroyLogHandle( g );
 	printf( "Ïú»ÙÈÕÖ¾¾ä±ú\n" );

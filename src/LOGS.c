@@ -58,7 +58,7 @@ void DestroyLogsHandle( LOGS *gs )
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 void DestroyLogsHandleG()
 {
-	DestroyLogsHandle( tls_gs );
+	DestroyLogsHandle( tls_gs ); tls_gs = NULL ;
 }
 #endif
 
@@ -87,6 +87,12 @@ LOGS *CreateLogsHandleG()
 LOGS *GetLogsHandleG()
 {
 	return tls_gs;
+}
+
+void GetLogsHandlePtrG( LOGS **pp_gs )
+{
+	pp_gs = & tls_gs ;
+	return;
 }
 
 void SetLogsHandleG( LOGS *gs )

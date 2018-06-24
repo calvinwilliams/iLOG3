@@ -31,17 +31,17 @@ int test_hello()
 	SetLogLevel( g , LOG_LEVEL_INFO );
 	SetLogStyles( g , LOG_STYLES_HELLO , LOG_NO_STYLEFUNC );
 	
-	DebugLog( g , __FILE__ , __LINE__ , "hello DEBUG" );
-	InfoLog( g , __FILE__ , __LINE__ , "hello INFO" );
-	WarnLog( g , __FILE__ , __LINE__ , "hello WARN" );
-	ErrorLog( g , __FILE__ , __LINE__ , "hello ERROR" );
-	FatalLog( g , __FILE__ , __LINE__ , "hello FATAL" );
+	WriteDebugLog( g , __FILE__ , __LINE__ , "hello DEBUG" );
+	WriteInfoLog( g , __FILE__ , __LINE__ , "hello INFO" );
+	WriteWarnLog( g , __FILE__ , __LINE__ , "hello WARN" );
+	WriteErrorLog( g , __FILE__ , __LINE__ , "hello ERROR" );
+	WriteFatalLog( g , __FILE__ , __LINE__ , "hello FATAL" );
 	
-	DebugHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
-	InfoHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
-	WarnHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
-	ErrorHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
-	FatalHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteDebugHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteInfoHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteWarnHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteErrorHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
+	WriteFatalHexLog( g , __FILE__ , __LINE__ , buffer , buflen , "缓冲区[%ld]" , buflen );
 	
 	DestroyLogHandle( g );
 	printf( "销毁日志句柄\n" );
@@ -90,12 +90,12 @@ test_hello.log
 我们首先来看行日志输出函数
 [code]
 /* 写日志函数 */
-_WINDLL_FUNC int WriteLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *format , ... );
-_WINDLL_FUNC int DebugLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
-_WINDLL_FUNC int InfoLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
-_WINDLL_FUNC int WarnLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
-_WINDLL_FUNC int ErrorLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
-_WINDLL_FUNC int FatalLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int WriteLevelLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *format , ... );
+_WINDLL_FUNC int WriteDebugLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int WriteInfoLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int WriteWarnLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int WriteErrorLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int WriteFatalLog( LOG *g , char *c_filename , long c_fileline , char *format , ... );
 /*
 使用示例
 InfoLog( g , __FILE__ , __LINE__ , "xxx处理完成，结果码[%d]" , nret );
@@ -125,12 +125,12 @@ INFOLOG( g , "xxx处理完成，结果码[%d]" , nret );
 [code]
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
 /* 写日志函数（基于线程本地存储的缺省日志句柄的函数集合版本） */
-_WINDLL_FUNC int WriteLogG( char *c_filename , long c_fileline , int log_level , char *format , ... );
-_WINDLL_FUNC int DebugLogG( char *c_filename , long c_fileline , char *format , ... );
-_WINDLL_FUNC int InfoLogG( char *c_filename , long c_fileline , char *format , ... );
-_WINDLL_FUNC int WarnLogG( char *c_filename , long c_fileline , char *format , ... );
-_WINDLL_FUNC int ErrorLogG( char *c_filename , long c_fileline , char *format , ... );
-_WINDLL_FUNC int FatalLogG( char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int WriteLevelLogG( char *c_filename , long c_fileline , int log_level , char *format , ... );
+_WINDLL_FUNC int WriteDebugLogG( char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int WriteInfoLogG( char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int WriteWarnLogG( char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int WriteErrorLogG( char *c_filename , long c_fileline , char *format , ... );
+_WINDLL_FUNC int WriteFatalLogG( char *c_filename , long c_fileline , char *format , ... );
 /*
 使用示例
 InfoLogG( __FILE__ , __LINE__ , "xxx处理完成，结果码[%d]" , nret );
@@ -179,12 +179,12 @@ _WINDLL_FUNC int SetLogStyleFuncDirectlyG( funcLogStyle *pfuncLogStyle );
 输出块日志（十六进制）和行日志一样，以下是全部原型
 [code]
 /* 写十六进制块日志函数 */
-_WINDLL_FUNC int WriteHexLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... );
-_WINDLL_FUNC int DebugHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
-_WINDLL_FUNC int InfoHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
-_WINDLL_FUNC int WarnHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
-_WINDLL_FUNC int ErrorHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
-_WINDLL_FUNC int FatalHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WriteLevelHexLog( LOG *g , char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WriteDebugHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WriteInfoHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WriteWarnHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WriteErrorHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WriteFatalHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
 /* 写十六进制块日志的可变参数宏 */
 #if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
 #define WRITEHEXLOG( _g_ , _log_level_ , _buf_ , _buf_size_ , ... )	WriteHexLog( _g_ , __FILE__ , __LINE__ , _log_level_ , _buf_ , _buf_size_ , __VA_ARGS__ );
@@ -197,12 +197,12 @@ _WINDLL_FUNC int FatalHexLog( LOG *g , char *c_filename , long c_fileline , char
 
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX )
 /* 写十六进制块日志函数（基于线程本地存储的缺省日志句柄的函数集合版本） */
-_WINDLL_FUNC int WriteHexLogG( char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... );
-_WINDLL_FUNC int DebugHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
-_WINDLL_FUNC int InfoHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
-_WINDLL_FUNC int WarnHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
-_WINDLL_FUNC int ErrorHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
-_WINDLL_FUNC int FatalHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WriteLevelHexLogG( char *c_filename , long c_fileline , int log_level , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WriteDebugHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WriteInfoHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WriteWarnHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WriteErrorHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
+_WINDLL_FUNC int WriteFatalHexLogG( char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... );
 /* 写十六进制块日志的可变参数宏（基于线程本地存储的缺省日志句柄的函数集合版本） */
 #if ( defined __STDC_VERSION__ ) && ( __STDC_VERSION__ >= 199901 )
 #define WRITEHEXLOGG( _log_level_ , _buf_ , _buf_size_ , ... )	WriteHexLogG( __FILE__ , __LINE__ , _log_level_ , _buf_ , _buf_size_ , __VA_ARGS__ );

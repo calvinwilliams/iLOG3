@@ -64,7 +64,7 @@ int test_afterrotatefile()
 	
 	for( l = 1 ; l <= 10000 ; l++ )
 	{
-		InfoLogG( __FILE__ , __LINE__ , "log" );
+		WriteInfoLogG( __FILE__ , __LINE__ , "log" );
 	}
 	
 	DestroyLogHandleG();

@@ -118,7 +118,7 @@ int test_memoryleak( long count )
 		SetLogRotateMode( g , LOG_ROTATEMODE_SIZE );
 		SetLogRotateSize( g , 1*1024*1024 );
 		
-		nret = InfoLog( g , __FILE__ , __LINE__ , "hello iLOG3" ) ;
+		nret = WriteInfoLog( g , __FILE__ , __LINE__ , "hello iLOG3" ) ;
 		if( nret )
 		{
 			printf( "InfoLog failed[%d]\n" , nret );

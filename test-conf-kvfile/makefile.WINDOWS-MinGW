@@ -30,25 +30,24 @@ c_FILE_CLEAN	=	$(c_FILE_o) $(c_FILE2_o) $(c_FILE3_o) $(c_FILE4_o) $(c_FILE5_o)
 	$(CC) $(CFLAGS) -c $<
 
 c_FILE		=	\
-			LOG.c \
-			LOGS.c \
+			test_logconf_kvfile.c \
+			test_logsconf_kvfile.c \
 
 ###### 目标文件、安装目录配置区
-LIB		=	libiLOG3.so
-LIBINST		=	$(HOME)/lib
-LIB2		=	libiLOG3.a
-# LIBINST2	=	$(HOME)/lib
-HDER		= \
-			LOG.h \
-			LOGS.h \
-
-HDERINST	=	$(HOME)/include/iLOG3
+BIN		=	$(c_FILE:.c=)
 
 ###### 编译选项
 CFLAGS		=	-I. \
+			-I../src \
+			-I../src-conf-kvfile \
+			-std=gnu99 \
 
 ###### 链接选项
 LFLAGS		=	-L. \
+			-L../src-conf-kvfile \
+			-liLOG3CONF_KVFILE \
+			-L../src \
+			-liLOG3 \
 			-lpthread \
 
 ###### 额外宏定义区
@@ -82,29 +81,16 @@ DFTHDER		=	$(csm_FILE_DFTHDER) $(cui_FILE_DFTHDER) $(dtd_FILE_DFTHDER) $(prt_FIL
 # 提交安装规则
 install		:	all
 
-ifneq ($(strip $(LIB)),)
-ifneq ($(strip $(LIBINST)),)
-	-$(MKDIR) "$(LIBINST)"
-	$(CP) $(LIB) "$(LIBINST)/"
+ifneq ($(strip $(BIN)),)
+ifneq ($(strip $(BININST)),)
+	-$(MKDIR) "$(BININST)"
+	$(CP) $(BIN) "$(BININST)/"
 endif
 endif
-ifneq ($(strip $(LIB2)),)
-ifneq ($(strip $(LIBINST2)),)
-	-$(MKDIR) "$(LIBINST2)"
-	$(CP) $(LIB2) "$(LIBINST2)/"
-endif
-endif
-
-ifneq ($(strip $(HDER)),)
-ifneq ($(strip $(HDERINST)),)
-	-$(MKDIR) "$(HDERINST)"
-	$(CP) $(HDER) "$(HDERINST)/"
-endif
-endif
-ifneq ($(strip $(HDER2)),)
-ifneq ($(strip $(HDERINST2)),)
-	-$(MKDIR) "$(HDERINST2)"
-	$(CP) $(HDER2) "$(HDERINST2)/"
+ifneq ($(strip $(BIN2)),)
+ifneq ($(strip $(BININST2)),)
+	-$(MKDIR) "$(BININST2)"
+	$(CP) $(BIN2) "$(BININST2)/"
 endif
 endif
 
@@ -118,9 +104,9 @@ endif
 
 
 ###### 目标文件依赖关系
-libiLOG3.so		:	$(c_FILE_o)
-	$(CC) -o $@ $(c_FILE_o) $(SOFLAGS) $(LFLAGS)
+test_logconf_kvfile		:	test_logconf_kvfile.o
+	$(CC) -o $@ test_logconf_kvfile.o $(LFLAGS)
 
-libiLOG3.a		:	$(c_FILE_o)
-	$(AR) $(ARFLAGS) $@ $(c_FILE_o)
+test_logsconf_kvfile		:	test_logsconf_kvfile.o
+	$(CC) -o $@ test_logsconf_kvfile.o $(LFLAGS)
 

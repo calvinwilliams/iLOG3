@@ -30,25 +30,24 @@ c_FILE_CLEAN	=	$(c_FILE_o) $(c_FILE2_o) $(c_FILE3_o) $(c_FILE4_o) $(c_FILE5_o)
 	$(CC) $(CFLAGS) -c $<
 
 c_FILE		=	\
-			LOG.c \
-			LOGS.c \
+			test_logconf_kvfile.c \
+			test_logsconf_kvfile.c \
 
 ###### 目标文件、安装目录配置区
-LIB		=	libiLOG3.so
-LIBINST		=	$(HOME)/lib
-LIB2		=	libiLOG3.a
-# LIBINST2	=	$(HOME)/lib
-HDER		= \
-			LOG.h \
-			LOGS.h \
-
-HDERINST	=	$(HOME)/include/iLOG3
+BIN		=	$(c_FILE:.c=)
 
 ###### 编译选项
 CFLAGS		=	-I. \
+			-I../src \
+			-I../src-conf-kvfile \
+			-std=gnu99 \
 
 ###### 链接选项
 LFLAGS		=	-L. \
+			-L../src-conf-kvfile \
+			-liLOG3CONF_KVFILE \
+			-L../src \
+			-liLOG3 \
 			-lpthread \
 
 ###### 额外宏定义区
@@ -85,53 +84,27 @@ DFTHDER		=	$(csm_FILE_DFTHDER) $(cui_FILE_DFTHDER) $(dtd_FILE_DFTHDER) $(prt_FIL
 # 提交安装规则
 install		:	all
 
-	@if [ -n "$(LIB)" -a -n "$(LIBINST)" ] ; then \
-		if [ ! -d "$(LIBINST)" ] ; then \
-			echo $(MKDIR) $(LIBINST) ; \
-			$(MKDIR) $(LIBINST) ; \
+	@if [ -n "$(BIN)" -a -n "$(BININST)" ] ; then \
+		if [ ! -d "$(BININST)" ] ; then \
+			echo $(MKDIR) $(BININST) ; \
+			$(MKDIR) $(BININST) ; \
 		fi ; \
-		for FILE in `echo $(LIB)` ; do \
-			echo $(RM) $(LIBINST)/$$FILE ; \
-			$(RM) $(LIBINST)/$$FILE ; \
-			echo $(CP) $$FILE $(LIBINST)/ ; \
-			$(CP) $$FILE $(LIBINST)/ ; \
+		for FILE in `echo $(BIN)` ; do \
+			echo $(RM) $(BININST)/$$FILE ; \
+			$(RM) $(BININST)/$$FILE ; \
+			echo $(CP) $$FILE $(BININST)/ ; \
+			$(CP) $$FILE $(BININST)/ ; \
 		done \
 	fi
-	@if [ -n "$(LIB2)" -a -n "$(LIBINST2)" ] ; then \
-		if [ ! -d "$(LIBINST2)" ] ; then \
-			echo $(MKDIR) $(LIBINST2) ; \
-			$(MKDIR) $(LIBINST2) ; \
+	@if [ -n "$(BIN2)" -a -n "$(BININST2)" ] ; then \
+		if [ ! -d "$(BININST2)" ] ; then \
+			echo $(MKDIR) $(BININST2) ; \
+			$(MKDIR) $(BININST2) ; \
 		fi ; \
-		for FILE in `echo $(LIB2)` ; do \
-			echo $(RM) $(LIBINST2)/$$FILE ; \
-			$(RM) $(LIBINST2)/$$FILE ; \
-			echo $(CP) $$FILE $(LIBINST2)/ ; \
-			$(CP) $$FILE $(LIBINST2)/ ; \
-		done \
-	fi
-
-	@if [ -n "$(HDER)" -a -n "$(HDERINST)" ] ; then \
-		if [ ! -d "$(HDERINST)" ] ; then \
-			echo $(MKDIR) $(HDERINST) ; \
-			$(MKDIR) $(HDERINST) ; \
-		fi ; \
-		for FILE in `echo $(HDER)` ; do \
-			echo $(RM) $(HDERINST)/$$FILE ; \
-			$(RM) $(HDERINST)/$$FILE ; \
-			echo $(CP) $$FILE $(HDERINST)/ ; \
-			$(CP) $$FILE $(HDERINST)/ ; \
-		done \
-	fi
-	@if [ -n "$(HDER2)" -a -n "$(HDERINST2)" ] ; then \
-		if [ ! -d "$(HDERINST2)" ] ; then \
-			echo $(MKDIR) $(HDERINST2) ; \
-			$(MKDIR) $(HDERINST2) ; \
-		fi ; \
-		for FILE in `echo $(HDER2)` ; do \
-			echo $(RM) $(HDERINST2)/$$FILE ; \
-			$(RM) $(HDERINST2)/$$FILE ; \
-			echo $(CP) $$FILE $(HDERINST2)/ ; \
-			$(CP) $$FILE $(HDERINST2)/ ; \
+		for FILE in `echo $(BIN2)` ; do \
+			echo $(CP) $$FILE $(BININST2)/ ; \
+			$(RM) $(BININST2)/$$FILE ; \
+			$(CP) $$FILE $(BININST2)/ ; \
 		done \
 	fi
 
@@ -151,9 +124,9 @@ install		:	all
 
 
 ###### 目标文件依赖关系
-libiLOG3.so		:	$(c_FILE_o)
-	$(CC) -o $@ $(c_FILE_o) $(SOFLAGS) $(LFLAGS)
+test_logconf_kvfile		:	test_logconf_kvfile.o
+	$(CC) -o $@ test_logconf_kvfile.o $(LFLAGS)
 
-libiLOG3.a		:	$(c_FILE_o)
-	$(AR) $(ARFLAGS) $@ $(c_FILE_o)
+test_logsconf_kvfile		:	test_logsconf_kvfile.o
+	$(CC) -o $@ test_logsconf_kvfile.o $(LFLAGS)
 

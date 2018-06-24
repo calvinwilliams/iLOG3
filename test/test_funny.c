@@ -36,17 +36,17 @@ int test_funny( char *program_name )
 	
 	printf( "创建日志句柄成功\n" );
 	
-	DebugLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	InfoLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	WarnLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	ErrorLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
-	FatalLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteDebugLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteInfoLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteWarnLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteErrorLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteFatalLog( g , __FILE__ , __LINE__ , "hello iLOG3" );
 	
-	DebugLog( g2 , __FILE__ , __LINE__ , "hello iLOG3" );
-	InfoLog( g2 , __FILE__ , __LINE__ , "hello iLOG3" );
-	WarnLog( g2 , __FILE__ , __LINE__ , "hello iLOG3" );
-	ErrorLog( g2 , __FILE__ , __LINE__ , "hello iLOG3" );
-	FatalLog( g2 , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteDebugLog( g2 , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteInfoLog( g2 , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteWarnLog( g2 , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteErrorLog( g2 , __FILE__ , __LINE__ , "hello iLOG3" );
+	WriteFatalLog( g2 , __FILE__ , __LINE__ , "hello iLOG3" );
 	
 	DestroyLogHandle( g );
 	DestroyLogHandle( g2 );

@@ -22,7 +22,7 @@
 static char		sg_aszLogLevelDesc[][6+1] = { "DEBUG " , "INFO  " , "NOTICE" , "WARN  " , "ERROR " , "FATAL " , "NOLOG " } ;
 
 /* 版本标识 */ /* version */
-_WINDLL_FUNC int	_LOG_VERSION_1_0_16 = 0 ;
+_WINDLL_FUNC int	_LOG_VERSION_1_2_0 = 0 ;
 
 /* 线程本地存储全局对象 */ /* TLS */
 #if ( defined _WIN32 )
@@ -228,7 +228,7 @@ void DestroyLogHandle( LOG *g )
 #if ( defined _WIN32 ) || ( defined __linux__ ) || ( defined _AIX ) || ( defined __hpux )
 void DestroyLogHandleG()
 {
-	DestroyLogHandle( tls_g );
+	DestroyLogHandle( tls_g ); tls_g = NULL ;
 }
 #endif
 
@@ -307,6 +307,12 @@ LOG *CreateLogHandleG()
 LOG *GetLogHandleG()
 {
 	return tls_g;
+}
+
+void GetLogHandlePtrG( LOG **pp_g )
+{
+	pp_g = & tls_g ;
+	return;
 }
 
 void SetLogHandleG( LOG *g )
@@ -2099,7 +2105,7 @@ int WriteWarnHexLogG( char *c_filename , long c_fileline , char *buffer , long b
 #endif
 
 /* 写十六进制块错误日志 */ /* write error hex log */
-int ErrorHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
+int WriteErrorHexLog( LOG *g , char *c_filename , long c_fileline , char *buffer , long buflen , char *format , ... )
 {
 	WRITEHEXLOGBASE( g , LOG_LEVEL_ERROR )
 	return 0;
