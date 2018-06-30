@@ -1,3 +1,8 @@
+ver 1.3.0	2018-06-30	calvin
+		* src/LOGC.?调整了函数等原型，如Log改名Logc，LOG改名LOGC，写日志函数前加前缀'Write'
+		* src/LOGC.?新增自定义标签功能
+		* src/LOGC.?修正了一些问题，优化了性能
+
 ver 1.2.0	2018-06-23	calvin
 		* src/LOGCONF.?移到到src-conf-kvfile/LOGCONF_KVFILE.?
 		* src/LOGSCONF.?移到到src-conf-kvfile/LOGSCONF_KVFILE.?

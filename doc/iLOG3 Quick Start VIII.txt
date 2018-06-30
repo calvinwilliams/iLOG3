@@ -26,8 +26,8 @@ int test_logc()
 	char	buf[ 64 + 1 ] ;
 	long	buflen ;
 	
-	SetLogFile( "%s/log/test_logc.log" , getenv("HOME") );
-	SetLogLevel( LOGLEVEL_INFO );
+	SetLogcFile( "%s/log/test_logc.log" , getenv("HOME") );
+	SetLogcLevel( LOGLEVEL_INFO );
 	
 	WriteDebugLog( __FILE__ , __LINE__ , "call DebugLog" );
 	WriteInfoLog( __FILE__ , __LINE__ , "call InfoLog" );
