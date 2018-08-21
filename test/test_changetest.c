@@ -24,7 +24,7 @@ int test_changetest()
 
 	SetLogOptions( g , LOG_OPTION_CHANGE_TEST );
 	SetLogRotateMode( g , LOG_ROTATEMODE_SIZE );
-	SetLogRotateSize( g , 10 );
+	SetLogRotateSize( g , 100 );
 	
 	SetLogFileChangeTest( g , 1 );
 	WriteInfoLog( g , __FILE__ , __LINE__ , "hello INFO" );

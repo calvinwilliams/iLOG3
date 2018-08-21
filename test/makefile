@@ -95,5 +95,5 @@ test_logc		:	test_logc.o LOGC.o
 	$(CC) -o $@ test_logc.o LOGC.o -lpthread
 
 test_changetest		:	test_changetest.o
-	$(CC) -o $@ test_changetest.o -lpthread
+	$(CC) -o $@ test_changetest.o $(LFLAGS)
 
