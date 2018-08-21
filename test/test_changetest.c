@@ -9,9 +9,6 @@ int test_changetest()
 {
 	LOG		*g = NULL ;
 	
-	char		buffer[ 4096*10 + 1 ] = "" ;
-	long		buflen = sizeof(buffer) - 1 ;
-	
 	g = CreateLogHandle() ;
 	if( g == NULL )
 	{

@@ -21,6 +21,7 @@ c_FILE		=	\
 			test_afterrotatefile.c \
 			test_filterlogfunc.c \
 			test_logc.c \
+			test_changetest.c \
 
 ###### 目标文件、安装目录配置区
 BIN		=	$(c_FILE:.c=)
@@ -92,4 +93,7 @@ LOGC.o			:	../src/LOGC.c
 
 test_logc		:	test_logc.o LOGC.o
 	$(CC) -o $@ test_logc.o LOGC.o -lpthread
+
+test_changetest		:	test_changetest.o
+	$(CC) -o $@ test_changetest.o -lpthread
 
