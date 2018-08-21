@@ -570,7 +570,13 @@ static int ChangeTest_interval( LOG *g , void **test_handle )
 	{
 		struct STAT	file_change_stat ;
 		nret = STAT( g->log_pathfilename , & file_change_stat ) ;
-		if( ( nret == -1 || file_change_stat.st_size < g->file_change_stat.st_size ) && g->pfuncCloseLogFinally )
+		if(	(
+				nret == -1
+				|| file_change_stat.st_size < g->file_change_stat.st_size
+#if ( defined __unix ) || ( defined _AIX ) || ( defined __linux__ ) || ( defined __hpux )
+				|| file_change_stat.st_ino != g->file_change_stat.st_ino
+#endif
+			) && g->pfuncCloseLogFinally )
 		{
 			nret = g->pfuncCloseLogFinally( g , & (g->open_handle) ) ;
 			if( nret )
