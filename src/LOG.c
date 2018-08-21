@@ -22,7 +22,7 @@
 static char		sg_aszLogLevelDesc[][6+1] = { "DEBUG " , "INFO  " , "NOTICE" , "WARN  " , "ERROR " , "FATAL " , "NOLOG " } ;
 
 /* 版本标识 */ /* version */
-_WINDLL_FUNC int	_LOG_VERSION_1_3_0 = 0 ;
+_WINDLL_FUNC int	_LOG_VERSION_1_3_1 = 0 ;
 
 /* 线程本地存储全局对象 */ /* TLS */
 #if ( defined _WIN32 )
@@ -462,6 +462,8 @@ static int OpenLog_open( LOG *g , char *log_pathfilename , void **open_handle )
 	g->fd = open( log_pathfilename , O_CREAT|O_APPEND|O_WRONLY , S_IRWXU|S_IRWXG|S_IRWXO ) ;
 	if( g->fd == -1 )
 		return LOG_RETURN_ERROR_OPENFILE;
+	
+	FSTAT( g->fd , & (g->file_change_stat) ) ;
 	
 	g->open_flag = 1 ;
 	return 0;
@@ -2171,7 +2173,7 @@ int SetLogFileChangeTest( LOG *g , long interval )
 	
 	g->file_change_test_interval = interval ;
 	g->file_change_test_no = g->file_change_test_interval ;
-	memset( & (g->file_change_stat) , 0x00 , sizeof(g->file_change_stat) );
+	/* memset( & (g->file_change_stat) , 0x00 , sizeof(g->file_change_stat) ); */
 	
 	return 0;
 }

@@ -453,6 +453,7 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 #define FD_NULL			-1
 #define WRITE			_write
 #define STAT			_stat
+#define FSTAT			_fstat
 #define ACCESS			_access
 #define ACCESS_OK		00
 #define RENAME			rename
@@ -467,6 +468,7 @@ _WINDLL_FUNC void SetGlobalLOG( LOG *g );
 #define FD_NULL			-1
 #define WRITE			write
 #define STAT			stat
+#define FSTAT			fstat
 #define ACCESS			access
 #define ACCESS_OK		F_OK
 #define RENAME			rename
