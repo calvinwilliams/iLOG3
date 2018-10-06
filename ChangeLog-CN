@@ -1,3 +1,6 @@
+ver 1.3.2	2018-10-06	calvin
+		* 修正了LOGC中日志等级描述串中缺少NOTICE的问题
+
 ver 1.3.1	2018-08-21	calvin
 		* 优化了LOG_OPTION_CHANGE_TEST算法并作为缺省打开方式
 

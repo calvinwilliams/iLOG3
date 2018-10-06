@@ -22,7 +22,7 @@
 static char		sg_aszLogLevelDesc[][6+1] = { "DEBUG " , "INFO  " , "NOTICE" , "WARN  " , "ERROR " , "FATAL " , "NOLOG " } ;
 
 /* 版本标识 */ /* version */
-_WINDLL_FUNC int	_LOG_VERSION_1_3_1 = 0 ;
+_WINDLL_FUNC int	_LOG_VERSION_1_3_2 = 0 ;
 
 /* 线程本地存储全局对象 */ /* TLS */
 #if ( defined _WIN32 )
