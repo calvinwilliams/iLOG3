@@ -1322,7 +1322,7 @@ int SetLogStylesExG( long log_styles , funcLogStyle *pfuncLogStyles , funcLogSty
 /* 转档日志文件 */ /* rotate log file */
 static int RotateLogFileSize( LOG *g , long step )
 {
-	char		rotate_log_pathfilename[ MAXLEN_FILENAME + 1 ] ;
+	char		rotate_log_pathfilename[ MAXLEN_FILENAME + 32 ] ;
 	char		rotate_log_pathfilename_access[ MAXLEN_FILENAME + 1 ] ;
 	int		nret ;
 	
@@ -1396,7 +1396,7 @@ static int RotateLogFileSize( LOG *g , long step )
 
 static int RotateLogFilePerDate( LOG *g )
 {
-	char		rotate_log_pathfilename[ MAXLEN_FILENAME + 1 ] ;
+	char		rotate_log_pathfilename[ MAXLEN_FILENAME + 64 ] ;
 	int		nret ;
 	
 	if( g->open_flag == 1 )
@@ -1459,7 +1459,7 @@ static int RotateLogFilePerDate( LOG *g )
 
 static int RotateLogFilePerHour( LOG *g )
 {
-	char		rotate_log_pathfilename[ MAXLEN_FILENAME + 1 ] ;
+	char		rotate_log_pathfilename[ MAXLEN_FILENAME + 64 ] ;
 	int		nret ;
 	
 	if( g->open_flag == 1 )
